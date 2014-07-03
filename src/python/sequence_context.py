@@ -11,7 +11,7 @@ class SequenceContext(object):
 
         if gene_seq.nuc_context in [1, 2]:
             # case where context matters
-            index_context = gene_seq.nuc_context - 1  # subtract 1 since python is zero-based index
+            index_context = int(gene_seq.nuc_context) - 1  # subtract 1 since python is zero-based index
             for i in range(index_context, len(gene_seq.exon_seq)):
                 nucs = gene_seq.exon_seq[i-index_context:i+1]
                 self.context2pos.setdefault(nucs, [])
