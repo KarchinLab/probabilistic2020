@@ -1,0 +1,244 @@
+Gene	Tumor_Sample	Tumor_Type	Chromosome	Start_Position	End_Position	Variant_Classification	Reference_Allele	Tumor_Allele	Protein_Change	DNA_Change
+CTNNB1	BR-0031	Breast Adenocarcinoma	chr3	41275708	41275708	Nonsense	C	T	p.R535*	c.?
+CTNNB1	DLBCL-Ls2978	DLBCL	chr3	41280657	41280657	Missense_Mutation	T	C	p.Y724H	c.?
+CTNNB1	ESO-107	Esophageal Adenocarcinoma	chr3	41266113	41266113	Missense_Mutation	C	T	p.S37F	c.?
+CTNNB1	ESO-117	Esophageal Adenocarcinoma	chr3	41266101	41266101	Missense_Mutation	C	G	p.S33C	c.?
+CTNNB1	ESO-184	Esophageal Adenocarcinoma	chr3	41266113	41266113	Missense_Mutation	C	T	p.S37F	c.?
+CTNNB1	LUAD-B00390	Lung Adenocarcinoma	chr3	41266113	41266113	Missense_Mutation	C	T	p.S37F	c.?
+CTNNB1	LUAD-RT-S01771	Lung Adenocarcinoma	chr3	41266113	41266113	Missense_Mutation	C	T	p.S37F	c.?
+CTNNB1	LUAD-S01302	Lung Adenocarcinoma	chr3	41266622	41266622	Missense_Mutation	T	C	p.I140T	c.?
+CTNNB1	MD-121	Medulloblastoma	chr3	41266101	41266101	Missense_Mutation	C	A	p.S33Y	c.?
+CTNNB1	MD-144	Medulloblastoma	chr3	41266112	41266112	Missense_Mutation	T	C	p.S37P	c.?
+CTNNB1	MD-279	Medulloblastoma	chr3	41266101	41266101	Missense_Mutation	C	T	p.S33F	c.?
+CTNNB1	MD-290	Medulloblastoma	chr3	41266103	41266103	Missense_Mutation	G	A	p.G34R	c.?
+CTNNB1	MD-292	Medulloblastoma	chr3	41266103	41266103	Missense_Mutation	G	C	p.G34R	c.?
+CTNNB1	ME011	Melanoma	chr3	41266109	41266109	Missense_Mutation	C	T	p.H36Y	c.?
+CTNNB1	ME014	Melanoma	chr3	41266101	41266101	Missense_Mutation	C	G	p.S33C	c.?
+CTNNB1	ME020	Melanoma	chr3	41266098	41266098	Missense_Mutation	A	C	p.D32A	c.?
+CTNNB1	ME045	Melanoma	chr3	41266125	41266125	Missense_Mutation	C	A	p.T41N	c.?
+CTNNB1	ME050	Melanoma	chr3	41266137	41266137	Missense_Mutation	C	A	p.S45Y	c.?
+CTNNB1	MEL-JWCI-WGS-4	Melanoma	chr3	41266137	41266137	Missense_Mutation	C	T	p.S45F	c.?
+CTNNB1	MEL-Ma-Mel-102	Melanoma	chr3	41275290	41275290	Missense_Mutation	C	T	p.R486C	c.?
+CTNNB1	MEL-Ma-Mel-85	Melanoma	chr3	41274867	41274867	Missense_Mutation	C	T	p.P373S	c.?
+CTNNB1	TCGA-04-1514	Ovarian	chr3	41275769	41275769	Missense_Mutation	G	C	p.G555A	c.?
+CTNNB1	TCGA-05-4384	Lung Adenocarcinoma	chr3	41280817	41280817	Missense_Mutation	T	C	p.F777S	c.?
+CTNNB1	TCGA-05-4389	Lung Adenocarcinoma	chr3	41266124	41266124	Missense_Mutation	A	G	p.T41A	c.?
+CTNNB1	TCGA-05-4422	Lung Adenocarcinoma	chr3	41266113	41266113	Missense_Mutation	C	T	p.S37F	c.?
+CTNNB1	TCGA-05-4425	Lung Adenocarcinoma	chr3	41266137	41266137	Missense_Mutation	C	T	p.S45F	c.?
+CTNNB1	TCGA-09-2044	Ovarian	chr3	41278077	41278077	Splice_Site	A	G	p.?	c.?
+CTNNB1	TCGA-13-1491	Ovarian	chr3	41266887	41266887	Silent	C	T	p.H186H	c.?
+CTNNB1	TCGA-17-Z032	Lung Adenocarcinoma	chr3	41266113	41266113	Missense_Mutation	C	T	p.S37F	c.?
+CTNNB1	TCGA-18-3421	Lung Squamous Cell Carcinoma	chr3	41266094	41266094	Missense_Mutation	C	A	p.L31M	c.?
+CTNNB1	TCGA-21-1077	Lung Squamous Cell Carcinoma	chr3	41280628	41280628	Missense_Mutation	C	G	p.P714R	c.?
+CTNNB1	TCGA-22-5471	Lung Squamous Cell Carcinoma	chr3	41278137	41278137	Silent	G	A	p.K671K	c.?
+CTNNB1	TCGA-44-4112	Lung Adenocarcinoma	chr3	41274850	41274850	Missense_Mutation	G	T	p.G367V	c.?
+CTNNB1	TCGA-66-2794	Lung Squamous Cell Carcinoma	chr3	41266698	41266698	Splice_Site	G	T	p.Q165H	c.?
+CTNNB1	TCGA-67-3771	Lung Adenocarcinoma	chr3	41266113	41266113	Missense_Mutation	C	G	p.S37C	c.?
+CTNNB1	TCGA-67-4679	Lung Adenocarcinoma	chr3	41266967	41266967	Missense_Mutation	G	T	p.C213F	c.?
+CTNNB1	TCGA-A5-A0GI	Endometrial Carcinoma	chr3	41266125	41266125	Missense_Mutation	C	T	p.T41I	c.?
+CTNNB1	TCGA-A5-A0GM	Endometrial Carcinoma	chr3	41266113	41266113	Missense_Mutation	C	T	p.S37F	c.?
+CTNNB1	TCGA-A5-A0GN	Endometrial Carcinoma	chr3	41266103	41266103	Missense_Mutation	G	A	p.G34R	c.?
+CTNNB1	TCGA-A5-A0GU	Endometrial Carcinoma	chr3	41266101	41266101	Missense_Mutation	C	T	p.S33F	c.?
+CTNNB1	TCGA-A5-A0GV	Endometrial Carcinoma	chr3	41266097	41266097	Missense_Mutation	G	A	p.D32N	c.?
+CTNNB1	TCGA-A5-A0GW	Endometrial Carcinoma	chr3	41266101	41266101	Missense_Mutation	C	T	p.S33F	c.?
+CTNNB1	TCGA-A5-A0GX	Endometrial Carcinoma	chr3	41266097	41266097	Missense_Mutation	G	T	p.D32Y	c.?
+CTNNB1	TCGA-A5-A0R9	Endometrial Carcinoma	chr3	41266101	41266101	Missense_Mutation	C	G	p.S33C	c.?
+CTNNB1	TCGA-A5-A0VO	Endometrial Carcinoma	chr3	41266137	41266137	Missense_Mutation	C	T	p.S45F	c.?
+CTNNB1	TCGA-A5-A0VP	Endometrial Carcinoma	chr3	41268792	41268792	Silent	C	T	p.L344L	c.?
+CTNNB1	TCGA-A5-A0VQ	Endometrial Carcinoma	chr3	41266104	41266104	Missense_Mutation	G	A	p.G34E	c.?
+CTNNB1	TCGA-A6-2678	Colorectal	chr3	41266101	41266101	Missense_Mutation	C	G	p.S33C	c.?
+CTNNB1	TCGA-A7-A26H	Breast Adenocarcinoma	chr3	41280699	41280699	Missense_Mutation	G	A	p.E738K	c.?
+CTNNB1	TCGA-AA-3534	Colorectal	chr3	41267186	41267186	Missense_Mutation	C	T	p.T257I	c.?
+CTNNB1	TCGA-AA-3534	Colorectal	chr3	41274911	41274911	Missense_Mutation	T	G	p.N387K	c.?
+CTNNB1	TCGA-AA-3696	Colorectal	chr3	41266689	41266689	Missense_Mutation	C	A	p.D162E	c.?
+CTNNB1	TCGA-AA-3831	Colorectal	chr3	41277276	41277276	Missense_Mutation	G	A	p.R582Q	c.?
+CTNNB1	TCGA-AA-A00U	Colorectal	chr3	41267325	41267325	Missense_Mutation	T	G	p.I303M	c.?
+CTNNB1	TCGA-AA-A01K	Colorectal	chr3	41268762	41268762	Missense_Mutation	G	A	p.E334K	c.?
+CTNNB1	TCGA-AG-3575	Colorectal	chr3	41277892	41277892	Missense_Mutation	G	A	p.C619Y	c.?
+CTNNB1	TCGA-AG-3881	Colorectal	chr3	41275654	41275654	Missense_Mutation	C	T	p.L517F	c.?
+CTNNB1	TCGA-AG-A020	Colorectal	chr3	41274897	41274897	Missense_Mutation	T	G	p.W383G	c.?
+CTNNB1	TCGA-AP-A054	Endometrial Carcinoma	chr3	41278187	41278187	Missense_Mutation	T	C	p.M688T	c.?
+CTNNB1	TCGA-AP-A05N	Endometrial Carcinoma	chr3	41266101	41266101	Missense_Mutation	C	T	p.S33F	c.?
+CTNNB1	TCGA-AP-A0LE	Endometrial Carcinoma	chr3	41266112	41266112	Missense_Mutation	T	C	p.S37P	c.?
+CTNNB1	TCGA-AP-A0LG	Endometrial Carcinoma	chr3	41266112	41266112	Missense_Mutation	T	G	p.S37A	c.?
+CTNNB1	TCGA-AP-A0LJ	Endometrial Carcinoma	chr3	41266113	41266113	Missense_Mutation	C	G	p.S37C	c.?
+CTNNB1	TCGA-AP-A0LL	Endometrial Carcinoma	chr3	41266103	41266103	Missense_Mutation	G	C	p.G34R	c.?
+CTNNB1	TCGA-AP-A0LN	Endometrial Carcinoma	chr3	41266101	41266101	Missense_Mutation	C	A	p.S33Y	c.?
+CTNNB1	TCGA-AP-A0LV	Endometrial Carcinoma	chr3	41266098	41266098	Missense_Mutation	A	G	p.D32G	c.?
+CTNNB1	TCGA-AX-A05T	Endometrial Carcinoma	chr3	41266101	41266101	Missense_Mutation	C	T	p.S33F	c.?
+CTNNB1	TCGA-AX-A05U	Endometrial Carcinoma	chr3	41266097	41266097	Missense_Mutation	G	A	p.D32N	c.?
+CTNNB1	TCGA-AX-A05W	Endometrial Carcinoma	chr3	41266104	41266104	Missense_Mutation	G	A	p.G34E	c.?
+CTNNB1	TCGA-AX-A062	Endometrial Carcinoma	chr3	41266101	41266101	Missense_Mutation	C	G	p.S33C	c.?
+CTNNB1	TCGA-AX-A06L	Endometrial Carcinoma	chr3	41266107	41266107	Missense_Mutation	T	G	p.I35S	c.?
+CTNNB1	TCGA-AX-A0IS	Endometrial Carcinoma	chr3	41266113	41266113	Missense_Mutation	C	G	p.S37C	c.?
+CTNNB1	TCGA-B5-A0JT	Endometrial Carcinoma	chr3	41266101	41266101	Missense_Mutation	C	A	p.S33Y	c.?
+CTNNB1	TCGA-B5-A0K0	Endometrial Carcinoma	chr3	41266113	41266113	Missense_Mutation	C	G	p.S37C	c.?
+CTNNB1	TCGA-B5-A0K6	Endometrial Carcinoma	chr3	41266097	41266097	Missense_Mutation	G	T	p.D32Y	c.?
+CTNNB1	TCGA-B5-A0K7	Endometrial Carcinoma	chr3	41266101	41266101	Missense_Mutation	C	A	p.S33Y	c.?
+CTNNB1	TCGA-B5-A11F	Endometrial Carcinoma	chr3	41266103	41266103	Missense_Mutation	G	A	p.G34R	c.?
+CTNNB1	TCGA-B5-A11U	Endometrial Carcinoma	chr3	41266125	41266125	Missense_Mutation	C	T	p.T41I	c.?
+CTNNB1	TCGA-B5-A11V	Endometrial Carcinoma	chr3	41266112	41266112	Missense_Mutation	T	G	p.S37A	c.?
+CTNNB1	TCGA-B5-A11X	Endometrial Carcinoma	chr3	41266100	41266100	Missense_Mutation	T	C	p.S33P	c.?
+CTNNB1	TCGA-B5-A11Z	Endometrial Carcinoma	chr3	41266124	41266124	Missense_Mutation	A	G	p.T41A	c.?
+CTNNB1	TCGA-B5-A121	Endometrial Carcinoma	chr3	41266137	41266137	Missense_Mutation	C	G	p.S45C	c.?
+CTNNB1	TCGA-BB-4224	Head and Neck Squamous Cell Carcinoma	chr3	41275254	41275254	Nonsense	C	T	p.R474*	c.?
+CTNNB1	TCGA-BG-A0LW	Endometrial Carcinoma	chr3	41266113	41266113	Missense_Mutation	C	G	p.S37C	c.?
+CTNNB1	TCGA-BG-A0M3	Endometrial Carcinoma	chr3	41266113	41266113	Missense_Mutation	C	G	p.S37C	c.?
+CTNNB1	TCGA-BG-A0M3	Endometrial Carcinoma	chr3	41277973	41277973	Missense_Mutation	C	T	p.S646F	c.?
+CTNNB1	TCGA-BG-A0MG	Endometrial Carcinoma	chr3	41266113	41266113	Missense_Mutation	C	T	p.S37F	c.?
+CTNNB1	TCGA-BG-A0MI	Endometrial Carcinoma	chr3	41266112	41266112	Missense_Mutation	T	C	p.S37P	c.?
+CTNNB1	TCGA-BG-A0MO	Endometrial Carcinoma	chr3	41266101	41266101	Missense_Mutation	C	G	p.S33C	c.?
+CTNNB1	TCGA-BG-A0MU	Endometrial Carcinoma	chr3	41266103	41266103	Missense_Mutation	G	A	p.G34R	c.?
+CTNNB1	TCGA-BG-A0VT	Endometrial Carcinoma	chr3	41266113	41266113	Missense_Mutation	C	T	p.S37F	c.?
+CTNNB1	TCGA-BG-A0VX	Endometrial Carcinoma	chr3	41266097	41266097	Missense_Mutation	G	A	p.D32N	c.?
+CTNNB1	TCGA-BG-A0W2	Endometrial Carcinoma	chr3	41266097	41266097	Missense_Mutation	G	T	p.D32Y	c.?
+CTNNB1	TCGA-BG-A187	Endometrial Carcinoma	chr3	41266125	41266125	Missense_Mutation	C	T	p.T41I	c.?
+CTNNB1	TCGA-BH-A18Q	Breast Adenocarcinoma	chr3	41266593	41266593	Silent	G	A	p.Q130Q	c.?
+CTNNB1	TCGA-BK-A0CB	Endometrial Carcinoma	chr3	41266098	41266098	Missense_Mutation	A	G	p.D32G	c.?
+CTNNB1	TCGA-BL-A3JM	Bladder Urothelial Carcinoma	chr3	41266113	41266113	Missense_Mutation	C	G	p.S37C	c.?
+CTNNB1	TCGA-BP-4973	Kidney Clear Cell Carcinoma	chr3	41275110	41275110	Missense_Mutation	A	G	p.N426D	c.?
+CTNNB1	TCGA-BS-A0T9	Endometrial Carcinoma	chr3	41266097	41266097	Missense_Mutation	G	A	p.D32N	c.?
+CTNNB1	TCGA-BS-A0TG	Endometrial Carcinoma	chr3	41266137	41266137	Missense_Mutation	C	T	p.S45F	c.?
+CTNNB1	TCGA-BS-A0TI	Endometrial Carcinoma	chr3	41266113	41266113	Missense_Mutation	C	G	p.S37C	c.?
+CTNNB1	TCGA-BS-A0UT	Endometrial Carcinoma	chr3	41266101	41266101	Missense_Mutation	C	G	p.S33C	c.?
+CTNNB1	TCGA-BS-A0V7	Endometrial Carcinoma	chr3	41266112	41266112	Missense_Mutation	T	G	p.S37A	c.?
+CTNNB1	TCGA-BS-A0V8	Endometrial Carcinoma	chr3	41266838	41266838	Missense_Mutation	A	T	p.K170M	c.?
+CTNNB1	TCGA-BS-A0WQ	Endometrial Carcinoma	chr3	41266104	41266104	Missense_Mutation	G	T	p.G34V	c.?
+CTNNB1	TCGA-CV-6938	Head and Neck Squamous Cell Carcinoma	chr3	41275708	41275708	Nonsense	C	T	p.R535*	c.?
+CTNNB1	TCGA-CV-6938	Head and Neck Squamous Cell Carcinoma	chr3	41277959	41277959	Frame_Shift_Indel	AG	-	p.K641fs*	c.?
+CTNNB1	TCGA-CV-6942	Head and Neck Squamous Cell Carcinoma	chr3	41266590	41266590	Silent	A	G	p.S129S	c.?
+CTNNB1	TCGA-CV-7250	Head and Neck Squamous Cell Carcinoma	chr3	41267196	41267196	Silent	C	T	p.H260H	c.?
+CTNNB1	TCGA-D1-A0ZN	Endometrial Carcinoma	chr3	41266101	41266101	Missense_Mutation	C	G	p.S33C	c.?
+CTNNB1	TCGA-D1-A0ZQ	Endometrial Carcinoma	chr3	41266113	41266113	Missense_Mutation	C	T	p.S37F	c.?
+CTNNB1	TCGA-D1-A0ZU	Endometrial Carcinoma	chr3	41266101	41266101	Missense_Mutation	C	T	p.S33F	c.?
+CTNNB1	TCGA-D1-A102	Endometrial Carcinoma	chr3	41266103	41266103	Missense_Mutation	G	A	p.G34R	c.?
+CTNNB1	TCGA-D1-A15Z	Endometrial Carcinoma	chr3	41266113	41266113	Missense_Mutation	C	G	p.S37C	c.?
+CTNNB1	TCGA-D1-A165	Endometrial Carcinoma	chr3	41266101	41266101	Missense_Mutation	C	A	p.S33Y	c.?
+CTNNB1	TCGA-D1-A16B	Endometrial Carcinoma	chr3	41266113	41266113	Missense_Mutation	C	T	p.S37F	c.?
+CTNNB1	TCGA-D1-A16Q	Endometrial Carcinoma	chr3	41266113	41266113	Missense_Mutation	C	T	p.S37F	c.?
+CTNNB1	TCGA-D1-A16R	Endometrial Carcinoma	chr3	41266107	41266107	Missense_Mutation	T	G	p.I35S	c.?
+CTNNB1	TCGA-D1-A16R	Endometrial Carcinoma	chr3	41277903	41277903	Missense_Mutation	C	G	p.Q623E	c.?
+CTNNB1	TCGA-D1-A16Y	Endometrial Carcinoma	chr3	41268762	41268762	Missense_Mutation	G	A	p.E334K	c.?
+CTNNB1	TCGA-D1-A17C	Endometrial Carcinoma	chr3	41266101	41266101	Missense_Mutation	C	T	p.S33F	c.?
+CTNNB1	TCGA-D1-A17M	Endometrial Carcinoma	chr3	41266097	41266097	Missense_Mutation	G	A	p.D32N	c.?
+CTNNB1	TCGA-D1-A17M	Endometrial Carcinoma	chr3	41266104	41266104	Missense_Mutation	G	T	p.G34V	c.?
+CTNNB1	TCGA-D1-A17N	Endometrial Carcinoma	chr3	41266103	41266103	Missense_Mutation	G	A	p.G34R	c.?
+CTNNB1	TCGA-D1-A17R	Endometrial Carcinoma	chr3	41266113	41266113	Missense_Mutation	C	T	p.S37F	c.?
+CTNNB1	TCGA-D1-A17S	Endometrial Carcinoma	chr3	41266097	41266097	Missense_Mutation	G	T	p.D32Y	c.?
+CTNNB1	TCGA-D1-A17T	Endometrial Carcinoma	chr3	41266113	41266113	Missense_Mutation	C	G	p.S37C	c.?
+CTNNB1	TCGA-DK-A1AC	Bladder Urothelial Carcinoma	chr3	41266101	41266101	Missense_Mutation	C	T	p.S33F	c.?
+CTNNB1	TCGA-E2-A15S	Breast Adenocarcinoma	chr3	41268806	41268806	Silent	T	A	p.S348S	c.?
+CTNNB1	TCGA-HQ-A2OE	Bladder Urothelial Carcinoma	chr3	41266097	41266097	Missense_Mutation	G	C	p.D32H	c.?
+CTNNB1	TCGA-CG-4469	Stomach Adenocarcinoma	3	41275180	41275180	Frame_Shift_Indel	G	-	p.R449fs	c.?
+CTNNB1	TCGA-EE-A2M6	Melanoma	3	41266134	41266136	In_Frame_Indel	CTT	-	p.S45del	c.?
+CTNNB1	CHC1052T	Liver Hepatocellular carcinoma	3	41266128	41266129	In_Frame_Indel	-	CAGCTC	p.T42_A43insSS	c.?
+CTNNB1	CHC1052T	Liver Hepatocellular carcinoma	3	41266134	41266135	In_Frame_Indel	-	AGCTCC	p.P44_S45insAP	c.?
+CTNNB1	RK005_C01	Liver Hepatocellular carcinoma	3	41274885	41274885	Missense_Mutation	C	A	p.Q379K	c.?
+CTNNB1	76629543	Stomach Adenocarcinoma	3	41275024	41275024	Missense_Mutation	G	T	p.G397V	c.?
+CTNNB1	S00936	Lung Small Cell Carcinoma	3	41275179	41275179	Missense_Mutation	C	T	p.R449C	c.?
+CTNNB1	TGH	Stomach Adenocarcinoma	3	41275240	41275240	Missense_Mutation	G	A	p.R469H	c.?
+CTNNB1	TCGA-02-0015	Glioblastoma Multiforme	3	41277948	41277948	Missense_Mutation	G	A	p.A638T	c.?
+CTNNB1	TCGA-BR-6566	Stomach Adenocarcinoma	3	41265566	41265566	Missense_Mutation	A	G	p.T3A	c.?
+CTNNB1	TCGA-BR-8589	Stomach Adenocarcinoma	3	41266097	41266097	Missense_Mutation	G	C	p.D32H	c.?
+CTNNB1	TCGA-EJ-5525	Prostate Adenocarcinoma	3	41266097	41266097	Missense_Mutation	G	C	p.D32H	c.?
+CTNNB1	TCGA-EJ-5494	Prostate Adenocarcinoma	3	41266098	41266098	Missense_Mutation	A	T	p.D32V	c.?
+CTNNB1	TCGA-HU-A4H5	Stomach Adenocarcinoma	3	41266100	41266100	Missense_Mutation	T	C	p.S33P	c.?
+CTNNB1	TCGA-BR-A4J6	Stomach Adenocarcinoma	3	41266103	41266103	Missense_Mutation	G	A	p.G34R	c.?
+CTNNB1	TCGA-CG-5727	Stomach Adenocarcinoma	3	41266113	41266113	Missense_Mutation	C	G	p.S37C	c.?
+CTNNB1	TCGA-D7-6822	Stomach Adenocarcinoma	3	41266113	41266113	Missense_Mutation	C	T	p.S37F	c.?
+CTNNB1	TCGA-ER-A19O	Melanoma	3	41266124	41266124	Missense_Mutation	A	G	p.T41A	c.?
+CTNNB1	TCGA-D9-A149	Melanoma	3	41266125	41266125	Missense_Mutation	C	T	p.T41I	c.?
+CTNNB1	TCGA-CH-5752	Prostate Adenocarcinoma	3	41266136	41266136	Missense_Mutation	T	C	p.S45P	c.?
+CTNNB1	TCGA-FS-A1YY	Melanoma	3	41266137	41266137	Missense_Mutation	C	G	p.S45C	c.?
+CTNNB1	TCGA-D7-6524	Stomach Adenocarcinoma	3	41266453	41266453	Missense_Mutation	G	A	p.G84R	c.?
+CTNNB1	TCGA-D7-6524	Stomach Adenocarcinoma	3	41266572	41266572	Missense_Mutation	G	T	p.Q123H	c.?
+CTNNB1	TCGA-EE-A180	Melanoma	3	41267290	41267290	Missense_Mutation	A	G	p.K292E	c.?
+CTNNB1	TCGA-CG-5726	Stomach Adenocarcinoma	3	41268742	41268742	Missense_Mutation	T	C	p.I327T	c.?
+CTNNB1	TCGA-D7-6822	Stomach Adenocarcinoma	3	41268778	41268778	Missense_Mutation	C	A	p.T339N	c.?
+CTNNB1	TCGA-C5-A1MH	Cervical Carcinoma	3	41275108	41275108	Missense_Mutation	C	G	p.S425C	c.?
+CTNNB1	TCGA-D3-A1Q5	Melanoma	3	41275119	41275119	Missense_Mutation	T	G	p.C429G	c.?
+CTNNB1	TCGA-B7-5816	Stomach Adenocarcinoma	3	41275213	41275213	Missense_Mutation	T	C	p.I460T	c.?
+CTNNB1	TCGA-BR-4188	Stomach Adenocarcinoma	3	41277254	41277254	Missense_Mutation	G	A	p.G575R	c.?
+CTNNB1	TCGA-EE-A29A	Melanoma	3	41277853	41277853	Missense_Mutation	C	T	p.P606L	c.?
+CTNNB1	TCGA-FZ-5922	Pancreatic Adenocarcinoma	3	41277892	41277892	Missense_Mutation	G	A	p.C619Y	c.?
+CTNNB1	TCGA-D3-A2JN	Melanoma	3	41278183	41278184	Missense_Mutation	CC	TT	p.P687L	c.?
+CTNNB1	TCGA-E3-A3E5	Thyroid Carcinoma	3	41280634	41280634	Missense_Mutation	A	G	p.Y716C	c.?
+CTNNB1	TCGA-BJ-A0Z3	Thyroid Carcinoma	3	41280717	41280717	Missense_Mutation	C	A	p.P744T	c.?
+CTNNB1	TCGA-EE-A182	Melanoma	3	41266077	41266077	Nonsense_Mutation	G	A	p.W25*	c.?
+CTNNB1	TCGA-EE-A3AC	Melanoma	3	41275738	41275738	Nonsense_Mutation	C	T	p.Q545*	c.?
+CTNNB1	MB130	Medulloblastoma	3	41266096	41266096	Silent	G	A	p.L31L	c.?
+CTNNB1	TCGA-08-0353	Glioblastoma Multiforme	3	41266506	41266506	Silent	G	A	p.E101E	c.?
+CTNNB1	TCGA-BR-4288	Stomach Adenocarcinoma	3	41266551	41266551	Silent	T	C	p.A116A	c.?
+CTNNB1	TCGA-08-0353	Glioblastoma Multiforme	3	41266698	41266698	Silent	G	A	p.Q165Q	c.?
+CTNNB1	RK046_C02	Liver Hepatocellular carcinoma	3	41267169	41267169	Silent	G	T	p.V251V	c.?
+CTNNB1	TCGA-BQ-5878	Kidney Papillary Cell Carcinoma	3	41274905	41274905	Silent	C	T	p.L385L	c.?
+CTNNB1	RK006_C02	Liver Hepatocellular carcinoma	3	41275301	41275301	Silent	T	C	p.Y489Y	c.?
+CTNNB1	SWE-43	Prostate Adenocarcinoma	3	41274875	41274875	Silent	A	G	p.Q375Q	c.?
+CTNNB1	DU-145	Prostate Adenocarcinoma	3	41266068	41266068	Missense_Mutation	T	G	p.V22G	c.?
+CTNNB1	MBRep_T28	Medulloblastoma	3	41266097	41266097	Missense_Mutation	G	T	p.D32Y	c.?
+CTNNB1	MBRep_T68	Medulloblastoma	3	41266097	41266097	Missense_Mutation	G	T	p.D32Y	c.?
+CTNNB1	MBRep_T92	Medulloblastoma	3	41266097	41266097	Missense_Mutation	G	T	p.D32Y	c.?
+CTNNB1	SPN19	Pancreatic Adenocarcinoma	3	41266097	41266097	Missense_Mutation	G	A	p.D32N	c.?
+CTNNB1	SPN5	Pancreatic Adenocarcinoma	3	41266097	41266097	Missense_Mutation	G	C	p.D32H	c.?
+CTNNB1	WA46	Prostate Adenocarcinoma	3	41266097	41266097	Missense_Mutation	G	T	p.D32Y	c.?
+CTNNB1	CHC1041T	Liver Hepatocellular carcinoma	3	41266098	41266098	Missense_Mutation	A	T	p.D32V	c.?
+CTNNB1	CHC433T	Liver Hepatocellular carcinoma	3	41266098	41266098	Missense_Mutation	A	G	p.D32G	c.?
+CTNNB1	HCC08T	Liver Hepatocellular carcinoma	3	41266098	41266098	Missense_Mutation	A	G	p.D32G	c.?
+CTNNB1	MB_Exm599	Medulloblastoma	3	41266098	41266098	Missense_Mutation	A	C	p.D32A	c.?
+CTNNB1	ME020T	NS	3	41266098	41266098	Missense_Mutation	A	C	p.D32A	c.?
+CTNNB1	SJMB041	Medulloblastoma	3	41266098	41266098	Missense_Mutation	A	G	p.D32G	c.?
+CTNNB1	SJMB051	Medulloblastoma	3	41266098	41266098	Missense_Mutation	A	G	p.D32G	c.?
+CTNNB1	SPN6	Pancreatic Adenocarcinoma	3	41266098	41266098	Missense_Mutation	A	C	p.D32A	c.?
+CTNNB1	CHC051T	Liver Hepatocellular carcinoma	3	41266100	41266100	Missense_Mutation	T	C	p.S33P	c.?
+CTNNB1	SJMB114	Medulloblastoma	3	41266100	41266100	Missense_Mutation	T	G	p.S33A	c.?
+CTNNB1	CHC429T	Liver Hepatocellular carcinoma	3	41266101	41266101	Missense_Mutation	C	G	p.S33C	c.?
+CTNNB1	E172	Endometrial Carcinoma 	3	41266101	41266101	Missense_Mutation	C	G	p.S33C	c.?
+CTNNB1	ICGC_MB14	Medulloblastoma	3	41266101	41266101	Missense_Mutation	C	G	p.S33C	c.?
+CTNNB1	MB_Exm987	Medulloblastoma	3	41266101	41266101	Missense_Mutation	C	G	p.S33C	c.?
+CTNNB1	MBRep_T37	Medulloblastoma	3	41266101	41266101	Missense_Mutation	C	T	p.S33F	c.?
+CTNNB1	MBRep_T64	Medulloblastoma	3	41266101	41266101	Missense_Mutation	C	G	p.S33C	c.?
+CTNNB1	SJMB028	Medulloblastoma	3	41266101	41266101	Missense_Mutation	C	A	p.S33Y	c.?
+CTNNB1	SJMB040	Medulloblastoma	3	41266101	41266101	Missense_Mutation	C	T	p.S33F	c.?
+CTNNB1	SPN4	Pancreatic Adenocarcinoma	3	41266101	41266101	Missense_Mutation	C	G	p.S33C	c.?
+CTNNB1	E99	Endometrial Carcinoma 	3	41266103	41266103	Missense_Mutation	G	A	p.G34R	c.?
+CTNNB1	MBRep_T63	Medulloblastoma	3	41266103	41266103	Missense_Mutation	G	A	p.G34R	c.?
+CTNNB1	SJMB001	Medulloblastoma	3	41266103	41266103	Missense_Mutation	G	A	p.G34R	c.?
+CTNNB1	SPN17	Pancreatic Adenocarcinoma	3	41266103	41266103	Missense_Mutation	G	A	p.G34R	c.?
+CTNNB1	SPN2	Pancreatic Adenocarcinoma	3	41266103	41266103	Missense_Mutation	G	A	p.G34R	c.?
+CTNNB1	HCC03T	Liver Hepatocellular carcinoma	3	41266104	41266104	Missense_Mutation	G	T	p.G34V	c.?
+CTNNB1	HCC07T	Liver Hepatocellular carcinoma	3	41266104	41266104	Missense_Mutation	G	T	p.G34V	c.?
+CTNNB1	SPN12	Pancreatic Adenocarcinoma	3	41266104	41266104	Missense_Mutation	G	T	p.G34V	c.?
+CTNNB1	SWE-44	Prostate Adenocarcinoma	3	41266104	41266104	Missense_Mutation	G	T	p.G34V	c.?
+CTNNB1	CHC301T	Liver Hepatocellular carcinoma	3	41266107	41266107	Missense_Mutation	T	G	p.I35S	c.?
+CTNNB1	ME011T	Melanoma	3	41266109	41266109	Missense_Mutation	C	T	p.H36Y	c.?
+CTNNB1	HCC10T	Liver Hepatocellular carcinoma	3	41266110	41266110	Missense_Mutation	A	C	p.H36P	c.?
+CTNNB1	CHC320T	Liver Hepatocellular carcinoma	3	41266113	41266113	Missense_Mutation	C	G	p.S37C	c.?
+CTNNB1	E161	Endometrial Carcinoma 	3	41266113	41266113	Missense_Mutation	C	G	p.S37C	c.?
+CTNNB1	E170	Endometrial Carcinoma 	3	41266113	41266113	Missense_Mutation	C	G	p.S37C	c.?
+CTNNB1	E58	Endometrial Carcinoma 	3	41266113	41266113	Missense_Mutation	C	G	p.S37C	c.?
+CTNNB1	HB9	Liver Hepatocellular carcinoma	3	41266113	41266113	Missense_Mutation	C	T	p.S37F	c.?
+CTNNB1	MBRep_T35	Medulloblastoma	3	41266113	41266113	Missense_Mutation	C	A	p.S37Y	c.?
+CTNNB1	MBRep_T56	Medulloblastoma	3	41266113	41266113	Missense_Mutation	C	T	p.S37F	c.?
+CTNNB1	SJMB106	Medulloblastoma	3	41266113	41266113	Missense_Mutation	C	A	p.S37Y	c.?
+CTNNB1	SJMB129	Medulloblastoma	3	41266113	41266113	Missense_Mutation	C	T	p.S37F	c.?
+CTNNB1	SPN8	Pancreatic Adenocarcinoma	3	41266113	41266113	Missense_Mutation	C	T	p.S37F	c.?
+CTNNB1	587336	Colorectal	3	41266124	41266124	Missense_Mutation	A	G	p.T41A	c.?
+CTNNB1	HC11	Liver Hepatocellular carcinoma	3	41266124	41266124	Missense_Mutation	A	G	p.T41A	c.?
+CTNNB1	NBNC1	Soft Tissue Sarcoma	3	41266124	41266124	Missense_Mutation	A	G	p.T41A	c.?
+CTNNB1	WA15	Prostate Adenocarcinoma	3	41266124	41266124	Missense_Mutation	A	G	p.T41A	c.?
+CTNNB1	CHC614T	Liver Hepatocellular carcinoma	3	41266125	41266125	Missense_Mutation	C	A	p.T41N	c.?
+CTNNB1	ME045T	Melanoma	3	41266125	41266125	Missense_Mutation	C	A	p.T41N	c.?
+CTNNB1	587256	Colorectal	3	41266136	41266136	Missense_Mutation	T	C	p.S45P	c.?
+CTNNB1	CHC121T	Liver Hepatocellular carcinoma	3	41266136	41266136	Missense_Mutation	T	G	p.S45A	c.?
+CTNNB1	HCC07T	Liver Hepatocellular carcinoma	3	41266136	41266136	Missense_Mutation	T	C	p.S45P	c.?
+CTNNB1	CHC197T	Liver Hepatocellular carcinoma	3	41266137	41266137	Missense_Mutation	C	T	p.S45F	c.?
+CTNNB1	CHC302T	Liver Hepatocellular carcinoma	3	41266137	41266137	Missense_Mutation	C	A	p.S45Y	c.?
+CTNNB1	MC1	Colorectal	3	41266137	41266137	Missense_Mutation	C	T	p.S45F	c.?
+CTNNB1	ME050T	Melanoma	3	41266137	41266137	Missense_Mutation	C	A	p.S45Y	c.?
+CTNNB1	H358	Lung Adenocarcinoma	3	41266226	41266226	Missense_Mutation	A	G	p.T75A	c.?
+CTNNB1	T-b	Kidney Clear Cell Carcinoma	3	41266697	41266697	Missense_Mutation	A	G	p.Q165R	c.?
+CTNNB1	HF-23896	Lung Adenocarcinoma	3	41266903	41266903	Missense_Mutation	C	T	p.P192S	c.?
+CTNNB1	587316	Colorectal	3	41267002	41267002	Missense_Mutation	C	T	p.R225C	c.?
+CTNNB1	WA37	Prostate Adenocarcinoma	3	41274911	41274911	Missense_Mutation	T	A	p.N387K	c.?
+CTNNB1	ESO09T	Esophageal Adenocarcinoma	3	41274916	41274916	Missense_Mutation	C	T	p.S389L	c.?
+CTNNB1	587338	Colorectal	3	41280675	41280675	Missense_Mutation	G	A	p.G730S	c.?
