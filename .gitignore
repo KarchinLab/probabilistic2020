@@ -45,4 +45,6 @@ Session.vim
 .netrwhist
 *~
 
-
+*.fai
+*.fa
+tests/output/*
