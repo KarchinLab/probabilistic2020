@@ -1,4 +1,7 @@
 import numpy as np
+from scipy.misc import logsumexp
+from sklearn.neighbors import KernelDensity
+from sklearn.grid_search import GridSearchCV
 
 
 def shannon_entropy(p):
@@ -13,7 +16,7 @@ def shannon_entropy(p):
     -------
     shannon entropy in bits
     """
-    return -np.sum(p * np.log2(p))
+    return -np.sum(np.where(p!=0, p * np.log2(p), 0))
 
 
 def max_shannon_entropy(n):
@@ -101,3 +104,27 @@ def js_distance(p, q):
     """
     js_dist = np.sqrt(js_divergence(p, q))
     return js_dist
+
+
+def kde_entropy(x, bandwidth=None, folds=5):
+    # lower fold number if few mutations
+    if len(x) < folds:
+        folds = len(x)
+
+    # check if bandwidth selection is necessary
+    if bandwidth is None:
+        grid = GridSearchCV(KernelDensity(),
+                            {'bandwidth': np.array([3.0, 5.0, 10.0, 15.0,
+                                                    20.0, 25.0, 40.0, 50.0])},
+                            cv=folds) # 5-fold cross-validation
+        grid.fit(x[:, None])
+        bandwidth = grid.best_params_['bandwidth']
+
+    # perform calculations
+    kde_skl = KernelDensity(bandwidth=bandwidth)
+    kde_skl.fit(x[:, np.newaxis])
+    log_pdf = kde_skl.score_samples(x[:, np.newaxis])  # return log-likelihood
+    log_sum = logsumexp(log_pdf)
+    norm_log_pdf = log_pdf - log_sum
+    ent = shannon_entropy(np.exp(norm_log_pdf))
+    return ent
