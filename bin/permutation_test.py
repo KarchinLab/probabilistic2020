@@ -81,8 +81,7 @@ def position_permutation(context_counts,
     somatic_base = [base
                     for one_context in mycontexts
                     for base in context_to_mut[one_context]]
-    num_recur_list = []
-    entropy_list = []
+    num_recur_list, entropy_list, kde_entropy_list = [], [], []
     tmp_contxt_pos = seq_context.random_pos(context_counts.iteritems(),
                                             num_permutations)
     tmp_mut_pos = np.hstack(pos_array for base, pos_array in tmp_contxt_pos)
@@ -93,17 +92,13 @@ def position_permutation(context_counts,
                                        gene_seq)
 
         # calculate position info
-        tmp_recur_ct, tmp_entropy = cutils.calc_pos_info(tmp_mut_info['Codon Pos'])
+        tmp_recur_ct, tmp_entropy, tmp_kde_ent = cutils.calc_pos_info(tmp_mut_info['Codon Pos'],
+                                                                      tmp_mut_info['Reference AA'],
+                                                                      tmp_mut_info['Somatic AA'])
         num_recur_list.append(tmp_recur_ct)
         entropy_list.append(tmp_entropy)
 
-        # calculate recurrent count
-        # tmp_recur_ct = calc_num_recurrent(tmp_mut_info)
-
-        # calculate position entropy
-        # tmp_entropy = calc_pos_entropy(tmp_mut_info)
-
-    return num_recur_list, entropy_list
+    return num_recur_list, entropy_list, kde_entropy_list
 
 
 def calc_pos_entropy(aa_mut):
@@ -180,13 +175,16 @@ def singleprocess_permutation(info):
         cols = ['Chromosome', 'Start_Position', 'Reference_Allele', 'Tumor_Allele']
         mut_info = gene_mut[cols]
         gs.set_gene(bed)
-        sc = SequenceContext(gs)
         pos_list = []
         for ix, row in mut_info.iterrows():
             coding_pos = bed.query_position(row['Chromosome'], row['Start_Position'])
             pos_list.append(coding_pos)
         mut_info['Coding Position'] = pos_list
         mut_info = mut_info.dropna()
+        mut_info['Coding Position'] = mut_info['Coding Position'].astype(int)
+        gs.add_germline_variants(mut_info['Reference_Allele'].tolist(),
+                                 mut_info['Coding Position'].tolist())
+        sc = SequenceContext(gs)
         if len(mut_info) > 0:
             mut_info['Coding Position'] = mut_info['Coding Position'].astype(int)
             mut_info['Context'] = mut_info['Coding Position'].apply(lambda x: sc.pos2context[x])
@@ -195,33 +193,40 @@ def singleprocess_permutation(info):
             aa_mut_info = get_aa_mut_info(mut_info['Coding Position'],
                                           mut_info['Tumor_Allele'].tolist(),
                                           gs)
-            num_recurrent = calc_num_recurrent(aa_mut_info)
-            pos_ent = calc_pos_entropy(aa_mut_info)
-
+            num_recurrent, pos_ent, kde_ent = cutils.calc_pos_info(aa_mut_info['Codon Pos'],
+                                                                   aa_mut_info['Reference AA'],
+                                                                   aa_mut_info['Somatic AA'])
 
             # permute context and calculate number of recurrent mutations
             context_cts = mut_info['Context'].value_counts()
             context_to_mutations = dict((name, group['Tumor_Allele'])
                                         for name, group in mut_info.groupby('Context'))
-            num_recur_list, pos_entropy_list = position_permutation(context_cts,
-                                                                    context_to_mutations,
-                                                                    sc,  # sequence context obj
-                                                                    gs,
-                                                                    num_permutations)  # gene sequence obj
+            permutation_result = position_permutation(context_cts,
+                                                      context_to_mutations,
+                                                      sc,  # sequence context obj
+                                                      gs,
+                                                      num_permutations)  # gene sequence obj
+            num_recur_list, pos_entropy_list, kde_entropy_list = permutation_result  # unpack results
 
             # calculate permutation p-value
             recur_num_nulls = sum([1 for null_recur in num_recur_list
                                    if null_recur >= num_recurrent])
             entropy_num_nulls = sum([1 for null_ent in pos_entropy_list
                                      if null_ent <= pos_ent])
+            kde_entropy_num_nulls = sum([1 for null_ent in kde_entropy_list
+                                         if null_ent <= pos_ent])
             recur_p_value = recur_num_nulls / float(num_permutations)
             ent_p_value = entropy_num_nulls / float(num_permutations)
+            kde_ent_p_value = kde_entropy_num_nulls / float(num_permutations)
         else:
             num_recurrent = 0
             pos_ent = 0
+            kde_ent = 0
             recur_p_value = 1.0
             ent_p_value = 1.0
-        result.append([bed.gene_name, num_recurrent, pos_ent, recur_p_value, ent_p_value])
+            kde_ent_p_value = 1.0
+        result.append([bed.gene_name, num_recurrent, pos_ent, kde_ent,
+                       recur_p_value, ent_p_value, kde_ent_p_value])
     gene_fa.close()
     logger.info('Finished working on chromosome: {0}.'.format(current_chrom))
     return result
@@ -349,7 +354,10 @@ def main(opts):
     non_tested_genes = set(tsg_score[tsg_score>=opts['tsg_score']].index.tolist())
 
     # select single nucleotide variants
-    mut_df = mut_df[(mut_df.Variant_Classification=='Missense_Mutation') | (mut_df.Variant_Classification=='Nonsense_Mutation')]
+    allowed_types = ['Missense_Mutation', 'Silent', 'Nonsense_Mutation']
+    mut_df = mut_df[mut_df.Variant_Classification.isin(allowed_types)]  # only keep SNV
+    valid_nuc_flag = mut_df['Reference_Allele'].apply(utils.is_valid_nuc) & mut_df['Tumor_Allele'].apply(utils.is_valid_nuc)
+    mut_df = mut_df[valid_nuc_flag]  # filter bad lines
     mut_df['Start_Position'] = mut_df['Start_Position'] - 1
     mut_df = mut_df[mut_df['Tumor_Allele'].apply(lambda x: len(x)==1)]
     mut_df = mut_df[mut_df['Reference_Allele'].apply(lambda x: len(x)==1)]
@@ -357,13 +365,15 @@ def main(opts):
     # perform permutation test
     bed_dict = read_bed(opts['bed'], non_tested_genes)
     permutation_result = multiprocess_permutation(bed_dict, mut_df, opts)
-    permutation_df = pd.DataFrame(sorted(permutation_result, key=lambda x: x[3]),
+    permutation_df = pd.DataFrame(sorted(permutation_result, key=lambda x: x[4]),
                                   columns=['gene', 'num recurrent', 'position entropy',
-                                           'recurrent p-value', 'entropy p-value'])
+                                           'kde entropy', 'recurrent p-value',
+                                           'entropy p-value', 'kde entropy p-value'])
 
     # get benjamani hochberg adjusted p-values
     permutation_df['recurrent BH q-value'] = utils.bh_fdr(permutation_df['recurrent p-value'])
     permutation_df['entropy BH q-value'] = utils.bh_fdr(permutation_df['entropy p-value'])
+    permutation_df['kde entropy BH q-value'] = utils.bh_fdr(permutation_df['kde entropy p-value'])
 
     # include non-tested genes in the result
     no_test_df = pd.DataFrame(index=range(len(non_tested_genes)))
@@ -374,8 +384,9 @@ def main(opts):
 
     # save output
     permutation_df['num recurrent'] = permutation_df['num recurrent'].fillna(-1).astype(int)  # fix dtype isssue
-    col_order = ['gene', 'num recurrent', 'position entropy', 'recurrent p-value',
-                 'recurrent BH q-value', 'entropy p-value', 'entropy BH q-value',
+    col_order = ['gene', 'num recurrent', 'position entropy', 'kde entropy',
+                 'recurrent p-value', 'recurrent BH q-value', 'entropy p-value',
+                 'entropy BH q-value', 'kde entropy p-value', 'kde entropy BH q-value',
                  'Performed Recurrency Test']
     permutation_df[col_order].to_csv(opts['output'], sep='\t', index=False)
 
