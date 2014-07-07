@@ -17,6 +17,12 @@ codon_table = {'TTT': 'F', 'TTC': 'F', 'TTA': 'L', 'TTG': 'L', 'TCT': 'S',
                'GAA': 'E', 'GAG': 'E', 'GGT': 'G', 'GGC': 'G', 'GGA': 'G',
                'GGG': 'G', 'TAA': '*', 'TAG': '*', 'TGA': '*'}
 
+def is_valid_nuc(nuc):
+    valid_nucs = ['A', 'C', 'T', 'G', 'N']
+    is_valid = nuc in valid_nucs
+    return is_valid
+
+
 def get_config(section):
     """Returns the config object"""
     cfg = ConfigParser.ConfigParser()
@@ -65,10 +71,6 @@ def cummin(x):
 
 
 def bh_fdr(pval):
-    # check if p-values are sorted
-    #is_sorted = all(a<=b for a, b in zip(pval, pval[1:]))
-    #if not is_sorted:
-        #raise ValueError('Sort p-values before calculating FDR')
     pval_array = np.array(pval)
     sorted_order = np.argsort(pval_array)
     original_order = np.argsort(sorted_order)
@@ -80,3 +82,5 @@ def bh_fdr(pval):
     i = np.arange(1, n+1, dtype=float)[::-1]  # largest to smallest
     pval_adj = np.minimum(1, cummin(n/i * pval_array[::-1]))[::-1]
     return pval_adj[original_order]
+
+
