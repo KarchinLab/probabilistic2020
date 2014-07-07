@@ -1,7 +1,7 @@
 #include <map>
 #include <cmath>
 
-#define M_LOG2E 1.44269504088896340736 //log2(e)
+#define M_LOG2E 1.44269504088896340736L //log2(e)
 
 inline long double log2(const long double x){
     return  log(x) * M_LOG2E;
@@ -22,7 +22,8 @@ int recurrent_sum(std::map<int, int> pos_ctr) {
 double position_entropy(std::map<int, int> pos_ctr) {
     // define variables
     int val = 0;
-    double myent = 0.0, mysum = 0.0, p = 0.0;
+    long double myent = 0.0L, mysum = 0.0L, p = 0.0L;
+    long double frac_of_uniform_ent = 1.0L;
     typedef std::map<int, int>::iterator it_type;
 
     // calculate sum
@@ -37,5 +38,8 @@ double position_entropy(std::map<int, int> pos_ctr) {
         p = val / mysum;
         myent -= p * log2(p);
     }
-    return(myent);
+    if (mysum > 1) {
+        frac_of_uniform_ent = myent / log2(mysum);
+    }
+    return(frac_of_uniform_ent);
 }
