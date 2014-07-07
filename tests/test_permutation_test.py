@@ -83,8 +83,8 @@ def test_100genes_main():
     opts['output'] = os.path.join(file_dir, 'output/100genes_no_context_output.txt')
     result = pt.main(opts)
     tested_result = result[result['Performed Recurrency Test']==1]
-    assert np.sum(tested_result['recurrent BH q-value'] < .1) < 5, 'Few of the 100 test genes should not be significant'
-    assert np.sum(tested_result['entropy BH q-value'] < .1) < 5, 'Few of the 100 test genes should not be significant'
+    assert np.sum(tested_result['recurrent BH q-value'] < .1) < 8, 'Few of the 100 test genes should not be significant'
+    assert np.sum(tested_result['entropy BH q-value'] < .1) < 8, 'Few of the 100 test genes should not be significant'
 
     # di-nucleotide context
     opts['context'] = 2
