@@ -1,4 +1,5 @@
 """Fetches gene sequence from gene fasta created by extract_genes.py"""
+import utils
 
 
 class GeneSequence(object):
@@ -20,6 +21,20 @@ class GeneSequence(object):
         self.five_prime_seq = [(exon_seq_list[i+1][:1] + ss if self.nuc_context == 2 else ss)
                                for i, ss in enumerate(three_ss_seq_list)]
         self._to_upper()  # make sure all sequences are in upper case
+
+    def add_germline_variants(self, germline_nucs, coding_pos):
+        """Add potential germline variants into the nucleotide sequence."""
+        if len(germline_nucs) != len(coding_pos):
+            raise ValueError('Each germline nucleotide should have a coding position')
+
+        es = list(self.exon_seq)
+        for i in range(len(germline_nucs)):
+            gl_nuc, cpos = germline_nucs[i].upper(), coding_pos[i]
+            if not utils.is_valid_nuc(gl_nuc):
+                raise ValueError('{0} is not a valid nucleotide'.format(gl_nuc))
+            if cpos >= 0:
+                es[cpos] = gl_nuc
+        self.exon_seq = ''.join(es)
 
     def _to_upper(self):
         self.exon_seq = self.exon_seq.upper()
