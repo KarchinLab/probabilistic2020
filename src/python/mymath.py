@@ -19,6 +19,22 @@ def shannon_entropy(p):
     return -np.sum(np.where(p!=0, p * np.log2(p), 0))
 
 
+def log_shannon_entropy(log_p):
+    """Calculates shannon entropy in bits.
+
+    Parameters
+    ----------
+    p : np.array
+        array of probabilities
+
+    Returns
+    -------
+    shannon entropy in bits
+    """
+    out = -logsumexp(log_p + np.log(log_p))
+    return out
+
+
 def max_shannon_entropy(n):
     """Returns max possible entropy given "n" mutations.
 
@@ -108,8 +124,9 @@ def js_distance(p, q):
 
 def kde_entropy(x, bandwidth=None, folds=5):
     # lower fold number if few mutations
-    if len(x) < folds:
-        folds = len(x)
+    n = len(x)
+    if n < folds:
+        folds = n
 
     # check if bandwidth selection is necessary
     if bandwidth is None:
@@ -126,5 +143,5 @@ def kde_entropy(x, bandwidth=None, folds=5):
     log_pdf = kde_skl.score_samples(x[:, np.newaxis])  # return log-likelihood
     log_sum = logsumexp(log_pdf)
     norm_log_pdf = log_pdf - log_sum
-    ent = shannon_entropy(np.exp(norm_log_pdf))
-    return ent
+    ent = shannon_entropy(np.exp(norm_log_pdf)) / float(np.log2(n))
+    return ent, bandwidth

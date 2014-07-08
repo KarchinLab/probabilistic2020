@@ -18,7 +18,8 @@ def test_ctnnb1_main():
             'context': 1,
             'tsg_score': .05,
             'processes': 1,
-            'num_permutations': 10000}
+            'num_permutations': 10000,
+            'bandwidth_permutations': 100}
     # single nucleotide context
     result = pt.main(opts)
     assert result.ix[0, 'recurrent p-value'] < 0.001, 'CTNNB1 should have a very low p-value ({0}>.001)'.format(result[0][2])
@@ -69,9 +70,10 @@ def test_100genes_main():
             'mutations': os.path.join(file_dir, 'data/100genes_mutations.txt'),
             'output': os.path.join(file_dir, 'output/100genes_single_nuc_output.txt'),
             'context': 1,
-            'tsg_score': .05,
+            'tsg_score': .1,
             'processes': 5,
-            'num_permutations': 10000}
+            'num_permutations': 10000,
+            'bandwidth_permutations': 100}
     # single nucleotide context
     result = pt.main(opts)
     tested_result = result[result['Performed Recurrency Test']==1]

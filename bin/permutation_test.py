@@ -77,6 +77,7 @@ def position_permutation(context_counts,
                          seq_context,
                          gene_seq,
                          num_permutations=10000):
+                         # kde_bandwidth=None):
     mycontexts = context_counts.index.tolist()
     somatic_base = [base
                     for one_context in mycontexts
@@ -92,13 +93,16 @@ def position_permutation(context_counts,
                                        gene_seq)
 
         # calculate position info
-        tmp_recur_ct, tmp_entropy, tmp_kde_ent = cutils.calc_pos_info(tmp_mut_info['Codon Pos'],
-                                                                      tmp_mut_info['Reference AA'],
-                                                                      tmp_mut_info['Somatic AA'])
+        tmp_recur_ct, tmp_entropy = cutils.calc_pos_info(tmp_mut_info['Codon Pos'],
+                                                         tmp_mut_info['Reference AA'],
+                                                         tmp_mut_info['Somatic AA'])
+                                                         # kde_bandwidth)
         num_recur_list.append(tmp_recur_ct)
         entropy_list.append(tmp_entropy)
+        #kde_entropy_list.append(tmp_kde_ent)
+        #bw_list.append(tmp_bw)
 
-    return num_recur_list, entropy_list, kde_entropy_list
+    return num_recur_list, entropy_list
 
 
 def calc_pos_entropy(aa_mut):
@@ -189,44 +193,59 @@ def singleprocess_permutation(info):
             mut_info['Coding Position'] = mut_info['Coding Position'].astype(int)
             mut_info['Context'] = mut_info['Coding Position'].apply(lambda x: sc.pos2context[x])
 
-            # get recurrent info for actual mutations
-            aa_mut_info = get_aa_mut_info(mut_info['Coding Position'],
-                                          mut_info['Tumor_Allele'].tolist(),
-                                          gs)
-            num_recurrent, pos_ent, kde_ent = cutils.calc_pos_info(aa_mut_info['Codon Pos'],
-                                                                   aa_mut_info['Reference AA'],
-                                                                   aa_mut_info['Somatic AA'])
 
             # permute context and calculate number of recurrent mutations
             context_cts = mut_info['Context'].value_counts()
             context_to_mutations = dict((name, group['Tumor_Allele'])
                                         for name, group in mut_info.groupby('Context'))
+
+            # get KDE bandwidth value via cross-validation
+            #bandwidth_results = position_permutation(context_cts,
+                                                     #context_to_mutations,
+                                                     #sc,  # sequence context obj
+                                                     #gs,
+                                                     #opts['bandwidth_permutations'])  # gene sequence obj
+            #_, _, _, bw_list = bandwidth_results  # unpack results
+            #cv_kde_bandwidth = np.mean(bw_list)
+
+
+            # perform permutations with specified bandwidth
             permutation_result = position_permutation(context_cts,
                                                       context_to_mutations,
                                                       sc,  # sequence context obj
                                                       gs,
-                                                      num_permutations)  # gene sequence obj
-            num_recur_list, pos_entropy_list, kde_entropy_list = permutation_result  # unpack results
+                                                      num_permutations)
+                                                      # kde_bandwidth=cv_kde_bandwidth)  # gene sequence obj
+            num_recur_list, pos_entropy_list  = permutation_result  # unpack results
+
+            # get recurrent info for actual mutations
+            aa_mut_info = get_aa_mut_info(mut_info['Coding Position'],
+                                          mut_info['Tumor_Allele'].tolist(),
+                                          gs)
+            num_recurrent, pos_ent = cutils.calc_pos_info(aa_mut_info['Codon Pos'],
+                                                          aa_mut_info['Reference AA'],
+                                                          aa_mut_info['Somatic AA'])
+                                                          # cv_kde_bandwidth)
 
             # calculate permutation p-value
             recur_num_nulls = sum([1 for null_recur in num_recur_list
                                    if null_recur >= num_recurrent])
             entropy_num_nulls = sum([1 for null_ent in pos_entropy_list
                                      if null_ent <= pos_ent])
-            kde_entropy_num_nulls = sum([1 for null_ent in kde_entropy_list
-                                         if null_ent <= pos_ent])
+            #kde_entropy_num_nulls = sum([1 for null_ent in kde_entropy_list
+                                         #if null_ent <= pos_ent])
             recur_p_value = recur_num_nulls / float(num_permutations)
             ent_p_value = entropy_num_nulls / float(num_permutations)
-            kde_ent_p_value = kde_entropy_num_nulls / float(num_permutations)
+            #kde_ent_p_value = kde_entropy_num_nulls / float(num_permutations)
         else:
             num_recurrent = 0
             pos_ent = 0
-            kde_ent = 0
+            #kde_ent = 0
             recur_p_value = 1.0
             ent_p_value = 1.0
-            kde_ent_p_value = 1.0
-        result.append([bed.gene_name, num_recurrent, pos_ent, kde_ent,
-                       recur_p_value, ent_p_value, kde_ent_p_value])
+            #kde_ent_p_value = 1.0
+        result.append([bed.gene_name, num_recurrent, pos_ent,
+                       recur_p_value, ent_p_value])
     gene_fa.close()
     logger.info('Finished working on chromosome: {0}.'.format(current_chrom))
     return result
@@ -248,6 +267,34 @@ def multiprocess_permutation(bed_dict, mut_df, opts):
         pool.join()
 
     return result_list
+
+
+def _fix_mutation_df(mutation_df):
+    allowed_types = ['Missense_Mutation', 'Silent', 'Nonsense_Mutation']
+    mutation_df = mutation_df[mutation_df.Variant_Classification.isin(allowed_types)]  # only keep SNV
+    valid_nuc_flag = mutation_df['Reference_Allele'].apply(utils.is_valid_nuc) & mutation_df['Tumor_Allele'].apply(utils.is_valid_nuc)
+    mutation_df = mutation_df[valid_nuc_flag]  # filter bad lines
+    mutation_df['Start_Position'] = mutation_df['Start_Position'] - 1
+    mutation_df = mutation_df[mutation_df['Tumor_Allele'].apply(lambda x: len(x)==1)]
+    mutation_df = mutation_df[mutation_df['Reference_Allele'].apply(lambda x: len(x)==1)]
+    return mutation_df
+
+
+def _get_high_tsg_score(mutation_df, tsg_score_thresh):
+    mutation_df['indicator'] = 1
+    table = pd.pivot_table(mutation_df,
+                           values='indicator',
+                           cols='Variant_Classification',
+                           rows='Gene',
+                           aggfunc=np.sum)
+    mut_type_frac = table.div(table.sum(axis=1).astype(float), axis=0).fillna(0.0)
+    for c in ['Nonsense_Mutation', 'Frame_Shift_Indel', 'Splice_Site', 'Nonstop_Mutation']:
+        if c not in mut_type_frac.columns:
+            mut_type_frac[c] = 0.0  # make sure columns are defined
+    tsg_score = mut_type_frac['Nonsense_Mutation'] + mut_type_frac['Frame_Shift_Indel'] + \
+                mut_type_frac['Splice_Site'] + mut_type_frac['Nonstop_Mutation']
+    non_tested_genes = set(tsg_score[tsg_score>=tsg_score_thresh].index.tolist())
+    return non_tested_genes
 
 
 def parse_arguments():
@@ -309,6 +356,13 @@ def parse_arguments():
     parser.add_argument('-t', '--tsg-score',
                         type=float, default=.05,
                         help=help_str)
+    help_str = ('Number of permutations to use for estimating KDE bandwidth parameter. '
+                'Scores from bandwidth estimation do not effect the permutation test '
+                'and the bandwidth permutations occur in addition to the permutations '
+                'specified via -n. (Default: 100)')
+    parser.add_argument('-bp', '--bandwidth-permutations',
+                        type=int, default=100,
+                        help=help_str)
     help_str = 'Output of probabilistic 20/20 results'
     parser.add_argument('-o', '--output',
                         type=str, required=True,
@@ -338,42 +392,23 @@ def main(opts):
     # Get Mutations
     mut_df = pd.read_csv(opts['mutations'], sep='\t')
 
-    # perform tsg score filter
-    mut_df['indicator'] = 1
-    table = pd.pivot_table(mut_df,
-                           values='indicator',
-                           cols='Variant_Classification',
-                           rows='Gene',
-                           aggfunc=np.sum)
-    mut_type_frac = table.div(table.sum(axis=1).astype(float), axis=0).fillna(0.0)
-    for c in ['Nonsense_Mutation', 'Frame_Shift_Indel', 'Splice_Site', 'Nonstop_Mutation']:
-        if c not in mut_type_frac.columns:
-            mut_type_frac[c] = 0.0  # make sure columns are defined
-    tsg_score = mut_type_frac['Nonsense_Mutation'] + mut_type_frac['Frame_Shift_Indel'] + \
-                mut_type_frac['Splice_Site'] + mut_type_frac['Nonstop_Mutation']
-    non_tested_genes = set(tsg_score[tsg_score>=opts['tsg_score']].index.tolist())
+    # find genes with tsg score above threshold
+    non_tested_genes = _get_high_tsg_score(mut_df, opts['tsg_score'])
 
-    # select single nucleotide variants
-    allowed_types = ['Missense_Mutation', 'Silent', 'Nonsense_Mutation']
-    mut_df = mut_df[mut_df.Variant_Classification.isin(allowed_types)]  # only keep SNV
-    valid_nuc_flag = mut_df['Reference_Allele'].apply(utils.is_valid_nuc) & mut_df['Tumor_Allele'].apply(utils.is_valid_nuc)
-    mut_df = mut_df[valid_nuc_flag]  # filter bad lines
-    mut_df['Start_Position'] = mut_df['Start_Position'] - 1
-    mut_df = mut_df[mut_df['Tumor_Allele'].apply(lambda x: len(x)==1)]
-    mut_df = mut_df[mut_df['Reference_Allele'].apply(lambda x: len(x)==1)]
+    # select valid single nucleotide variants only
+    mut_df = _fix_mutation_df(mut_df)
 
     # perform permutation test
     bed_dict = read_bed(opts['bed'], non_tested_genes)
     permutation_result = multiprocess_permutation(bed_dict, mut_df, opts)
-    permutation_df = pd.DataFrame(sorted(permutation_result, key=lambda x: x[4]),
+    permutation_df = pd.DataFrame(sorted(permutation_result, key=lambda x: x[3]),
                                   columns=['gene', 'num recurrent', 'position entropy',
-                                           'kde entropy', 'recurrent p-value',
-                                           'entropy p-value', 'kde entropy p-value'])
+                                           'recurrent p-value', 'entropy p-value'])
 
     # get benjamani hochberg adjusted p-values
     permutation_df['recurrent BH q-value'] = utils.bh_fdr(permutation_df['recurrent p-value'])
     permutation_df['entropy BH q-value'] = utils.bh_fdr(permutation_df['entropy p-value'])
-    permutation_df['kde entropy BH q-value'] = utils.bh_fdr(permutation_df['kde entropy p-value'])
+    # permutation_df['kde entropy BH q-value'] = utils.bh_fdr(permutation_df['kde entropy p-value'])
 
     # include non-tested genes in the result
     no_test_df = pd.DataFrame(index=range(len(non_tested_genes)))
@@ -384,10 +419,9 @@ def main(opts):
 
     # save output
     permutation_df['num recurrent'] = permutation_df['num recurrent'].fillna(-1).astype(int)  # fix dtype isssue
-    col_order = ['gene', 'num recurrent', 'position entropy', 'kde entropy',
+    col_order = ['gene', 'num recurrent', 'position entropy',
                  'recurrent p-value', 'recurrent BH q-value', 'entropy p-value',
-                 'entropy BH q-value', 'kde entropy p-value', 'kde entropy BH q-value',
-                 'Performed Recurrency Test']
+                 'entropy BH q-value', 'Performed Recurrency Test']
     permutation_df[col_order].to_csv(opts['output'], sep='\t', index=False)
 
     return permutation_df
