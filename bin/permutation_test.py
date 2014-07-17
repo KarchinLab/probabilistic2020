@@ -4,12 +4,13 @@ import os
 import sys
 file_dir = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(file_dir, '../src/python'))
+sys.path.append(os.path.join(file_dir, '../src/cython'))
 
 # normal imports
 import utils
 from gene_sequence import GeneSequence
 from sequence_context import SequenceContext
-import cython_utils as cutils
+import cutils
 import mymath
 import argparse
 import pysam
@@ -64,25 +65,35 @@ def log_error_decorator(f):
     @wraps(f)
     def wrapper(*args, **kwds):
         try:
-           result = f(*args, **kwds)
+            result = f(*args, **kwds)
+            return result
+        except KeyboardInterrupt:
+            pass
         except Exception, e:
             logger.exception(e)
             raise
-        return result
     return wrapper
+
+
+def keyboard_exit_wrapper(func):
+    def wrap(self, timeout=None):
+        # Note: the timeout of 1 googol seconds introduces a rather subtle
+        # bug for Python scripts intended to run many times the age of the universe.
+        return func(self, timeout=timeout if timeout is not None else 1e100)
+    return wrap
 
 
 def position_permutation(context_counts,
                          context_to_mut,
                          seq_context,
                          gene_seq,
-                         num_permutations=10000):
-                         # kde_bandwidth=None):
+                         num_permutations=10000,
+                         kde_bandwidth=None):
     mycontexts = context_counts.index.tolist()
     somatic_base = [base
                     for one_context in mycontexts
                     for base in context_to_mut[one_context]]
-    num_recur_list, entropy_list, kde_entropy_list = [], [], []
+    num_recur_list, entropy_list, kde_entropy_list, bw_list = [], [], [], []
     tmp_contxt_pos = seq_context.random_pos(context_counts.iteritems(),
                                             num_permutations)
     tmp_mut_pos = np.hstack(pos_array for base, pos_array in tmp_contxt_pos)
@@ -93,16 +104,16 @@ def position_permutation(context_counts,
                                        gene_seq)
 
         # calculate position info
-        tmp_recur_ct, tmp_entropy = cutils.calc_pos_info(tmp_mut_info['Codon Pos'],
-                                                         tmp_mut_info['Reference AA'],
-                                                         tmp_mut_info['Somatic AA'])
-                                                         # kde_bandwidth)
+        tmp_recur_ct, tmp_entropy, tmp_kde_ent, tmp_bw = cutils.calc_pos_info(tmp_mut_info['Codon Pos'],
+                                                                              tmp_mut_info['Reference AA'],
+                                                                              tmp_mut_info['Somatic AA'],
+                                                                              kde_bandwidth)
         num_recur_list.append(tmp_recur_ct)
         entropy_list.append(tmp_entropy)
-        #kde_entropy_list.append(tmp_kde_ent)
-        #bw_list.append(tmp_bw)
+        kde_entropy_list.append(tmp_kde_ent)
+        bw_list.append(tmp_bw)
 
-    return num_recur_list, entropy_list
+    return num_recur_list, entropy_list, kde_entropy_list, bw_list
 
 
 def calc_pos_entropy(aa_mut):
@@ -214,38 +225,42 @@ def singleprocess_permutation(info):
                                                       context_to_mutations,
                                                       sc,  # sequence context obj
                                                       gs,
-                                                      num_permutations)
-                                                      # kde_bandwidth=cv_kde_bandwidth)  # gene sequence obj
-            num_recur_list, pos_entropy_list  = permutation_result  # unpack results
+                                                      num_permutations)  # gene sequence obj
+            num_recur_list, pos_entropy_list, kde_entropy_list, bw_list = permutation_result  # unpack results
 
             # get recurrent info for actual mutations
             aa_mut_info = get_aa_mut_info(mut_info['Coding Position'],
                                           mut_info['Tumor_Allele'].tolist(),
                                           gs)
-            num_recurrent, pos_ent = cutils.calc_pos_info(aa_mut_info['Codon Pos'],
-                                                          aa_mut_info['Reference AA'],
-                                                          aa_mut_info['Somatic AA'])
-                                                          # cv_kde_bandwidth)
+            num_recurrent, pos_ent, kde_ent, opt_bw = cutils.calc_pos_info(aa_mut_info['Codon Pos'],
+                                                                           aa_mut_info['Reference AA'],
+                                                                           aa_mut_info['Somatic AA'],
+                                                                           None)
 
             # calculate permutation p-value
             recur_num_nulls = sum([1 for null_recur in num_recur_list
                                    if null_recur >= num_recurrent])
             entropy_num_nulls = sum([1 for null_ent in pos_entropy_list
                                      if null_ent <= pos_ent])
-            #kde_entropy_num_nulls = sum([1 for null_ent in kde_entropy_list
-                                         #if null_ent <= pos_ent])
+            kde_entropy_num_nulls = sum([1 for null_ent in kde_entropy_list
+                                         if null_ent <= kde_ent])
+            kde_bw_num_nulls = sum([1 for null_bw in bw_list
+                                    if null_bw <= opt_bw])
             recur_p_value = recur_num_nulls / float(num_permutations)
             ent_p_value = entropy_num_nulls / float(num_permutations)
-            #kde_ent_p_value = kde_entropy_num_nulls / float(num_permutations)
+            kde_ent_p_value = kde_entropy_num_nulls / float(num_permutations)
+            kde_bw_p_value = kde_bw_num_nulls / float(num_permutations)
         else:
             num_recurrent = 0
             pos_ent = 0
-            #kde_ent = 0
+            kde_ent = 0
+            opt_bw = 0
             recur_p_value = 1.0
             ent_p_value = 1.0
-            #kde_ent_p_value = 1.0
-        result.append([bed.gene_name, num_recurrent, pos_ent,
-                       recur_p_value, ent_p_value])
+            kde_ent_p_value = 1.0
+            kde_bw_p_value = 1.0
+        result.append([bed.gene_name, num_recurrent, pos_ent, kde_ent, opt_bw,
+                       recur_p_value, ent_p_value, kde_ent_p_value, kde_bw_p_value])
     gene_fa.close()
     logger.info('Finished working on chromosome: {0}.'.format(current_chrom))
     return result
@@ -261,8 +276,15 @@ def multiprocess_permutation(bed_dict, mut_df, opts):
         info_repeat = ((bed_dict[chroms[tmp_ix]], mut_df, opts)
                         for tmp_ix in range(i, i+tmp_num_proc))
         process_results = pool.imap(singleprocess_permutation, info_repeat)
-        for chrom_result in process_results:
-            result_list += chrom_result
+        process_results.next = keyboard_exit_wrapper(process_results.next)
+        try:
+            for chrom_result in process_results:
+                result_list += chrom_result
+        except KeyboardInterrupt:
+            pool.close()
+            pool.join
+            logger.info('Exited by user. ctrl-c')
+            sys.exit(0)
         pool.close()
         pool.join()
 
@@ -356,13 +378,6 @@ def parse_arguments():
     parser.add_argument('-t', '--tsg-score',
                         type=float, default=.05,
                         help=help_str)
-    help_str = ('Number of permutations to use for estimating KDE bandwidth parameter. '
-                'Scores from bandwidth estimation do not effect the permutation test '
-                'and the bandwidth permutations occur in addition to the permutations '
-                'specified via -n. (Default: 100)')
-    parser.add_argument('-bp', '--bandwidth-permutations',
-                        type=int, default=100,
-                        help=help_str)
     help_str = 'Output of probabilistic 20/20 results'
     parser.add_argument('-o', '--output',
                         type=str, required=True,
@@ -401,14 +416,16 @@ def main(opts):
     # perform permutation test
     bed_dict = read_bed(opts['bed'], non_tested_genes)
     permutation_result = multiprocess_permutation(bed_dict, mut_df, opts)
-    permutation_df = pd.DataFrame(sorted(permutation_result, key=lambda x: x[3]),
+    permutation_df = pd.DataFrame(sorted(permutation_result, key=lambda x: x[5]),
                                   columns=['gene', 'num recurrent', 'position entropy',
-                                           'recurrent p-value', 'entropy p-value'])
+                                           'kde position entropy', 'kde bandwidth', 'recurrent p-value',
+                                           'entropy p-value', 'kde entropy p-value', 'kde bandwidth p-value'])
 
     # get benjamani hochberg adjusted p-values
     permutation_df['recurrent BH q-value'] = utils.bh_fdr(permutation_df['recurrent p-value'])
     permutation_df['entropy BH q-value'] = utils.bh_fdr(permutation_df['entropy p-value'])
-    # permutation_df['kde entropy BH q-value'] = utils.bh_fdr(permutation_df['kde entropy p-value'])
+    permutation_df['kde entropy BH q-value'] = utils.bh_fdr(permutation_df['kde entropy p-value'])
+    permutation_df['kde bandwidth BH q-value'] = utils.bh_fdr(permutation_df['kde bandwidth p-value'])
 
     # include non-tested genes in the result
     no_test_df = pd.DataFrame(index=range(len(non_tested_genes)))
@@ -419,9 +436,10 @@ def main(opts):
 
     # save output
     permutation_df['num recurrent'] = permutation_df['num recurrent'].fillna(-1).astype(int)  # fix dtype isssue
-    col_order = ['gene', 'num recurrent', 'position entropy',
-                 'recurrent p-value', 'recurrent BH q-value', 'entropy p-value',
-                 'entropy BH q-value', 'Performed Recurrency Test']
+    col_order = ['gene', 'num recurrent', 'position entropy', 'kde position entropy', 'kde bandwidth',
+                 'recurrent p-value', 'recurrent BH q-value', 'entropy p-value', 'entropy BH q-value',
+                 'kde entropy p-value', 'kde entropy BH q-value', 'kde bandwidth p-value',
+                 'kde bandwidth BH q-value', 'Performed Recurrency Test']
     permutation_df[col_order].to_csv(opts['output'], sep='\t', index=False)
 
     return permutation_df

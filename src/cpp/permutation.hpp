@@ -43,3 +43,44 @@ double position_entropy(std::map<int, int> pos_ctr) {
     }
     return(frac_of_uniform_ent);
 }
+
+
+/*
+std::vector<int> discrete_uniform_kernel(std::map<int, int> pos_ctr,
+                                         int bandwidth){
+    int mysum = 0, val, pos, prev_count = 0, first_pos, second_pos;
+    std::map<int, int> kernel_counts;
+    typedef std::map<int, int>::iterator it_type;
+
+    // get sum of counts
+    for(it_type iterator = pos_ctr.begin(); iterator != pos_ctr.end(); iterator++) {
+        val = iterator->second;
+        mysum += val;
+    }
+
+    it_type first_it = pos_ctr.begin();  // first iterator
+    rit_type second_it = pos_ctr.rbegin();  // second iterator
+    first_pos = first_it->first;
+    second_pos = second_it->first;
+    for(it_type iterator = pos_ctr.begin(); iterator != pos_ctr.end(); iterator++) {
+        current_pos = iterator->first;
+        
+        // update iterators and counts
+        while(second_pos <= current_pos + bandwidth){
+            prev_count += second_it->second;
+            second_it++;
+            second_pos = second_it->first;
+        }
+        while(first_pos < current_pos - bandwidth){
+            prev_count -= first_it->second;
+            first_it++;
+            first_pos = first_it->first;
+        }
+
+        // save counts within bandwidth 
+        kernel_counts.push_back(prev_count)
+    }
+
+    return kernel_counts
+}
+*/
