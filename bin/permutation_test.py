@@ -497,7 +497,7 @@ def main(opts):
                      'kde bandwidth BH q-value', 'Performed Recurrency Test']
         permutation_df[col_order].to_csv(opts['output'], sep='\t', index=False)
     else:
-        permutation_df = pd.DataFrame(sorted(permutation_result, lambda x: x[2]),
+        permutation_df = pd.DataFrame(sorted(permutation_result, key=lambda x: x[2]),
                                       columns=['gene', 'num deleterious', 'deleterious p-value'])
         tmp_df = permutation_df[permutation_df['deleterious p-value'].notnull()]
 
