@@ -19,7 +19,8 @@ def test_ctnnb1_main():
             'tsg_score': .05,
             'processes': 1,
             'num_permutations': 10000,
-            'bandwidth_permutations': 100}
+            'bandwidth_permutations': 100,
+            'kind': 'oncogene'}
     # single nucleotide context
     result = pt.main(opts)
     assert result.ix[0, 'recurrent p-value'] < 0.001, 'CTNNB1 should have a very low p-value ({0}>.001)'.format(result[0][2])
@@ -57,7 +58,7 @@ def test_ctnnb1_get_aa_mut_info():
     somatic_base = ['C']
 
     # check mutation info
-    aa_info = pt.get_aa_mut_info(coding_pos, somatic_base, gs)
+    aa_info = utils.get_aa_mut_info(coding_pos, somatic_base, gs)
     ref_codon_msg =  'First codon should be start codon ({0})'.format(aa_info['Reference Codon'][0])
     assert aa_info['Reference Codon'][0] == 'ATG', ref_codon_msg
     assert aa_info['Somatic Codon'][0] == 'CTG', 'First "A" should be replaced with a "C"'
@@ -73,7 +74,8 @@ def test_100genes_main():
             'tsg_score': .1,
             'processes': 5,
             'num_permutations': 10000,
-            'bandwidth_permutations': 100}
+            'bandwidth_permutations': 100,
+            'kind': 'oncogene'}
     # single nucleotide context
     result = pt.main(opts)
     tested_result = result[result['Performed Recurrency Test']==1]

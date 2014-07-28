@@ -33,7 +33,7 @@ def test_kde_entropy():
     somatic_base = ['C']
 
     # check mutation info
-    aa_info = pt.get_aa_mut_info(coding_pos, somatic_base, gs)
+    aa_info = utils.get_aa_mut_info(coding_pos, somatic_base, gs)
     pos_array = np.array(aa_info['Codon Pos'], dtype=np.int)
     entropy, bandwidth = cutils.kde_entropy(pos_array)
     assert_msg = ('A single mutation should be 1.0 for entropy fraction '
@@ -47,7 +47,8 @@ def test_kde_entropy():
             'context': 1,
             'tsg_score': .05,
             'processes': 1,
-            'num_permutations': 10000}
+            'num_permutations': 10000,
+            'kind': 'oncogene'}
     mut_df = pd.read_csv(opts['mutations'], sep='\t')
 
     # CTNNB1 should have few deleterious mutations, so check it
