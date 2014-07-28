@@ -57,3 +57,20 @@ def calc_pos_info(aa_mut_pos, germ_aa, somatic_aa,
     #kde_ent, used_bandwidth = kde_entropy(np.sort(np.array(tmp_pos_list, dtype=DTYPE_INT, order='c')),
     #                                      bandwidth_param=kde_bw)
     return num_recur, pos_ent, kde_ent, used_bandwidth
+
+
+def calc_deleterious_info(germ_aa, somatic_aa):
+    cdef:
+        int i, num_mutations = 0, num_deleterious = 0
+
+    num_mutations = len(somatic_aa)
+    if len(germ_aa) != num_mutations:
+        raise ValueError('There should be equal number of germline and somatic bases')
+
+    for i in range(num_mutations):
+        if germ_aa[i] and somatic_aa[i] and \
+           (germ_aa[i] == '*' or somatic_aa[i] == '*') and \
+           germ_aa[i] != somatic_aa[i]:
+            num_deleterious += 1
+
+    return num_deleterious

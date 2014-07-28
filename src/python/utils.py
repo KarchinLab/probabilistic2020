@@ -1,7 +1,17 @@
+# fix problems with pythons terrible import system
+import os
+import sys
+file_dir = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.join(file_dir, '../cython'))
+
+# normal imports
 import ConfigParser
 from bed_line import BedLine
 import numpy as np
 import csv
+import itertools as it
+import cutils
+
 
 codon_table = {'TTT': 'F', 'TTC': 'F', 'TTA': 'L', 'TTG': 'L', 'TCT': 'S',
                'TCC': 'S', 'TCA': 'S', 'TCG': 'S', 'TAT': 'Y', 'TAC': 'Y',
@@ -84,3 +94,27 @@ def bh_fdr(pval):
     return pval_adj[original_order]
 
 
+def get_aa_mut_info(coding_pos, somatic_base, gene_seq):
+    # get codon information into three lists
+    gene_seq_str = gene_seq.exon_seq
+    ref_codon, codon_pos, pos_in_codon = it.izip(*[cutils.pos_to_codon(gene_seq_str, p)
+                                                   for p in coding_pos])
+    ref_codon, codon_pos, pos_in_codon = list(ref_codon), list(codon_pos), list(pos_in_codon)
+
+    # construct codons for mutations
+    mut_codon = [list(x) for x in ref_codon]
+    for i in range(len(mut_codon)):
+        pc = pos_in_codon[i]
+        mut_codon[i][pc] = somatic_base[i]
+    mut_codon = [''.join(x) for x in mut_codon]
+
+    # output resulting info
+    aa_info = {'Reference Codon': ref_codon,
+               'Somatic Codon': mut_codon,
+               'Codon Pos': codon_pos,
+               'Reference AA': [(codon_table[r] if len(r)==3 else None)
+                                for r in ref_codon],
+               'Somatic AA': [(codon_table[s] if len(s)==3 else None)
+                              for s in mut_codon]}
+
+    return aa_info
