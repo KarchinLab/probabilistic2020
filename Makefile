@@ -1,9 +1,13 @@
 clean:
 	rm -f -r build/
-	rm -f src/python/cython_utils.so
+	rm -f src/cython/cutils.so
+	rm -f src/cython/gaussian_kde.so
+	rm -f src/cython/uniform_kde.cpp
 
 clean-cpp:
-	rm -f src/python/cython_utils.cpp
+	rm -f src/cython/cutils.cpp
+	rm -f src/cython/gaussian_kde.cpp
+	rm -f src/cython/uniform_kde.cpp
 
 clean-all: clean clean-cpp
 
