@@ -2,11 +2,27 @@ import numpy as np
 
 
 class SequenceContext(object):
+    """The SequenceContext class allows for deciphering sequence context
+    and for randomly permuting mutation positions while respecting sequence context.
+    """
 
     def __init__(self, gene_seq):
         self._init_context(gene_seq)
 
     def _init_context(self, gene_seq):
+        """Initializes attributes defining mutation contexts and their position.
+
+        The self.context2pos and self.pos2context dictionaries map from
+        sequence context to sequence position and sequence position to
+        sequence context, respectively. These attributes allow for randomly
+        permuting mutation positions while respecting sequence context in the
+        permutation test.
+
+        Parameters
+        ----------
+        gene_seq : GeneSequence
+            GeneSequence object from the gene_sequence module
+        """
         self.context2pos, self.pos2context = {}, {}
 
         if gene_seq.nuc_context in [1, 2]:
@@ -66,6 +82,23 @@ class SequenceContext(object):
             self.context2pos['None'] = range(len(gene_seq.exon_seq))
 
     def get_chasm_context(self, tri_nuc):
+        """Returns the mutation context acording to CHASM.
+
+        For more information about CHASM's mutation context, look
+        at http://wiki.chasmsoftware.org/index.php/CHASM_Overview.
+        Essentially CHASM uses a few specified di-nucleotide contexts
+        followed by single nucleotide context.
+
+        Parameters
+        ----------
+        tri_nuc : str
+            three nucleotide string with mutated base in the middle.
+
+        Returns
+        -------
+        chasm context : str
+            a string representing the context used in CHASM
+        """
         # try dinuc context if found
         if tri_nuc[1:] == 'CG':
             return 'C*pG'
@@ -80,9 +113,39 @@ class SequenceContext(object):
             return tri_nuc[1]
 
     def is_valid_context(self, ctxt):
+        """Checks if provided context is valid (previously seen).
+
+        Parameters
+        ----------
+        ctxt : str
+            mutation context
+        """
         return ctxt in self.context2pos
 
     def random_context_pos(self, num, num_permutations, context):
+        """Samples with replacement available positions matching the
+        sequence context.
+
+        Note: this method does random sampling only for an individual
+        sequence context.
+
+        Parameters
+        ----------
+        num : int
+            Number of positions to sample for each permutation. This
+            is the number of actually observed mutations having the
+            matching sequence context for this gene.
+        num_permutations : int
+            Number of permutations for permutation test.
+        context : str
+            Sequence context.
+
+        Returns
+        -------
+        random_pos : np.array
+            num_permutations X num sized array that represents the
+            randomly sampled positions for a specific context.
+        """
         # make sure provide context is valid
         if not self.is_valid_context(context):
             error_msg = 'Context ({0}) was never seen in sequence.'.format(context)
@@ -101,6 +164,22 @@ class SequenceContext(object):
         return random_pos
 
     def random_pos(self, context_iterable, num_permutations):
+        """Obtains random positions w/ replacement which match sequence context.
+
+        Parameters
+        ----------
+        context_iterable: iterable containing two element tuple
+            Records number of mutations in each context. context_iterable
+            should be something like [('AA', 5), ...].
+        num_permutations : int
+            Number of permutations used in the permutation test.
+
+        Returns
+        -------
+        position_list : list
+            Contains context string and the randomly chosen positions
+            for that context.
+        """
         position_list = []
         for contxt, n in context_iterable:
             pos_array = self.random_context_pos(n, num_permutations, contxt)

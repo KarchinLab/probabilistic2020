@@ -1,3 +1,4 @@
+"""Parses an individual line in a BED file."""
 from collections import namedtuple
 import logging
 
@@ -11,6 +12,25 @@ BedTuple = namedtuple('BedTuple', BED_HEADER)
 logger = logging.getLogger(__name__)  # module logger
 
 class BedLine(object):
+    """The BedLine class parses a single line in a BED file.
+
+    A BED file line is parsed into object attributes within the constructor.
+    Genomic positions can also be queried against the BedLine object to retreive
+    a relative position along the CDS.
+
+    Example
+    -------
+
+        >>> bline_str = "chr3	41240941	41281939	CTNNB1	0	+	41265559	41280833	0	16	220,61,228,254,239,202,145,104,339,159,120,151,122,61,221,630,	0,24570,25075,25503,25883,26209,27757,33890,34078,34688,36273,36898,37137,38565,39683,40368,"
+        >>> bed = BedLine(bline_str)
+        >>> bed.chrom
+        'chr3'
+        >>> bed.strand
+        '+'
+        >>> bed.query_position('chr3', 41265559)
+        0
+
+    """
 
     def __init__(self, line):
         # make input a list of strings
@@ -108,6 +128,7 @@ class BedLine(object):
         return self.exons
 
     def get_num_exons(self):
+        """Returns the number of exons (not including UTR exons)."""
         return len(self.get_exons())
 
     def query_position(self, chr, genome_coord):
@@ -142,6 +163,3 @@ class BedLine(object):
                 return pos
 
         return pos
-
-
-
