@@ -3,10 +3,23 @@
 
 #define M_LOG2E 1.44269504088896340736L //log2(e)
 
+/* Log base 2 */
 inline long double log2(const long double x){
     return  log(x) * M_LOG2E;
 }
 
+/* Counts the number of recurrent missense mutations.
+ *
+ * Parameters
+ * ----------
+ * pos_ctr : map<int, int>
+ *      maps positions to number of mutations
+ * 
+ * Returns
+ * -------
+ * mysum : int
+ *      number of recurrent mutations
+ */
 int recurrent_sum(std::map<int, int> pos_ctr) {
     int mysum = 0, val = 0;
     typedef std::map<int, int>::iterator it_type;
@@ -19,6 +32,19 @@ int recurrent_sum(std::map<int, int> pos_ctr) {
     return(mysum);
 }
 
+/* Calculates the fraction of uniform missense position entropy.
+ *
+ * Parameters
+ * ----------
+ * pos_ctr : map<int, int>
+ *      maps positions to number of mutations
+ *
+ * Returns
+ * -------
+ * frac_of_uniform_ent : double
+ *      Fraction of maximum position entropy defined by
+ *      the hypothetical uniform distribution of singleton counts.
+ */
 double position_entropy(std::map<int, int> pos_ctr) {
     // define variables
     int val = 0;

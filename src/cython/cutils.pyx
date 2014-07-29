@@ -14,12 +14,32 @@ ctypedef np.int_t DTYPE_INT_t
 
 
 cdef extern from "permutation.hpp":
+    # import functions from the C++ header permutation.hpp
     int recurrent_sum(map[int, int] pos_ctr)
     double position_entropy(map[int, int] pos_ctr)
 
 
 @cython.cdivision(True)
 def pos_to_codon(seq, int pos):
+    """Retrieves information about the codon a nucleotide position is in.
+
+    Parameters
+    ----------
+    seq : str
+        coding sequence
+    pos : int
+        0-based position of nucleotide in seq
+
+    Returns
+    -------
+    seq : str
+        actual codon sequence
+    codon_pos : int
+        0-based position of codon (e.g. 3 is the 4th codon)
+    pos_in_codon : int
+        0-based position within a codon (e.g. 1 is the second
+        position out of three)
+    """
     cdef int codon_pos, codon_start, pos_in_codon
     codon_pos = pos / 3
     codon_start = codon_pos * 3
