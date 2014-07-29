@@ -4,11 +4,13 @@ import sys
 file_dir = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(file_dir, '../bin/'))
 sys.path.append(os.path.join(file_dir, '../src/python/'))
+sys.path.append(os.path.join(file_dir, '../src/cython/'))
 
 # useful imports
 from gene_sequence import GeneSequence
 import pysam
 import utils
+import cutils
 
 # read in fake sequence
 fake_fasta = os.path.join(file_dir, 'data/fake_sequence.fa')
@@ -36,7 +38,7 @@ def test_pos_to_codon():
     pos_list = [1, 12, 17]
     results = []
     for pos in pos_list:
-        codon_info = gs.pos_to_codon(pos)
+        codon_info = cutils.pos_to_codon(gs.exon_seq, pos)
         results.append(codon_info)
     true_results = [('ACA', 0, 1), ('GAT', 4, 0), ('CCG', 5, 2)]
     assert results == true_results, 'Codon information is incorrect'
