@@ -374,7 +374,7 @@ def parse_arguments():
                         help='Path to log file. (accepts "stdout")')
 
     # program arguments
-    help_str = 'gene FASTA file from extract_genes.py script'
+    help_str = 'gene FASTA file from extract_gene_seq.py script'
     parser.add_argument('-i', '--input',
                         type=str, required=True,
                         help=help_str)
