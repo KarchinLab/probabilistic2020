@@ -13,6 +13,7 @@ import itertools as it
 import cutils
 
 
+# global dictionary mapping codons to AA
 codon_table = {'TTT': 'F', 'TTC': 'F', 'TTA': 'L', 'TTG': 'L', 'TCT': 'S',
                'TCC': 'S', 'TCA': 'S', 'TCG': 'S', 'TAT': 'Y', 'TAC': 'Y',
                'TGT': 'C', 'TGC': 'C', 'TGG': 'W', 'CTT': 'L', 'CTC': 'L',
@@ -42,6 +43,19 @@ def get_config(section):
 
 
 def bed_generator(bed_path):
+    """Iterates through a BED file yielding parsed BED lines.
+
+    Parameters
+    ----------
+    bed_path : str
+        path to BED file
+
+    Yields
+    ------
+    BedLine(line) : BedLine
+        A BedLine object which has parsed the individual line in
+        a BED file.
+    """
     with open(bed_path) as handle:
         bed_reader = csv.reader(handle, delimiter='\t')
         for line in bed_reader:
@@ -49,6 +63,10 @@ def bed_generator(bed_path):
 
 
 def codon2aa(codon):
+    """Gets corresponding AA for a codon.
+
+    Handles lower case as well as upper case.
+    """
     codon = codon.upper()  # convert to upper case
     aa = codon_table[codon]
     return aa
@@ -74,6 +92,7 @@ def lzip(*args):
 
 
 def cummin(x):
+    """A python implementation of the cummin function in R"""
     for i in range(1, len(x)):
         if x[i-1] < x[i]:
             x[i] = x[i-1]
@@ -81,6 +100,21 @@ def cummin(x):
 
 
 def bh_fdr(pval):
+    """A python implementation of the Benjamani-Hochberg FDR method.
+
+    This code should always give precisely the same answer as using
+    p.adjust(pval, method="BH") in R.
+
+    Parameters
+    ----------
+    pval : list or array
+        list/array of p-values
+
+    Returns
+    -------
+    pval_adj : np.array
+        adjusted p-values according the benjamani-hochberg method
+    """
     pval_array = np.array(pval)
     sorted_order = np.argsort(pval_array)
     original_order = np.argsort(sorted_order)
@@ -95,6 +129,26 @@ def bh_fdr(pval):
 
 
 def get_aa_mut_info(coding_pos, somatic_base, gene_seq):
+    """Retrieves relevant information about the effect of a somatic
+    SNV on the amino acid of a gene.
+
+    Information includes the germline codon, somatic codon, codon
+    position, germline AA, and somatic AA.
+
+    Parameters
+    ----------
+    coding_pos : iterable of ints
+        Contains the base position (0-based) of the mutations
+    somatic_base : list of str
+        Contains the somatic nucleotide for the mutations
+    gene_seq : GeneSequence
+        gene sequence
+
+    Returns
+    -------
+    aa_info : dict
+        information about the somatic mutation effect on AA's
+    """
     # get codon information into three lists
     gene_seq_str = gene_seq.exon_seq
     ref_codon, codon_pos, pos_in_codon = it.izip(*[cutils.pos_to_codon(gene_seq_str, p)
