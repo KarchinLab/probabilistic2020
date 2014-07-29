@@ -407,9 +407,9 @@ def parse_arguments():
                 '(http://wiki.chasmsoftware.org/index.php/CHASM_Overview). '
                 '2 indicates using the mutated base and the upstream base. '
                 '3 indicates using the mutated base and both the upstream '
-                'and downstream bases. (Default: 1)')
+                'and downstream bases. (Default: 1.5)')
     parser.add_argument('-c', '--context',
-                        type=float, default=1,
+                        type=float, default=1.5,
                         help=help_str)
     help_str = ('Perform recurrent mutation permutation test if gene has '
                 'atleast a user specified number of recurrent mutations (default: 2)')
