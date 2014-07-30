@@ -23,8 +23,16 @@ def start_logging(log_file='', log_level='INFO'):
     If os.devnull is specified as the log_file then the log file will
     not actually be written to a file.
     """
+
     if not log_file:
-        log_file = 'log/log.run.' + str(datetime.datetime.now()).replace(':', '.') + '.txt'
+        # create log directory if it doesn't exist
+        file_dir = os.path.dirname(os.path.realpath(__file__))
+        log_dir = os.path.join(file_dir, '../log/')
+        if not os.path.isdir(log_dir):
+            os.mkdir(log_dir)
+
+        # path to new log file
+        log_file = log_dir + 'log.run.' + str(datetime.datetime.now()).replace(':', '.') + '.txt'
 
     # logger options
     lvl = logging.DEBUG if log_level.upper() == 'DEBUG' else logging.INFO
