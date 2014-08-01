@@ -283,14 +283,26 @@ def singleprocess_permutation(info):
         mut_info = gene_mut[cols]
         gs.set_gene(bed)
         pos_list = []
+
+        # count total mutations in gene
+        total_mut = len(mut_info)
+
+        # fix nucleotide letter if gene is on - strand
+        if bed.strand == '-':
+            mut_info['Tumor_Allele'].map(lambda x: utils.rev_comp(x))
+
+        # get coding position
         for ix, row in mut_info.iterrows():
             coding_pos = bed.query_position(row['Chromosome'], row['Start_Position'])
             pos_list.append(coding_pos)
         mut_info['Coding Position'] = pos_list
-        mut_info = mut_info.dropna()
+        mut_info = mut_info.dropna(subset=['Coding Position'])  # mutations need to map to tx
         mut_info['Coding Position'] = mut_info['Coding Position'].astype(int)
-        gs.add_germline_variants(mut_info['Reference_Allele'].tolist(),
-                                 mut_info['Coding Position'].tolist())
+        unmapped_muts = total_mut - len(mut_info)
+
+        # construct sequence context
+        #gs.add_germline_variants(mut_info['Reference_Allele'].tolist(),
+        #                         mut_info['Coding Position'].tolist())
         sc = SequenceContext(gs)
 
         # calculate results of permutation test
@@ -303,7 +315,7 @@ def singleprocess_permutation(info):
             tmp_result = calc_deleterious_result(mut_info, sc, gs,
                                                  bed, num_permutations,
                                                  opts['deleterious'])
-            result.append(tmp_result)
+            result.append(tmp_result + [total_mut, unmapped_muts])
 
     gene_fa.close()
     logger.info('Finished working on chromosome: {0}.'.format(current_chrom))
@@ -462,7 +474,12 @@ def main(opts):
 
     # Get Mutations
     mut_df = pd.read_csv(opts['mutations'], sep='\t')
+    orig_num_mut = len(mut_df)
+    mut_df = mut_df.dropna(subset=['Tumor_Allele', 'Start_Position', 'Chromosome'])
+    logger.info('Kept {0} mutations after droping mutations with missing '
+                'information (Droped: {1})'.format(len(mut_df), orig_num_mut - len(mut_df)))
 
+    # specify genes to skip
     if opts['kind'] == 'oncogene':
         # find genes with tsg score above threshold to filter out for oncogene
         # permutation test
@@ -482,7 +499,8 @@ def main(opts):
         permutation_df = pd.DataFrame(sorted(permutation_result, key=lambda x: x[5]),
                                       columns=['gene', 'num recurrent', 'position entropy',
                                                'kde position entropy', 'kde bandwidth', 'recurrent p-value',
-                                               'entropy p-value', 'kde entropy p-value', 'kde bandwidth p-value'])
+                                               'entropy p-value', 'kde entropy p-value', 'kde bandwidth p-value',
+                                               'Total Mutations', "Unmapped to Tx"])
 
         # get benjamani hochberg adjusted p-values
         permutation_df['recurrent BH q-value'] = utils.bh_fdr(permutation_df['recurrent p-value'])
@@ -499,14 +517,15 @@ def main(opts):
 
         # save output
         permutation_df['num recurrent'] = permutation_df['num recurrent'].fillna(-1).astype(int)  # fix dtype isssue
-        col_order = ['gene', 'num recurrent', 'position entropy', 'kde position entropy', 'kde bandwidth',
+        col_order = ['gene', 'Total Mutations', 'Unmapped to Tx', 'num recurrent', 'position entropy', 'kde position entropy', 'kde bandwidth',
                      'recurrent p-value', 'recurrent BH q-value', 'entropy p-value', 'entropy BH q-value',
                      'kde entropy p-value', 'kde entropy BH q-value', 'kde bandwidth p-value',
                      'kde bandwidth BH q-value', 'Performed Recurrency Test']
         permutation_df[col_order].to_csv(opts['output'], sep='\t', index=False)
     else:
         permutation_df = pd.DataFrame(sorted(permutation_result, key=lambda x: x[2]),
-                                      columns=['gene', 'num deleterious', 'deleterious p-value'])
+                                      columns=['gene', 'num deleterious', 'deleterious p-value',
+                                               'Total Mutations', 'Unmapped to Tx'])
         tmp_df = permutation_df[permutation_df['deleterious p-value'].notnull()]
 
         # get benjamani hochberg adjusted p-values
@@ -519,7 +538,9 @@ def main(opts):
         permutation_df = permutation_df.reindex(index=permutation_df.index[::-1])
 
         # save result
-        permutation_df.to_csv(opts['output'], sep='\t', index=False)
+        col_order  = ['gene', 'Total Mutations', 'Unmapped to Tx',
+                      'num deleterious', 'deleterious p-value']
+        permutation_df[col_order].to_csv(opts['output'], sep='\t', index=False)
 
     return permutation_df
 
