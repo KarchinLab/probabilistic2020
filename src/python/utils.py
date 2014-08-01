@@ -28,6 +28,40 @@ codon_table = {'TTT': 'F', 'TTC': 'F', 'TTA': 'L', 'TTG': 'L', 'TCT': 'S',
                'GAA': 'E', 'GAG': 'E', 'GGT': 'G', 'GGC': 'G', 'GGA': 'G',
                'GGG': 'G', 'TAA': '*', 'TAG': '*', 'TGA': '*'}
 
+# global dictionary specifying base pairing
+base_pairing = {'A': 'T',
+                'T': 'A',
+                'a': 't',
+                't': 'a',
+                'C': 'G',
+                'G': 'C',
+                'c': 'g',
+                'g': 'c',
+                '-': '-',  # some people denote indels with '-'
+                'n': 'n',
+                'N': 'N'}
+
+
+def rev_comp(seq):
+    """Get reverse complement of sequence.
+
+    rev_comp will maintain the case of the sequence.
+
+    Parameters
+    ----------
+    seq : str
+        nucleotide sequence. valid {a, c, t, g, n}
+
+    Returns
+    -------
+    rev_comp_seq : str
+        reverse complement of sequence
+    """
+    rev_seq = seq[::-1]
+    rev_comp_seq = ''.join([base_pairing[s] for s in rev_seq])
+    return rev_comp_seq
+
+
 def is_valid_nuc(nuc):
     valid_nucs = ['A', 'C', 'T', 'G', 'N']
     is_valid = nuc in valid_nucs

@@ -57,36 +57,6 @@ def start_logging(log_file='', log_level='INFO'):
         root.propagate = True
 
 
-def rev_comp(seq):
-    """Get reverse complement of sequence.
-
-    rev_comp will maintain the case of the sequence.
-
-    Parameters
-    ----------
-    seq : str
-        nucleotide sequence. valid {a, c, t, g, n}
-
-    Returns
-    -------
-    rev_comp_seq : str
-        reverse complement of sequence
-    """
-    base_pairing = {'A': 'T',
-                    'T': 'A',
-                    'a': 't',
-                    't': 'a',
-                    'C': 'G',
-                    'G': 'C',
-                    'c': 'g',
-                    'g': 'c',
-                    'n': 'n',
-                    'N': 'N'}
-    rev_seq = seq[::-1]
-    rev_comp_seq = ''.join([base_pairing[s] for s in rev_seq])
-    return rev_comp_seq
-
-
 def _fetch_5ss_fasta(fasta, gene_name, exon_num,
                      chrom, strand, start, end):
     """Retreives the 5' SS sequence flanking the specified exon.
@@ -120,7 +90,7 @@ def _fetch_5ss_fasta(fasta, gene_name, exon_num,
         ss_seq = fasta.fetch(reference=chrom,
                              start=end,
                              end=end+2)
-        ss_seq = rev_comp(ss_seq)
+        ss_seq = utils.rev_comp(ss_seq)
     elif strand == '+':
         ss_seq = fasta.fetch(reference=chrom,
                              start=start-2,
@@ -168,7 +138,7 @@ def _fetch_3ss_fasta(fasta, gene_name, exon_num,
         ss_seq = fasta.fetch(reference=chrom,
                              start=start-2,
                              end=start)
-        ss_seq = rev_comp(ss_seq)
+        ss_seq = utils.rev_comp(ss_seq)
     ss_fasta = '>{0};exon{1};3SS\n{2}\n'.format(gene_name,
                                                 exon_num, ss_seq)
     return ss_fasta
@@ -201,7 +171,7 @@ def fetch_gene_fasta(gene_bed, fasta_obj):
                                    start=exon[0],
                                    end=exon[1]).upper()
         if strand == '-':
-            exon_seq = rev_comp(exon_seq)
+            exon_seq = utils.rev_comp(exon_seq)
         exon_fasta = '>{0};exon{1}\n{2}\n'.format(gene_bed.gene_name,
                                                   i, exon_seq)
 
