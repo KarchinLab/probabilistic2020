@@ -29,7 +29,6 @@ def start_logging(log_file='', log_level='INFO'):
     If os.devnull is specified as the log_file then the log file will
     not actually be written to a file.
     """
-
     if not log_file:
         # create log directory if it doesn't exist
         file_dir = os.path.dirname(os.path.realpath(__file__))
@@ -75,7 +74,7 @@ def log_error_decorator(f):
             result = f(*args, **kwds)
             return result
         except KeyboardInterrupt:
-            pass
+            logger.info('Ctrl-C stopped a process.')
         except Exception, e:
             logger.exception(e)
             raise
@@ -95,15 +94,42 @@ def deleterious_permutation(context_counts,
                             seq_context,
                             gene_seq,
                             num_permutations=10000):
+    """Performs null-permutations for deleterious mutation statistics
+    in a single gene.
+
+    Parameters
+    ----------
+    context_counts : pd.Series
+        number of mutations for each context
+    context_to_mut : dict
+        dictionary mapping nucleotide context to a list of observed
+        somatic base changes.
+    seq_context : SequenceContext
+        Sequence context for the entire gene sequence (regardless
+        of where mutations occur). The nucleotide contexts are
+        identified at positions along the gene.
+    gene_seq : GeneSequence
+        Sequence of gene of interest
+    num_permutations : int, default: 10000
+        number of permutations to create for null
+
+    Returns
+    -------
+    del_count_list : list
+        list of deleterious mutation counts under the null
+    """
     mycontexts = context_counts.index.tolist()
     somatic_base = [base
                     for one_context in mycontexts
                     for base in context_to_mut[one_context]]
 
-    del_count_list = []
+    # get random positions determined by sequence context
     tmp_contxt_pos = seq_context.random_pos(context_counts.iteritems(),
                                             num_permutations)
     tmp_mut_pos = np.hstack(pos_array for base, pos_array in tmp_contxt_pos)
+
+    # determine result of random positions
+    del_count_list = []
     for row in tmp_mut_pos:
         # get info about mutations
         tmp_mut_info = utils.get_aa_mut_info(row,
@@ -113,7 +139,6 @@ def deleterious_permutation(context_counts,
         # calc deleterious mutation info
         tmp_del_count = cutils.calc_deleterious_info(tmp_mut_info['Reference AA'],
                                                      tmp_mut_info['Somatic AA'])
-
         del_count_list.append(tmp_del_count)
     return del_count_list
 
@@ -124,14 +149,51 @@ def position_permutation(context_counts,
                          gene_seq,
                          num_permutations=10000,
                          kde_bandwidth=None):
+    """Performs null-permutations for position-based mutation statistics
+    in a single gene.
+
+    Parameters
+    ----------
+    context_counts : pd.Series
+        number of mutations for each context
+    context_to_mut : dict
+        dictionary mapping nucleotide context to a list of observed
+        somatic base changes.
+    seq_context : SequenceContext
+        Sequence context for the entire gene sequence (regardless
+        of where mutations occur). The nucleotide contexts are
+        identified at positions along the gene.
+    gene_seq : GeneSequence
+        Sequence of gene of interest
+    num_permutations : int, default: 10000
+        number of permutations to create for null
+    kde_bandwidth : int, default: None
+        ?possibly deprecated parameter
+
+    Returns
+    -------
+    num_recur_list : list
+        list of recurrent mutation counts under the null
+    entropy_list : list
+        list of position entropy values under the null
+    entropy_list : list
+        list of position entropy values after KDE smoothing
+        under the null.
+    bw_list : list
+        list of cross-validated KDE bandwidth values under the null.
+    """
     mycontexts = context_counts.index.tolist()
     somatic_base = [base
                     for one_context in mycontexts
                     for base in context_to_mut[one_context]]
-    num_recur_list, entropy_list, kde_entropy_list, bw_list = [], [], [], []
+
+    # get random positions determined by sequence context
     tmp_contxt_pos = seq_context.random_pos(context_counts.iteritems(),
                                             num_permutations)
     tmp_mut_pos = np.hstack(pos_array for base, pos_array in tmp_contxt_pos)
+
+    # calculate position-based statistics as a result of random positions
+    num_recur_list, entropy_list, kde_entropy_list, bw_list = [], [], [], []
     for row in tmp_mut_pos:
         # get info about mutations
         tmp_mut_info = utils.get_aa_mut_info(row,
@@ -152,6 +214,21 @@ def position_permutation(context_counts,
 
 
 def read_bed(file_path, filtered_genes):
+    """Reads BED file and populates a dictionary separating genes
+    by chromosome.
+
+    Parameters
+    ----------
+    file_path : str
+        path to BED file
+    filtered_genes: list
+        list of gene names to not use
+
+    Returns
+    -------
+    bed_dict: dict
+        dictionary mapping chromosome keys to a list of BED lines
+    """
     # read in entire bed file into a dict with keys as chromsomes
     bed_dict = {}
     for bed_row in utils.bed_generator(file_path):
@@ -175,7 +252,6 @@ def calc_deleterious_result(mut_info,
         context_cts = mut_info['Context'].value_counts()
         context_to_mutations = dict((name, group['Tumor_Allele'])
                                     for name, group in mut_info.groupby('Context'))
-
 
         # get deleterious info for actual mutations
         aa_mut_info = utils.get_aa_mut_info(mut_info['Coding Position'],
@@ -309,7 +385,7 @@ def singleprocess_permutation(info):
         if opts['kind'] == 'oncogene':
             # calculate position based permutation results
             tmp_result = calc_position_result(mut_info, sc, gs, bed, num_permutations)
-            result.append(tmp_result)
+            result.append(tmp_result + [total_mut, unmapped_muts])
         else:
             # calculate results for deleterious mutation permutation test
             tmp_result = calc_deleterious_result(mut_info, sc, gs,
@@ -323,6 +399,9 @@ def singleprocess_permutation(info):
 
 
 def multiprocess_permutation(bed_dict, mut_df, opts):
+    """Handles parallelization of permutations by splitting work
+    by chromosome.
+    """
     chroms = sorted(bed_dict.keys())
     num_processes = opts['processes']
     result_list = []
@@ -338,7 +417,7 @@ def multiprocess_permutation(bed_dict, mut_df, opts):
                 result_list += chrom_result
         except KeyboardInterrupt:
             pool.close()
-            pool.join
+            pool.join()
             logger.info('Exited by user. ctrl-c')
             sys.exit(0)
         pool.close()
