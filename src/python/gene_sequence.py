@@ -27,10 +27,8 @@ class GeneSequence(object):
         """
         exon_seq_list, five_ss_seq_list, three_ss_seq_list = self._fetch_seq()
         self.exon_seq = ''.join(exon_seq_list)
-        self.three_prime_seq = [(exon_seq_list[i][-1:] + ss if self.nuc_context == 2 else ss)
-                                for i, ss in enumerate(three_ss_seq_list)]
-        self.five_prime_seq = [(exon_seq_list[i+1][:1] + ss if self.nuc_context == 2 else ss)
-                               for i, ss in enumerate(three_ss_seq_list)]
+        self.three_prime_seq = three_ss_seq_list
+        self.five_prime_seq =  five_ss_seq_list
         self._to_upper()  # make sure all sequences are in upper case
 
     def add_germline_variants(self, germline_nucs, coding_pos):

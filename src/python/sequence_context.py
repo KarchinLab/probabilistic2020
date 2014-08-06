@@ -24,15 +24,43 @@ class SequenceContext(object):
             GeneSequence object from the gene_sequence module
         """
         self.context2pos, self.pos2context = {}, {}
+        gene_len = len(gene_seq.exon_seq)  # get length of CDS
+        five_ss_len = 2*len(gene_seq.five_prime_seq)  # total length of 5' splice sites
+        three_ss_len = 2*len(gene_seq.three_prime_seq)  # total length of 3' splice sites
 
         if gene_seq.nuc_context in [1, 2]:
             # case where context matters
             index_context = int(gene_seq.nuc_context) - 1  # subtract 1 since python is zero-based index
-            for i in range(index_context, len(gene_seq.exon_seq)):
+            for i in range(index_context, gene_len):
                 nucs = gene_seq.exon_seq[i-index_context:i+1]
                 self.context2pos.setdefault(nucs, [])
                 self.context2pos[nucs].append(i)
                 self.pos2context[i] = nucs
+
+            # sequence context for five prime splice site
+            for i, five_ss in enumerate(gene_seq.five_prime_seq):
+                first_nucs = five_ss[1-index_context:1+1]
+                second_nucs = five_ss[2-index_context:2+1]
+                first_pos = 2*i + gene_len
+                second_pos = 2*i + gene_len + 1
+                self.context2pos.setdefault(first_nucs, [])
+                self.context2pos[first_nucs].append(first_pos)
+                self.context2pos.setdefault(second_nucs, [])
+                self.context2pos[second_nucs].append(second_pos)
+                self.pos2context[first_pos] = first_nucs
+                self.pos2context[second_pos] = second_nucs
+            # sequence context for three prime splice site
+            for i, three_ss in enumerate(gene_seq.three_prime_seq):
+                first_nucs = three_ss[1-index_context:1+1]
+                second_nucs = three_ss[2-index_context:2+1]
+                first_pos = 2*i + gene_len + five_ss_len
+                second_pos = 2*i + gene_len + five_ss_len + 1
+                self.context2pos.setdefault(first_nucs, [])
+                self.context2pos[first_nucs].append(first_pos)
+                self.context2pos.setdefault(second_nucs, [])
+                self.context2pos[second_nucs].append(second_pos)
+                self.pos2context[first_pos] = first_nucs
+                self.pos2context[second_pos] = second_nucs
 
             # hack solution for context for first nuc
             if gene_seq.exon_seq and gene_seq.nuc_context > 1:
@@ -53,6 +81,31 @@ class SequenceContext(object):
                 self.context2pos.setdefault(context, [])
                 self.context2pos[context].append(i)
                 self.pos2context[i] = context
+
+            # sequence context for five prime splice site
+            for i, five_ss in enumerate(gene_seq.five_prime_seq):
+                first_nucs = five_ss[:3]
+                second_nucs = five_ss[1:4]
+                first_pos = 2*i + gene_len
+                second_pos = 2*i + gene_len + 1
+                self.context2pos.setdefault(first_nucs, [])
+                self.context2pos[first_nucs].append(first_pos)
+                self.context2pos.setdefault(second_nucs, [])
+                self.context2pos[second_nucs].append(second_pos)
+                self.pos2context[first_pos] = first_nucs
+                self.pos2context[second_pos] = second_nucs
+            # sequence context for three prime splice site
+            for i, three_ss in enumerate(gene_seq.three_prime_seq):
+                first_nucs = three_ss[:3]
+                second_nucs = three_ss[1:4]
+                first_pos = 2*i + gene_len + five_ss_len
+                second_pos = 2*i + gene_len + five_ss_len + 1
+                self.context2pos.setdefault(first_nucs, [])
+                self.context2pos[first_nucs].append(first_pos)
+                self.context2pos.setdefault(second_nucs, [])
+                self.context2pos[second_nucs].append(second_pos)
+                self.pos2context[first_pos] = first_nucs
+                self.pos2context[second_pos] = second_nucs
 
             # hack solution for context for first nuc
             if gene_seq.exon_seq:
@@ -79,7 +132,7 @@ class SequenceContext(object):
             # position
             for i in range(len(gene_seq.exon_seq)):
                 self.pos2context[i] = 'None'
-            self.context2pos['None'] = range(len(gene_seq.exon_seq))
+            self.context2pos['None'] = range(gene_len + five_ss_len + three_ss_len)
 
     def get_chasm_context(self, tri_nuc):
         """Returns the mutation context acording to CHASM.
