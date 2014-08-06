@@ -88,12 +88,12 @@ def _fetch_5ss_fasta(fasta, gene_name, exon_num,
     """
     if strand == '+':
         ss_seq = fasta.fetch(reference=chrom,
-                             start=end,
-                             end=end+2)
+                             start=end-1,
+                             end=end+3)
     elif strand == '-':
         ss_seq = fasta.fetch(reference=chrom,
-                             start=start-2,
-                             end=start)
+                             start=start-3,
+                             end=start+1)
         ss_seq = utils.rev_comp(ss_seq)
     ss_fasta = '>{0};exon{1};5SS\n{2}\n'.format(gene_name,
                                                 exon_num, ss_seq)
@@ -132,13 +132,13 @@ def _fetch_3ss_fasta(fasta, gene_name, exon_num,
 
     if strand == '-':
         ss_seq = fasta.fetch(reference=chrom,
-                             start=end,
-                             end=end+2)
+                             start=end-1,
+                             end=end+3)
         ss_seq = utils.rev_comp(ss_seq)
     elif strand == '+':
         ss_seq = fasta.fetch(reference=chrom,
-                             start=start-2,
-                             end=start)
+                             start=start-3,
+                             end=start+1)
     ss_fasta = '>{0};exon{1};3SS\n{2}\n'.format(gene_name,
                                                 exon_num, ss_seq)
     return ss_fasta
