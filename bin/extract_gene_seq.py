@@ -86,15 +86,15 @@ def _fetch_5ss_fasta(fasta, gene_name, exon_num,
     ss_fasta : str
         string in fasta format with first line being seq id
     """
-    if strand == '-':
+    if strand == '+':
         ss_seq = fasta.fetch(reference=chrom,
                              start=end,
                              end=end+2)
-        ss_seq = utils.rev_comp(ss_seq)
-    elif strand == '+':
+    elif strand == '-':
         ss_seq = fasta.fetch(reference=chrom,
                              start=start-2,
                              end=start)
+        ss_seq = utils.rev_comp(ss_seq)
     ss_fasta = '>{0};exon{1};5SS\n{2}\n'.format(gene_name,
                                                 exon_num, ss_seq)
     return ss_fasta
@@ -130,15 +130,15 @@ def _fetch_3ss_fasta(fasta, gene_name, exon_num,
         string in fasta format with first line being seq id
     """
 
-    if strand == '+':
+    if strand == '-':
         ss_seq = fasta.fetch(reference=chrom,
                              start=end,
                              end=end+2)
-    elif strand == '-':
+        ss_seq = utils.rev_comp(ss_seq)
+    elif strand == '+':
         ss_seq = fasta.fetch(reference=chrom,
                              start=start-2,
                              end=start)
-        ss_seq = utils.rev_comp(ss_seq)
     ss_fasta = '>{0};exon{1};3SS\n{2}\n'.format(gene_name,
                                                 exon_num, ss_seq)
     return ss_fasta
@@ -181,11 +181,11 @@ def fetch_gene_fasta(gene_bed, fasta_obj):
             ss_fasta = ''
         elif i == 0:
             # first exon only, get 3' SS
-            ss_fasta = _fetch_3ss_fasta(fasta_obj, gene_bed.gene_name, i,
+            ss_fasta = _fetch_5ss_fasta(fasta_obj, gene_bed.gene_name, i,
                                         gene_bed.chrom, strand, exon[0], exon[1]).upper()
         elif i == (len(exons) - 1):
             # last exon only, get 5' SS
-            ss_fasta = _fetch_5ss_fasta(fasta_obj, gene_bed.gene_name, i,
+            ss_fasta = _fetch_3ss_fasta(fasta_obj, gene_bed.gene_name, i,
                                         gene_bed.chrom, strand, exon[0], exon[1]).upper()
         else:
             # middle exon, get bot 5' and 3' SS
