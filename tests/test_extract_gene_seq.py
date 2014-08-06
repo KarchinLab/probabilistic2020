@@ -6,17 +6,18 @@ sys.path.append(os.path.join(file_dir, '../bin/'))
 
 # import extract_genes module
 import extract_gene_seq as eg
+import utils
 
 def test_rev_comp():
     seq1 = 'CT'
     seq2 = 'AaCg'
     seq3 = 'aNnC'
 
-    rc_seq1 = eg.rev_comp(seq1)
+    rc_seq1 = utils.rev_comp(seq1)
     assert rc_seq1 == 'AG'
-    rc_seq2 = eg.rev_comp(seq2)
+    rc_seq2 = utils.rev_comp(seq2)
     assert rc_seq2 == 'cGtT'
-    rc_seq3 = eg.rev_comp(seq3)
+    rc_seq3 = utils.rev_comp(seq3)
     assert rc_seq3 == 'GnNt'
 
 
