@@ -19,7 +19,6 @@ def test_ctnnb1_main():
             'tsg_score': .05,
             'processes': 1,
             'num_permutations': 10000,
-            'bandwidth_permutations': 100,
             'kind': 'oncogene'}
     # single nucleotide context
     result = pt.main(opts)
@@ -73,8 +72,7 @@ def test_100genes_main():
             'context': 1,
             'tsg_score': .1,
             'processes': 5,
-            'num_permutations': 10000,
-            'bandwidth_permutations': 100,
+            'num_permutations': 100,
             'kind': 'oncogene'}
     # single nucleotide context
     result = pt.main(opts)
