@@ -89,15 +89,15 @@ class GeneSequence(object):
 
             # add splice site sequence
             tmp_id_3ss = '{0};3SS'.format(tmp_id)
-            tmp_id_5ss = '{0};3SS'.format(tmp_id)
+            tmp_id_5ss = '{0};5SS'.format(tmp_id)
             if num_exons == 1:
                 pass
             elif i == 0:
-                tmp_3ss = self.fasta.fetch(tmp_id_3ss)
-                three_prime_ss.append(tmp_3ss)
-            elif i == (num_exons - 1):
                 tmp_5ss = self.fasta.fetch(tmp_id_5ss)
                 five_prime_ss.append(tmp_5ss)
+            elif i == (num_exons - 1):
+                tmp_3ss = self.fasta.fetch(tmp_id_3ss)
+                three_prime_ss.append(tmp_3ss)
             else:
                 tmp_3ss = self.fasta.fetch(tmp_id_3ss)
                 tmp_5ss = self.fasta.fetch(tmp_id_5ss)

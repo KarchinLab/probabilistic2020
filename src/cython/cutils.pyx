@@ -40,11 +40,18 @@ def pos_to_codon(seq, int pos):
         0-based position within a codon (e.g. 1 is the second
         position out of three)
     """
-    cdef int codon_pos, codon_start, pos_in_codon
-    codon_pos = pos / 3
-    codon_start = codon_pos * 3
-    pos_in_codon = pos % 3
-    return seq[codon_start:codon_start+3], codon_pos, pos_in_codon
+    cdef int codon_pos, codon_start, pos_in_codon, seq_len = len(seq)
+    if pos < seq_len:
+        # valid mutation in coding region
+        codon_pos = pos / 3
+        codon_start = codon_pos * 3
+        pos_in_codon = pos % 3
+        return seq[codon_start:codon_start+3], codon_pos, pos_in_codon
+    else:
+        # by assumption, "positions" of splice sites are greater than the
+        # length of the coding region to distinguish splice site mutations
+        # from coding region mutations
+        return 'Splice_Site', None, None
 
 
 def calc_pos_info(aa_mut_pos, germ_aa, somatic_aa,
@@ -89,8 +96,9 @@ def calc_deleterious_info(germ_aa, somatic_aa):
 
     for i in range(num_mutations):
         if germ_aa[i] and somatic_aa[i] and \
-           (germ_aa[i] == '*' or somatic_aa[i] == '*') and \
-           germ_aa[i] != somatic_aa[i]:
+           ((germ_aa[i] == '*' or somatic_aa[i] == '*') and \
+            germ_aa[i] != somatic_aa[i]) or \
+           somatic_aa[i] == 'Splice_Site':
             num_deleterious += 1
 
     return num_deleterious

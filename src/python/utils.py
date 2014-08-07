@@ -26,7 +26,8 @@ codon_table = {'TTT': 'F', 'TTC': 'F', 'TTA': 'L', 'TTG': 'L', 'TCT': 'S',
                'GTT': 'V', 'GTC': 'V', 'GTA': 'V', 'GTG': 'V', 'GCT': 'A',
                'GCC': 'A', 'GCA': 'A', 'GCG': 'A', 'GAT': 'D', 'GAC': 'D',
                'GAA': 'E', 'GAG': 'E', 'GGT': 'G', 'GGC': 'G', 'GGA': 'G',
-               'GGG': 'G', 'TAA': '*', 'TAG': '*', 'TGA': '*'}
+               'GGG': 'G', 'TAA': '*', 'TAG': '*', 'TGA': '*',
+               'Splice_Site': 'Splice_Site'}
 
 # global dictionary specifying base pairing
 base_pairing = {'A': 'T',
@@ -190,11 +191,14 @@ def get_aa_mut_info(coding_pos, somatic_base, gene_seq):
     ref_codon, codon_pos, pos_in_codon = list(ref_codon), list(codon_pos), list(pos_in_codon)
 
     # construct codons for mutations
-    mut_codon = [list(x) for x in ref_codon]
+    mut_codon = [(list(x) if x != 'Splice_Site' else []) for x in ref_codon]
     for i in range(len(mut_codon)):
-        pc = pos_in_codon[i]
-        mut_codon[i][pc] = somatic_base[i]
-    mut_codon = [''.join(x) for x in mut_codon]
+        # splice site mutations are not in a codon, so skip such mutations to
+        # prevent an error
+        if pos_in_codon[i] is not None:
+            pc = pos_in_codon[i]
+            mut_codon[i][pc] = somatic_base[i]
+    mut_codon = [(''.join(x) if x else 'Splice_Site') for x in mut_codon]
 
     # output resulting info
     aa_info = {'Reference Codon': ref_codon,

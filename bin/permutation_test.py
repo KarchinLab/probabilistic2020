@@ -20,6 +20,7 @@ import logging
 import datetime
 import itertools as it
 from functools import wraps
+import IPython
 
 logger = logging.getLogger(__name__)  # module logger
 
@@ -369,7 +370,7 @@ def singleprocess_permutation(info):
 
         # get coding position
         for ix, row in mut_info.iterrows():
-            coding_pos = bed.query_position(row['Chromosome'], row['Start_Position'])
+            coding_pos = bed.query_position(bed.strand, row['Chromosome'], row['Start_Position'])
             pos_list.append(coding_pos)
         mut_info['Coding Position'] = pos_list
         mut_info = mut_info.dropna(subset=['Coding Position'])  # mutations need to map to tx
@@ -427,7 +428,7 @@ def multiprocess_permutation(bed_dict, mut_df, opts):
 
 
 def _fix_mutation_df(mutation_df):
-    allowed_types = ['Missense_Mutation', 'Silent', 'Nonsense_Mutation']
+    allowed_types = ['Missense_Mutation', 'Silent', 'Nonsense_Mutation', "Splice_Site"]
     mutation_df = mutation_df[mutation_df.Variant_Classification.isin(allowed_types)]  # only keep SNV
     valid_nuc_flag = mutation_df['Reference_Allele'].apply(utils.is_valid_nuc) & mutation_df['Tumor_Allele'].apply(utils.is_valid_nuc)
     mutation_df = mutation_df[valid_nuc_flag]  # filter bad lines
@@ -605,6 +606,7 @@ def main(opts):
         permutation_df = pd.DataFrame(sorted(permutation_result, key=lambda x: x[2]),
                                       columns=['gene', 'num deleterious', 'deleterious p-value',
                                                'Total Mutations', 'Unmapped to Tx'])
+        permutation_df['deleterious p-value'] = permutation_df['deleterious p-value'].astype('float')
         tmp_df = permutation_df[permutation_df['deleterious p-value'].notnull()]
 
         # get benjamani hochberg adjusted p-values
@@ -618,7 +620,8 @@ def main(opts):
 
         # save result
         col_order  = ['gene', 'Total Mutations', 'Unmapped to Tx',
-                      'num deleterious', 'deleterious p-value']
+                      'num deleterious', 'deleterious p-value',
+                      'deleterious BH q-value']
         permutation_df[col_order].to_csv(opts['output'], sep='\t', index=False)
 
     return permutation_df

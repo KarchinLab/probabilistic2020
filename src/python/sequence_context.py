@@ -88,24 +88,36 @@ class SequenceContext(object):
                 second_nucs = five_ss[1:4]
                 first_pos = 2*i + gene_len
                 second_pos = 2*i + gene_len + 1
-                self.context2pos.setdefault(first_nucs, [])
-                self.context2pos[first_nucs].append(first_pos)
-                self.context2pos.setdefault(second_nucs, [])
-                self.context2pos[second_nucs].append(second_pos)
-                self.pos2context[first_pos] = first_nucs
-                self.pos2context[second_pos] = second_nucs
+                if ncontext == 1.5:
+                    first_context = self.get_chasm_context(first_nucs)
+                    second_context = self.get_chasm_context(second_nucs)
+                else:
+                    first_context = first_nucs
+                    second_context = second_nucs
+                self.context2pos.setdefault(first_context, [])
+                self.context2pos[first_context].append(first_pos)
+                self.context2pos.setdefault(second_context, [])
+                self.context2pos[second_context].append(second_pos)
+                self.pos2context[first_pos] = first_context
+                self.pos2context[second_pos] = second_context
             # sequence context for three prime splice site
             for i, three_ss in enumerate(gene_seq.three_prime_seq):
                 first_nucs = three_ss[:3]
                 second_nucs = three_ss[1:4]
                 first_pos = 2*i + gene_len + five_ss_len
                 second_pos = 2*i + gene_len + five_ss_len + 1
-                self.context2pos.setdefault(first_nucs, [])
-                self.context2pos[first_nucs].append(first_pos)
-                self.context2pos.setdefault(second_nucs, [])
-                self.context2pos[second_nucs].append(second_pos)
-                self.pos2context[first_pos] = first_nucs
-                self.pos2context[second_pos] = second_nucs
+                if ncontext == 1.5:
+                    first_context = self.get_chasm_context(first_nucs)
+                    second_context = self.get_chasm_context(second_nucs)
+                else:
+                    first_context = first_nucs
+                    second_context = second_nucs
+                self.context2pos.setdefault(first_context, [])
+                self.context2pos[first_context].append(first_pos)
+                self.context2pos.setdefault(second_context, [])
+                self.context2pos[second_context].append(second_pos)
+                self.pos2context[first_pos] = first_context
+                self.pos2context[second_pos] = second_context
 
             # hack solution for context for first nuc
             if gene_seq.exon_seq:
@@ -130,7 +142,7 @@ class SequenceContext(object):
             # case where there is no context,
             # mutations occur with uniform probability at each
             # position
-            for i in range(len(gene_seq.exon_seq)):
+            for i in range(gene_len + five_ss_len + three_ss_len):
                 self.pos2context[i] = 'None'
             self.context2pos['None'] = range(gene_len + five_ss_len + three_ss_len)
 
@@ -152,6 +164,11 @@ class SequenceContext(object):
         chasm context : str
             a string representing the context used in CHASM
         """
+        # check if string is correct length
+        if len(tri_nuc) != 3:
+            raise ValueError('Chasm context requires a three nucleotide string '
+                             '(Provided: "{0}")'.format(tri_nuc))
+
         # try dinuc context if found
         if tri_nuc[1:] == 'CG':
             return 'C*pG'

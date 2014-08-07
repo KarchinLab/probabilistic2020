@@ -27,7 +27,7 @@ class BedLine(object):
         'chr3'
         >>> bed.strand
         '+'
-        >>> bed.query_position('chr3', 41265559)
+        >>> bed.query_position('+', 'chr3', 41265559)
         0
 
     """
@@ -122,6 +122,9 @@ class BedLine(object):
         no_utr_exons = self._filter_utr(exons)
         self.exons = no_utr_exons
         self.exon_lens = [e[1] - e[0] for e in self.exons]
+        self.num_exons = len(self.exons)
+        self.cds_len = sum(self.exon_lens)
+        self.five_ss_len = 2*(self.num_exons-1)
 
     def get_exons(self):
         """Returns the list of exons that have UTR regions filtered out."""
@@ -129,9 +132,9 @@ class BedLine(object):
 
     def get_num_exons(self):
         """Returns the number of exons (not including UTR exons)."""
-        return len(self.get_exons())
+        return self.num_exons
 
-    def query_position(self, chr, genome_coord):
+    def query_position(self, strand, chr, genome_coord):
         """Provides the relative position on the coding sequence for a given
         genomic position.
 
@@ -155,11 +158,24 @@ class BedLine(object):
                          'on {1}.'.format(chr, self.chrom))
             return pos
 
-        # return position if contained within coding region
+        # return position if contained within coding region or splice site
         for i, (estart, eend) in enumerate(self.exons):
+            # in coding region
             if estart <= genome_coord < eend:
                 prev_lens = sum(self.exon_lens[:i])  # previous exon lengths
                 pos = prev_lens + (genome_coord - estart)
                 return pos
+            # in splice site
+            elif (eend <= genome_coord < eend + 2) and i != self.num_exons-1:
+                if strand == '+':
+                    pos = self.cds_len + 2*i + (genome_coord - eend)
+                elif strand == '-':
+                    pos = self.cds_len + self.five_ss_len + 2*(self.num_exons-(i+2)) + (genome_coord - eend)
+            # in splice site
+            elif (estart - 2 <= genome_coord < estart) and i != 0:
+                if strand == '-':
+                    pos = self.cds_len + 2*(self.num_exons-(i+2)) + (genome_coord - (estart - 2))
+                elif strand == '+':
+                    pos = self.cds_len + self.five_ss_len + 2*(i-1) + (genome_coord - (estart - 2))
 
         return pos
