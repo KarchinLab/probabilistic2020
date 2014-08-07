@@ -96,7 +96,8 @@ def _fetch_5ss_fasta(fasta, gene_name, exon_num,
                              end=start+1)
         ss_seq = utils.rev_comp(ss_seq)
     ss_fasta = '>{0};exon{1};5SS\n{2}\n'.format(gene_name,
-                                                exon_num, ss_seq)
+                                                exon_num,
+                                                ss_seq.upper())
     return ss_fasta
 
 
@@ -140,7 +141,8 @@ def _fetch_3ss_fasta(fasta, gene_name, exon_num,
                              start=start-3,
                              end=start+1)
     ss_fasta = '>{0};exon{1};3SS\n{2}\n'.format(gene_name,
-                                                exon_num, ss_seq)
+                                                exon_num,
+                                                ss_seq.upper())
     return ss_fasta
 
 
@@ -182,17 +184,17 @@ def fetch_gene_fasta(gene_bed, fasta_obj):
         elif i == 0:
             # first exon only, get 3' SS
             ss_fasta = _fetch_5ss_fasta(fasta_obj, gene_bed.gene_name, i,
-                                        gene_bed.chrom, strand, exon[0], exon[1]).upper()
+                                        gene_bed.chrom, strand, exon[0], exon[1])
         elif i == (len(exons) - 1):
             # last exon only, get 5' SS
             ss_fasta = _fetch_3ss_fasta(fasta_obj, gene_bed.gene_name, i,
-                                        gene_bed.chrom, strand, exon[0], exon[1]).upper()
+                                        gene_bed.chrom, strand, exon[0], exon[1])
         else:
             # middle exon, get bot 5' and 3' SS
             fasta_3ss = _fetch_3ss_fasta(fasta_obj, gene_bed.gene_name, i,
-                                         gene_bed.chrom, strand, exon[0], exon[1]).upper()
+                                         gene_bed.chrom, strand, exon[0], exon[1])
             fasta_5ss = _fetch_5ss_fasta(fasta_obj, gene_bed.gene_name, i,
-                                         gene_bed.chrom, strand, exon[0], exon[1]).upper()
+                                         gene_bed.chrom, strand, exon[0], exon[1])
             ss_fasta = fasta_5ss + fasta_3ss
 
         gene_fasta += exon_fasta + ss_fasta
