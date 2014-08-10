@@ -8,7 +8,7 @@ import os
 file_dir = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(file_dir, 'permutation2020/cython'))
 
-import numpy as np
+# import numpy as np
 
 #setup(
     #cmdclass = {'build_ext': build_ext},
@@ -30,19 +30,19 @@ extensions = [
     Extension(SRC_DIR + ".cython.uniform_kde",
               [SRC_DIR +'/cython/uniform_kde'+ext],
               language='c++',
-              include_dirs=[SRC_DIR + '/cython/',
-                            np.get_include()]),
+              include_dirs=[SRC_DIR + '/cython/']),
+                            # np.get_include()]),
     Extension(SRC_DIR + ".cython.gaussian_kde",
               [SRC_DIR + '/cython/gaussian_kde'+ext],
               language='c++',
-              include_dirs=[SRC_DIR + '/cython/',
-                            np.get_include()]),
+              include_dirs=[SRC_DIR + '/cython/']),
+                            # np.get_include()]),
     Extension(SRC_DIR + ".cython.cutils",
               [SRC_DIR + "/cython/cutils"+ext],
               language='c++',
               include_dirs=[SRC_DIR + '/cpp/',
-                            SRC_DIR + '/cython/',
-                            np.get_include()])
+                            SRC_DIR + '/cython/'])
+                            #np.get_include()])
 ]
 
 
@@ -70,7 +70,7 @@ else:
           author_email=EMAIL,
           url=URL,
           packages=PACKAGES,
-          install_requires=['scipy', 'numpy', 'pandas==0.12.0'],
+          install_requires=['numpy', 'scipy', 'pandas==0.12.0', 'pysam'],
           scripts=['bin/permutation_test.py', 'bin/extract_gene_seq.py'],
           long_description=open('README.md').read(),
           classifiers=["Topic :: Scientific/Engineering :: Bio-Informatics"],

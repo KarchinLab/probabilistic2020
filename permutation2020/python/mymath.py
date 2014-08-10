@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.misc import logsumexp
-from sklearn.neighbors import KernelDensity
-from sklearn.grid_search import GridSearchCV
+# from sklearn.neighbors import KernelDensity
+# from sklearn.grid_search import GridSearchCV
 
 
 def shannon_entropy(p):
@@ -122,6 +122,7 @@ def js_distance(p, q):
     return js_dist
 
 
+"""
 def kde_entropy(x, bandwidth=None, folds=5):
     # lower fold number if few mutations
     n = len(x)
@@ -145,3 +146,4 @@ def kde_entropy(x, bandwidth=None, folds=5):
     norm_log_pdf = log_pdf - log_sum
     ent = shannon_entropy(np.exp(norm_log_pdf)) / float(np.log2(n))
     return ent, bandwidth
+"""
