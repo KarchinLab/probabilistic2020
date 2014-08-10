@@ -29,8 +29,7 @@ def start_logging(log_file='', log_level='INFO'):
 
     if not log_file:
         # create log directory if it doesn't exist
-        file_dir = os.path.dirname(os.path.realpath(__file__))
-        log_dir = os.path.join(file_dir, '../log/')
+        log_dir = os.path.abspath('log/')
         if not os.path.isdir(log_dir):
             os.mkdir(log_dir)
 
