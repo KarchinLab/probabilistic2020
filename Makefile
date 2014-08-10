@@ -2,7 +2,7 @@ clean:
 	rm -f -r build/
 	rm -f src/cython/cutils.so
 	rm -f src/cython/gaussian_kde.so
-	rm -f src/cython/uniform_kde.cpp
+	rm -f src/cython/uniform_kde.so
 
 clean-cpp:
 	rm -f src/cython/cutils.cpp
