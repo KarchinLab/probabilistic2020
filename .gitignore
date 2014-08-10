@@ -48,3 +48,4 @@ Session.vim
 *.fai
 *.fa
 tests/output/*
+MANIFEST

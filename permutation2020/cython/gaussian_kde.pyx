@@ -3,7 +3,18 @@ from libc.math cimport sqrt, log, exp
 import numpy as np
 cimport numpy as np
 import scipy.misc as misc
-import mymath
+
+# fix problems with pythons terrible import system
+# required for importing mymath module
+import os
+import sys
+
+try:
+    file_dir = os.path.dirname(os.path.realpath(__file__))
+    sys.path.append(os.path.join(file_dir, '../python'))
+    import mymath
+except:
+    import permutation2020.python.mymath as mymath
 
 # define data types for kde function
 DTYPE_INT = np.int

@@ -3,13 +3,16 @@
 in the provided BED file.
 """
 # fix problems with pythons terrible import system
-import os
-import sys
-file_dir = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(os.path.join(file_dir, '../2020p/python'))
+try:
+    import os
+    import sys
+    file_dir = os.path.dirname(os.path.realpath(__file__))
+    sys.path.append(os.path.join(file_dir, '../permutation2020/python'))
+    import utils
+except:
+    import permutation2020.python.utils as utils
 
 # actually important imports
-import utils
 import pysam
 import argparse
 import logging

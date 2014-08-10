@@ -1,16 +1,23 @@
 #!/usr/bin/env python
-# fix problems with pythons terrible import system
-import os
-import sys
-file_dir = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(os.path.join(file_dir, '../src/python'))
-sys.path.append(os.path.join(file_dir, '../src/cython'))
+try:
+    # fix problems with pythons terrible import system
+    import os
+    import sys
+    file_dir = os.path.dirname(os.path.realpath(__file__))
+    sys.path.append(os.path.join(file_dir, '../permutation2020/python'))
+    sys.path.append(os.path.join(file_dir, '../permutation2020/cython'))
 
-# normal imports
-import utils
-from gene_sequence import GeneSequence
-from sequence_context import SequenceContext
-import cutils
+    # normal imports
+    import utils
+    from gene_sequence import GeneSequence
+    from sequence_context import SequenceContext
+    import cutils
+except:
+    import permutation2020.python.utils as utils
+    from permutation2020.python.gene_sequence import GeneSequence
+    from permutation2020.python.sequence_context import SequenceContext
+    import permutation2020.cython.cutils as cutils
+
 import argparse
 import pysam
 import pandas as pd
@@ -20,7 +27,6 @@ import logging
 import datetime
 import itertools as it
 from functools import wraps
-import IPython
 
 logger = logging.getLogger(__name__)  # module logger
 
@@ -239,12 +245,12 @@ def read_bed(file_path, filtered_genes):
     return bed_dict
 
 
-def calc_deleterious_result(mut_info,
-                            sc,
-                            gs,
-                            bed,
-                            num_permutations,
-                            del_threshold):
+def calc_deleterious_p_value(mut_info,
+                             sc,
+                             gs,
+                             bed,
+                             num_permutations,
+                             del_threshold):
     if len(mut_info) > 0:
         mut_info['Coding Position'] = mut_info['Coding Position'].astype(int)
         mut_info['Context'] = mut_info['Coding Position'].apply(lambda x: sc.pos2context[x])
@@ -265,15 +271,15 @@ def calc_deleterious_result(mut_info,
         # least meet some user-specified threshold
         if num_del >= del_threshold:
             # perform permutations
-            num_del_list = deleterious_permutation(context_cts,
-                                                   context_to_mutations,
-                                                   sc,  # sequence context obj
-                                                   gs,
-                                                   num_permutations)  # gene sequence obj
+            null_del_list = deleterious_permutation(context_cts,
+                                                    context_to_mutations,
+                                                    sc,  # sequence context obj
+                                                    gs,
+                                                    num_permutations)  # gene sequence obj
 
             # calculate p-value
-            del_num_nulls = sum([1 for d in num_del_list
-                                if d >= num_del])
+            del_num_nulls = sum([1 for d in null_del_list
+                                 if d >= num_del])
             del_p_value = del_num_nulls / float(num_permutations)
         else:
             del_p_value = None
@@ -285,11 +291,11 @@ def calc_deleterious_result(mut_info,
     return result
 
 
-def calc_position_result(mut_info,
-                         sc,
-                         gs,
-                         bed,
-                         num_permutations):
+def calc_position_p_value(mut_info,
+                          sc,
+                          gs,
+                          bed,
+                          num_permutations):
     if len(mut_info) > 0:
         mut_info['Coding Position'] = mut_info['Coding Position'].astype(int)
         mut_info['Context'] = mut_info['Coding Position'].apply(lambda x: sc.pos2context[x])
@@ -356,7 +362,8 @@ def singleprocess_permutation(info):
     for bed in bed_list:
         # prepare info for running permutation test
         gene_mut = mut_df[mut_df['Gene']==bed.gene_name]
-        cols = ['Chromosome', 'Start_Position', 'Reference_Allele', 'Tumor_Allele']
+        cols = ['Chromosome', 'Start_Position', 'Reference_Allele',
+                'Tumor_Allele', 'Variant_Classification']
         mut_info = gene_mut[cols]
         gs.set_gene(bed)
         pos_list = []
@@ -385,13 +392,13 @@ def singleprocess_permutation(info):
         # calculate results of permutation test
         if opts['kind'] == 'oncogene':
             # calculate position based permutation results
-            tmp_result = calc_position_result(mut_info, sc, gs, bed, num_permutations)
+            tmp_result = calc_position_p_value(mut_info, sc, gs, bed, num_permutations)
             result.append(tmp_result + [total_mut, unmapped_muts])
         else:
             # calculate results for deleterious mutation permutation test
-            tmp_result = calc_deleterious_result(mut_info, sc, gs,
-                                                 bed, num_permutations,
-                                                 opts['deleterious'])
+            tmp_result = calc_deleterious_p_value(mut_info,
+                                                  sc, gs, bed, num_permutations,
+                                                  opts['deleterious'])
             result.append(tmp_result + [total_mut, unmapped_muts])
 
     gene_fa.close()
@@ -428,9 +435,10 @@ def multiprocess_permutation(bed_dict, mut_df, opts):
 
 
 def _fix_mutation_df(mutation_df):
-    allowed_types = ['Missense_Mutation', 'Silent', 'Nonsense_Mutation', "Splice_Site"]
+    allowed_types = ['Missense_Mutation', 'Silent', 'Nonsense_Mutation', 'Splice_Site']
     mutation_df = mutation_df[mutation_df.Variant_Classification.isin(allowed_types)]  # only keep SNV
-    valid_nuc_flag = mutation_df['Reference_Allele'].apply(utils.is_valid_nuc) & mutation_df['Tumor_Allele'].apply(utils.is_valid_nuc)
+    valid_nuc_flag = (mutation_df['Reference_Allele'].apply(utils.is_valid_nuc) & \
+                      mutation_df['Tumor_Allele'].apply(utils.is_valid_nuc))
     mutation_df = mutation_df[valid_nuc_flag]  # filter bad lines
     mutation_df['Start_Position'] = mutation_df['Start_Position'] - 1
     mutation_df = mutation_df[mutation_df['Tumor_Allele'].apply(lambda x: len(x)==1)]
