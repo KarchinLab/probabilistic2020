@@ -21,6 +21,16 @@ for several factors that could effect the significance of driver genes.
 
 ## Installation
 
+### Downloading 20/20 Permutation Test
+
+The source files can be cloned from github using [git](http://git-scm.com/):
+
+```bash
+$ git clone https://github.com/ctokheim/permutation2020.git
+```
+
+The source files can also be manually downloaded from github at https://github.com/ctokheim/permutation2020.
+
 20/20 permutation test can be installed either locally or into your python distribution as a package. 
 
 ### Python Package Installation
