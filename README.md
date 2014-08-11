@@ -62,13 +62,11 @@ Local installation is a good option if you do not have privilege to install a py
 * pandas==0.12.0
 * pysam
 
-If you don't have the above required packages, you will need to install them. For the following commands to work you will need [pip](http://pip.readthedocs.org/en/latest/installing.html). If you are using a system wide python, you will need to use `sudo` before each pip command.
+If you don't have the above required packages, you will need to install them. For the following commands to work you will need [pip](http://pip.readthedocs.org/en/latest/installing.html). If you are using a system wide python, you will need to use `sudo` before the pip command.
 
 ```bash
-$ pip install numpy
-$ pip install scipy
-$ pip install pandas==0.12.0
-$ pip install pysam
+$ cd permutation2020
+$ pip install -r requirements.txt
 ```
 
 Next you will need to build the 20/20 permutation test source files. This is can be accomplished in one command.
