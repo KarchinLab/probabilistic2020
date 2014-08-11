@@ -19,36 +19,53 @@ for several factors that could effect the significance of driver genes.
 * mutation context
 * codon bias
 
-## Creating the gene annotation
+## Installation
 
-To perform permutations, the gene structure (ie position of exon, coding region) needs to 
-be defined. For each gene, only one transcript is used. The list of genes utilized and
-their corresponding transcript is obtained through [SNVBox](http://wiki.chasmsoftware.org/index.php/Main_Page). Follow instructions on installing SNVBox, if you want to recreate this
-entire process. Assuming SNVBox is installed, then the longest transcript is selected
-for each gene in SNVBox:
+20/20 permutation test can be installed either locally or into your python distribution as a package. 
 
-    $ mysql [options] < scripts/longest_snvbox_tx.sql > output/gene_bed/longest_tx.txt
+### Python Package Installation
 
-The longest_snvbox_tx.sql script is also located on [github](https://gist.github.com/ctokheim/18363041037e375f411c). 
-However if multiple transcripts have the same maximum amino acid length, then multiple 
-transcripts will be reported in the longest_tx.txt file. To remove redundancies 
-arbitrarily by selecting the first transcript occurrence, the scripts/unique_tx.py script 
-is used:
+Using the python package installation, all the required python packages for the 20/20 permutation test will automatically be installed for you.
 
-    $ python scripts/unique_tx.py -i output/gene_bed/longest_tx.txt -o output/gene_bed/unique_longest_tx.txt
+If you are using a system wide python for installation, you will use the following command.
 
-A list of transcript IDs are obtained using `cut` for input into the UCSC table browser:
+```bash
+$ sudo pip install permutation2020-0.1.0.tar.gz
+```
 
-    $ cut -f2,2 output/gene_bed/unique_longest_tx.txt | tail -n +2 > output/gene_bed/tx_ids.txt
+If your python is locally installed then you do not need to use `sudo`.
 
-Then obtain a BED file from the table browser using both the refGene and ensGene tracks.
-The output was saved as output/gene_bed/ucsc_table_browser_output.bed. The output from the UCSC table browser is then associated with a gene name rather than a transcript ID by the following:
+```bash
+$ pip install permutation2020-0.1.0.tar.gz
+```
 
-    $ python scripts/create_gene_bed.py -b output/gene_bed/ucsc_table_browser_output.bed -g output/gene_bed/unique_longest_tx.txt -o data/snvboxGenes.bed
+The scripts for the 20/20 Permutation Test can then be found in `Your_Python_Root_Dir/bin`.
 
-NOTE: Any transcripts from the table browser that had multiple positions (eg on chrX 
-and chrY) along with their corresponding gene were not saved in the final output.
+### Local installation
 
-## Creating Gene FASTA
+Local installation is a good option if you do not have privilege to install a python package and already have the required packages.
 
-    $ python bin/extract_gene_seq.py --log-level=DEBUG -i data/hg19.fa -b data/snvboxGenes.bed -o data/snvboxGenes.fa
+**Required packages:**
+
+* numpy
+* scipy
+* pandas==0.12.0
+* pysam
+
+If you don't have the above required packages, you will need to install them. For the following commands to work you will need [pip](http://pip.readthedocs.org/en/latest/installing.html). If you are using a system wide python, you will need to use `sudo` before each pip command.
+
+```bash
+$ pip install numpy
+$ pip install scipy
+$ pip install pandas==0.12.0
+$ pip install pysam
+```
+
+Next you will need to build the 20/20 permutation test source files. This is can be accomplished in one command.
+
+```bash
+$ cd permutation2020
+$ make build
+```
+
+Once finished building you can then use the scripts in the `permutation2020/bin` directory.

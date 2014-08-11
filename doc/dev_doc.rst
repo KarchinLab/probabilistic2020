@@ -39,3 +39,8 @@ The output was saved as output/gene_bed/ucsc_table_browser_output.bed. The outpu
 
 NOTE: Any transcripts from the table browser that had multiple positions (eg on chrX 
 and chrY) along with their corresponding gene were not saved in the final output.
+
+Creating Gene FASTA
+-------------------
+
+    $ python bin/extract_gene_seq.py --log-level=DEBUG -i data/hg19.fa -b data/snvboxGenes.bed -o data/snvboxGenes.fa
