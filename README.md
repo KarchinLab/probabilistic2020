@@ -72,7 +72,6 @@ $ pip install -r requirements.txt
 Next you will need to build the 20/20 permutation test source files. This is can be accomplished in one command.
 
 ```bash
-$ cd permutation2020
 $ make build
 ```
 
