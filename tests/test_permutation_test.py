@@ -3,7 +3,7 @@ import os
 import sys
 file_dir = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(file_dir, '../bin/'))
-sys.path.append(os.path.join(file_dir, '../2020p/python/'))
+sys.path.append(os.path.join(file_dir, '../permutation2020/python/'))
 
 import permutation_test as pt
 import numpy as np
@@ -72,26 +72,32 @@ def test_100genes_main():
             'context': 1,
             'tsg_score': .1,
             'processes': 5,
-            'num_permutations': 100,
+            'num_permutations': 1000,
             'kind': 'oncogene'}
     # single nucleotide context
     result = pt.main(opts)
     tested_result = result[result['Performed Recurrency Test']==1]
-    assert np.sum(tested_result['recurrent BH q-value'] < .1) < 5, 'Few of the 100 test genes should not be significant'
-    assert np.sum(tested_result['entropy BH q-value'] < .1) < 5, 'Few of the 100 test genes should not be significant'
+    num_recur_sig = np.sum(tested_result['recurrent BH q-value'] < .1)
+    num_ent_sig = np.sum(tested_result['entropy BH q-value'] < .1)
+    assert num_recur_sig < 7, 'Few of the 100 test genes should not be significant ({0})'.format(num_recur_sig)
+    assert num_ent_sig < 7, 'Few of the 100 test genes should not be significant ({0})'.format(num_ent_sig)
 
     # no context case
     opts['context'] = 0
     opts['output'] = os.path.join(file_dir, 'output/100genes_no_context_output.txt')
     result = pt.main(opts)
     tested_result = result[result['Performed Recurrency Test']==1]
-    assert np.sum(tested_result['recurrent BH q-value'] < .1) < 8, 'Few of the 100 test genes should not be significant'
-    assert np.sum(tested_result['entropy BH q-value'] < .1) < 8, 'Few of the 100 test genes should not be significant'
+    num_recur_sig = np.sum(tested_result['recurrent BH q-value'] < .1)
+    num_ent_sig = np.sum(tested_result['entropy BH q-value'] < .1)
+    assert num_recur_sig < 9, 'Few of the 100 test genes should not be significant ({0})'.format(num_recur_sig)
+    assert num_ent_sig < 9, 'Few of the 100 test genes should not be significant ({0})'.format(num_ent_sig)
 
     # di-nucleotide context
     opts['context'] = 2
     opts['output'] = os.path.join(file_dir, 'output/100genes_dinuc_output.txt')
     result = pt.main(opts)
     tested_result = result[result['Performed Recurrency Test']==1]
-    assert np.sum(tested_result['recurrent BH q-value'] < .1) < 5, 'Few of the 100 test genes should not be significant'
-    assert np.sum(tested_result['entropy BH q-value'] < .1) < 5, 'Few of the 100 test genes should not be significant'
+    num_recur_sig = np.sum(tested_result['recurrent BH q-value'] < .1)
+    num_ent_sig = np.sum(tested_result['entropy BH q-value'] < .1)
+    assert num_recur_sig < 7, 'Few of the 100 test genes should not be significant ({0})'.format(num_recur_sig)
+    assert num_ent_sig < 7, 'Few of the 100 test genes should not be significant ({0})'.format(num_ent_sig)

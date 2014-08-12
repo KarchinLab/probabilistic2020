@@ -3,8 +3,8 @@ import os
 import sys
 file_dir = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(file_dir, '../bin/'))
-sys.path.append(os.path.join(file_dir, '../2020p/python/'))
-sys.path.append(os.path.join(file_dir, '../2020p/cython/'))
+sys.path.append(os.path.join(file_dir, '../permutation2020/python/'))
+sys.path.append(os.path.join(file_dir, '../permutation2020/cython/'))
 
 # useful imports
 from gene_sequence import GeneSequence
