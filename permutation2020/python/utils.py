@@ -11,6 +11,7 @@ import numpy as np
 import csv
 import itertools as it
 import cutils
+from amino_acid import AminoAcid
 
 
 # global dictionary mapping codons to AA
@@ -41,6 +42,14 @@ base_pairing = {'A': 'T',
                 '-': '-',  # some people denote indels with '-'
                 'n': 'n',
                 'N': 'N'}
+
+def filter_list(mylist, bad_ixs):
+    # indices need to be in reverse order for filtering
+    # to prevent .pop() from yielding eroneous results
+    bad_ixs = sorted(bad_ixs, reverse=True)
+    for i in bad_ixs:
+        mylist.pop(i)
+    return mylist
 
 
 def rev_comp(seq):
@@ -163,6 +172,81 @@ def bh_fdr(pval):
     return pval_adj[original_order]
 
 
+def get_chasm_context(tri_nuc):
+    """Returns the mutation context acording to CHASM.
+
+    For more information about CHASM's mutation context, look
+    at http://wiki.chasmsoftware.org/index.php/CHASM_Overview.
+    Essentially CHASM uses a few specified di-nucleotide contexts
+    followed by single nucleotide context.
+
+    Parameters
+    ----------
+    tri_nuc : str
+        three nucleotide string with mutated base in the middle.
+
+    Returns
+    -------
+    chasm context : str
+        a string representing the context used in CHASM
+    """
+    # check if string is correct length
+    if len(tri_nuc) != 3:
+        raise ValueError('Chasm context requires a three nucleotide string '
+                         '(Provided: "{0}")'.format(tri_nuc))
+
+    # try dinuc context if found
+    if tri_nuc[1:] == 'CG':
+        return 'C*pG'
+    elif tri_nuc[:2] == 'CG':
+        return 'CpG*'
+    elif tri_nuc[:2] == 'TC':
+        return 'TpC*'
+    elif tri_nuc[1:] == 'GA':
+        return 'G*pA'
+    else:
+        # just return single nuc context
+        return tri_nuc[1]
+
+
+def get_context(chr, pos_list, strand, fa, context_type):
+    nuc_contexts = []
+    if context_type in [1, 2]:
+        # case where context matters
+        index_context = int(context_type) - 1  # subtract 1 since python is zero-based index
+        for pos in pos_list:
+            nucs = fa.fetch(reference=chr,
+                            start=pos-index_context,
+                            end=pos+1).upper()
+            if strand == '-':
+                nucs = rev_comp(nucs)
+            if 'N' not in nucs:
+                nuc_contexts.append(nucs)
+            else:
+                nuc_contexts.append(None)
+    elif context_type in [1.5, 3]:
+        # use the nucleotide context from chasm if nuc
+        # context is 1.5 otherwise always use a three
+        # nucleotide context
+        for pos in pos_list:
+            nucs = fa.fetch(reference=chr,
+                            start=pos-1,
+                            end=pos+2).upper()
+            if strand == '-':
+                nucs = rev_comp(nucs)
+            if context_type == 1.5 and nucs:
+                nucs = get_chasm_context(nucs)
+
+            if 'N' not in nucs:
+                nuc_contexts.append(nucs)
+            else:
+                nuc_contexts.append(None)
+    else:
+        nuc_contexts = ['None'] * len(pos_list)
+
+    return nuc_contexts
+
+
 def get_aa_mut_info(coding_pos, somatic_base, gene_seq):
     """Retrieves relevant information about the effect of a somatic
     SNV on the amino acid of a gene.
@@ -208,5 +292,67 @@ def get_aa_mut_info(coding_pos, somatic_base, gene_seq):
                                 for r in ref_codon],
                'Somatic AA': [(codon_table[s] if len(s)==3 else None)
                               for s in mut_codon]}
+
+    return aa_info
+
+
+def get_unmapped_aa_mut_info(mut_info, genome_fa, strand, chr, context_type):
+
+    # get information on the nucleotide context
+    mycontexts = get_context(chr, mut_info['Start_Position'],
+                             strand, genome_fa, context_type)
+
+    # get information about the effect of the protein change
+    if len(mut_info) > 0:
+        not_splice_site = mut_info['Variant_Classification'].map(lambda x: x!='Splice_Site')
+        prot_change = [AminoAcid(p) for p in mut_info[not_splice_site]['Protein_Change']]
+    else:
+        prot_change = []
+    codon_pos, germ_aa, somatic_aa = [], [], []
+    LARGE_NUMBER = 100000  # sufficiently large number to prevent accidental overlap of codon positions
+    tmp_index = 0
+    bad_mut_ix, good_mut_ix = [], []
+    for i in range(len(mut_info)):
+        if not mycontexts[i]:
+            bad_mut_ix.append(i)  # remove invalid/missing mutation
+            codon_pos.append(None)
+            germ_aa.append(None)
+            somatic_aa.append(None)
+            if not_splice_site.iloc[i]:
+                tmp_index += 1
+        elif not_splice_site.iloc[i]:
+            if prot_change and (not prot_change[tmp_index].is_valid or \
+                                prot_change[tmp_index].is_missing_info):
+                bad_mut_ix.append(i)  # remove invalid/missing mutation
+                codon_pos.append(None)
+                germ_aa.append(None)
+                somatic_aa.append(None)
+                tmp_index += 1
+            else:
+                good_mut_ix.append(i)
+                codon_pos.append(LARGE_NUMBER + prot_change[tmp_index].pos)
+                germ_aa.append(prot_change[tmp_index].initial)
+                somatic_aa.append(prot_change[tmp_index].mutated)
+                tmp_index += 1
+        else:
+            good_mut_ix.append(i)
+            codon_pos.append('Splice_Site')
+            germ_aa.append('Splice_Site')
+            somatic_aa.append('Splice_Site')
+
+    # remove bad mutations from results
+    mycontexts = filter_list(mycontexts, bad_mut_ix)
+    germ_aa = filter_list(germ_aa, bad_mut_ix)
+    somatic_aa = filter_list(somatic_aa, bad_mut_ix)
+    codon_pos = filter_list(codon_pos, bad_mut_ix)
+
+    # information about the effect of mutations that could not be mapped
+    # to the reference isoform of a gene.
+    tumor_allele = mut_info.iloc[np.array(good_mut_ix, dtype=int)]['Tumor_Allele'].tolist()
+    aa_info = {'Context': mycontexts,
+               'Codon Pos': codon_pos,
+               'Reference AA': germ_aa,
+               'Somatic AA': somatic_aa,
+               'Tumor_Allele': tumor_allele}
 
     return aa_info

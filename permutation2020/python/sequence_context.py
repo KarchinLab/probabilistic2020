@@ -1,4 +1,5 @@
 import numpy as np
+import utils
 
 
 class SequenceContext(object):
@@ -75,7 +76,7 @@ class SequenceContext(object):
             for i in range(1, len(gene_seq.exon_seq)-1):
                 nucs = gene_seq.exon_seq[i-1:i+2]
                 if ncontext == 1.5:
-                    context = self.get_chasm_context(nucs)
+                    context = utils.get_chasm_context(nucs)
                 else:
                     context = nucs
                 self.context2pos.setdefault(context, [])
@@ -89,8 +90,8 @@ class SequenceContext(object):
                 first_pos = 2*i + gene_len
                 second_pos = 2*i + gene_len + 1
                 if ncontext == 1.5:
-                    first_context = self.get_chasm_context(first_nucs)
-                    second_context = self.get_chasm_context(second_nucs)
+                    first_context = utils.get_chasm_context(first_nucs)
+                    second_context = utils.get_chasm_context(second_nucs)
                 else:
                     first_context = first_nucs
                     second_context = second_nucs
@@ -107,8 +108,8 @@ class SequenceContext(object):
                 first_pos = 2*i + gene_len + five_ss_len
                 second_pos = 2*i + gene_len + five_ss_len + 1
                 if ncontext == 1.5:
-                    first_context = self.get_chasm_context(first_nucs)
-                    second_context = self.get_chasm_context(second_nucs)
+                    first_context = utils.get_chasm_context(first_nucs)
+                    second_context = utils.get_chasm_context(second_nucs)
                 else:
                     first_context = first_nucs
                     second_context = second_nucs
@@ -123,7 +124,7 @@ class SequenceContext(object):
             if gene_seq.exon_seq:
                 first_nuc = gene_seq.exon_seq[0] + gene_seq.exon_seq[:2]
                 if ncontext == 1.5:
-                    first_context = self.get_chasm_context(first_nuc)
+                    first_context = utils.get_chasm_context(first_nuc)
                 else:
                     first_context = first_nuc
                 self.pos2context[0] = first_context
@@ -131,7 +132,7 @@ class SequenceContext(object):
                 self.context2pos[first_context].append(0)
                 last_nuc = gene_seq.exon_seq[-2:] + gene_seq.exon_seq[-1]
                 if ncontext == 1.5:
-                    last_context = self.get_chasm_context(last_nuc)
+                    last_context = utils.get_chasm_context(last_nuc)
                 else:
                     last_context = last_nuc
                 last_pos = len(gene_seq.exon_seq) - 1
@@ -145,42 +146,6 @@ class SequenceContext(object):
             for i in range(gene_len + five_ss_len + three_ss_len):
                 self.pos2context[i] = 'None'
             self.context2pos['None'] = range(gene_len + five_ss_len + three_ss_len)
-
-    def get_chasm_context(self, tri_nuc):
-        """Returns the mutation context acording to CHASM.
-
-        For more information about CHASM's mutation context, look
-        at http://wiki.chasmsoftware.org/index.php/CHASM_Overview.
-        Essentially CHASM uses a few specified di-nucleotide contexts
-        followed by single nucleotide context.
-
-        Parameters
-        ----------
-        tri_nuc : str
-            three nucleotide string with mutated base in the middle.
-
-        Returns
-        -------
-        chasm context : str
-            a string representing the context used in CHASM
-        """
-        # check if string is correct length
-        if len(tri_nuc) != 3:
-            raise ValueError('Chasm context requires a three nucleotide string '
-                             '(Provided: "{0}")'.format(tri_nuc))
-
-        # try dinuc context if found
-        if tri_nuc[1:] == 'CG':
-            return 'C*pG'
-        elif tri_nuc[:2] == 'CG':
-            return 'CpG*'
-        elif tri_nuc[:2] == 'TC':
-            return 'TpC*'
-        elif tri_nuc[1:] == 'GA':
-            return 'G*pA'
-        else:
-            # just return single nuc context
-            return tri_nuc[1]
 
     def is_valid_context(self, ctxt):
         """Checks if provided context is valid (previously seen).
