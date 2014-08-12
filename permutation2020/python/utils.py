@@ -5,7 +5,6 @@ file_dir = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(file_dir, '../cython'))
 
 # normal imports
-import ConfigParser
 from bed_line import BedLine
 import numpy as np
 import csv
@@ -76,14 +75,6 @@ def is_valid_nuc(nuc):
     valid_nucs = ['A', 'C', 'T', 'G', 'N']
     is_valid = nuc in valid_nucs
     return is_valid
-
-
-def get_config(section):
-    """Returns the config object"""
-    cfg = ConfigParser.ConfigParser()
-    cfg.read('config.cfg')
-    cfg_options = dict(cfg.items(section))
-    return cfg_options
 
 
 def bed_generator(bed_path):
