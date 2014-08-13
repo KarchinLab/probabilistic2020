@@ -43,4 +43,6 @@ and chrY) along with their corresponding gene were not saved in the final output
 Creating Gene FASTA
 -------------------
 
+.. code-block:: bash
+
     $ python bin/extract_gene_seq.py --log-level=DEBUG -i data/hg19.fa -b data/snvboxGenes.bed -o data/snvboxGenes.fa
