@@ -479,6 +479,58 @@ def multiprocess_permutation(bed_dict, mut_df, opts):
     return result_list
 
 
+def handle_tsg_results(permutation_result):
+    permutation_df = pd.DataFrame(sorted(permutation_result, key=lambda x: x[2]),
+                                  columns=['gene', 'num deleterious', 'deleterious p-value',
+                                           'Total Mutations', 'Unmapped to Ref Tx'])
+    permutation_df['deleterious p-value'] = permutation_df['deleterious p-value'].astype('float')
+    tmp_df = permutation_df[permutation_df['deleterious p-value'].notnull()]
+
+    # get benjamani hochberg adjusted p-values
+    permutation_df['deleterious BH q-value'] = np.nan
+    permutation_df['deleterious BH q-value'][tmp_df.index] = utils.bh_fdr(tmp_df['deleterious p-value'])
+
+    # sort output by p-value. due to no option to specify NaN order in
+    # sort, the df needs to sorted descendingly and then flipped
+    permutation_df = permutation_df.sort(columns='deleterious p-value', ascending=False)
+    permutation_df = permutation_df.reindex(index=permutation_df.index[::-1])
+
+    # order result
+    col_order  = ['gene', 'Total Mutations', 'Unmapped to Ref Tx',
+                  'num deleterious', 'deleterious p-value',
+                  'deleterious BH q-value']
+    return permutation_df[col_order]
+
+
+def handle_oncogene_results(permutation_result, non_tested_genes):
+    permutation_df = pd.DataFrame(sorted(permutation_result, key=lambda x: x[5]),
+                                  columns=['gene', 'num recurrent', 'position entropy',
+                                           'kde position entropy', 'kde bandwidth', 'recurrent p-value',
+                                           'entropy p-value', 'kde entropy p-value', 'kde bandwidth p-value',
+                                           'Total Mutations', "Unmapped to Ref Tx"])
+
+    # get benjamani hochberg adjusted p-values
+    permutation_df['recurrent BH q-value'] = utils.bh_fdr(permutation_df['recurrent p-value'])
+    permutation_df['entropy BH q-value'] = utils.bh_fdr(permutation_df['entropy p-value'])
+    permutation_df['kde entropy BH q-value'] = utils.bh_fdr(permutation_df['kde entropy p-value'])
+    permutation_df['kde bandwidth BH q-value'] = utils.bh_fdr(permutation_df['kde bandwidth p-value'])
+
+    # include non-tested genes in the result
+    no_test_df = pd.DataFrame(index=range(len(non_tested_genes)))
+    no_test_df['Performed Recurrency Test'] = 0
+    no_test_df['gene'] = non_tested_genes
+    permutation_df = pd.concat([permutation_df, no_test_df])
+    permutation_df['Performed Recurrency Test'] = permutation_df['Performed Recurrency Test'].fillna(1).astype(int)
+
+    # order output
+    permutation_df['num recurrent'] = permutation_df['num recurrent'].fillna(-1).astype(int)  # fix dtype isssue
+    col_order = ['gene', 'Total Mutations', 'Unmapped to Ref Tx', 'num recurrent', 'position entropy', 'kde position entropy', 'kde bandwidth',
+                 'recurrent p-value', 'recurrent BH q-value', 'entropy p-value', 'entropy BH q-value',
+                 'kde entropy p-value', 'kde entropy BH q-value', 'kde bandwidth p-value',
+                 'kde bandwidth BH q-value', 'Performed Recurrency Test']
+    return permutation_df[col_order]
+
+
 def _fix_mutation_df(mutation_df):
     allowed_types = ['Missense_Mutation', 'Silent', 'Nonsense_Mutation', 'Splice_Site']
     mutation_df = mutation_df[mutation_df.Variant_Classification.isin(allowed_types)]  # only keep SNV
@@ -645,54 +697,14 @@ def main(opts):
     bed_dict = read_bed(opts['bed'], non_tested_genes)
     permutation_result = multiprocess_permutation(bed_dict, mut_df, opts)
 
+    # Perform BH p-value adjustment and tidy up data for output
     if opts['kind'] == 'oncogene':
-        permutation_df = pd.DataFrame(sorted(permutation_result, key=lambda x: x[5]),
-                                      columns=['gene', 'num recurrent', 'position entropy',
-                                               'kde position entropy', 'kde bandwidth', 'recurrent p-value',
-                                               'entropy p-value', 'kde entropy p-value', 'kde bandwidth p-value',
-                                               'Total Mutations', "Unmapped to Ref Tx"])
-
-        # get benjamani hochberg adjusted p-values
-        permutation_df['recurrent BH q-value'] = utils.bh_fdr(permutation_df['recurrent p-value'])
-        permutation_df['entropy BH q-value'] = utils.bh_fdr(permutation_df['entropy p-value'])
-        permutation_df['kde entropy BH q-value'] = utils.bh_fdr(permutation_df['kde entropy p-value'])
-        permutation_df['kde bandwidth BH q-value'] = utils.bh_fdr(permutation_df['kde bandwidth p-value'])
-
-        # include non-tested genes in the result
-        no_test_df = pd.DataFrame(index=range(len(non_tested_genes)))
-        no_test_df['Performed Recurrency Test'] = 0
-        no_test_df['gene'] = non_tested_genes
-        permutation_df = pd.concat([permutation_df, no_test_df])
-        permutation_df['Performed Recurrency Test'] = permutation_df['Performed Recurrency Test'].fillna(1).astype(int)
-
-        # save output
-        permutation_df['num recurrent'] = permutation_df['num recurrent'].fillna(-1).astype(int)  # fix dtype isssue
-        col_order = ['gene', 'Total Mutations', 'Unmapped to Ref Tx', 'num recurrent', 'position entropy', 'kde position entropy', 'kde bandwidth',
-                     'recurrent p-value', 'recurrent BH q-value', 'entropy p-value', 'entropy BH q-value',
-                     'kde entropy p-value', 'kde entropy BH q-value', 'kde bandwidth p-value',
-                     'kde bandwidth BH q-value', 'Performed Recurrency Test']
-        permutation_df[col_order].to_csv(opts['output'], sep='\t', index=False)
+        permutation_df = handle_oncogene_results(permutation_result, non_tested_genes)
     else:
-        permutation_df = pd.DataFrame(sorted(permutation_result, key=lambda x: x[2]),
-                                      columns=['gene', 'num deleterious', 'deleterious p-value',
-                                               'Total Mutations', 'Unmapped to Ref Tx'])
-        permutation_df['deleterious p-value'] = permutation_df['deleterious p-value'].astype('float')
-        tmp_df = permutation_df[permutation_df['deleterious p-value'].notnull()]
+        permutation_df = handle_tsg_results(permutation_result)
 
-        # get benjamani hochberg adjusted p-values
-        permutation_df['deleterious BH q-value'] = np.nan
-        permutation_df['deleterious BH q-value'][tmp_df.index] = utils.bh_fdr(tmp_df['deleterious p-value'])
-
-        # sort output by p-value. due to no option to specify NaN order in
-        # sort, the df needs to sorted descendingly and then flipped
-        permutation_df = permutation_df.sort(columns='deleterious p-value', ascending=False)
-        permutation_df = permutation_df.reindex(index=permutation_df.index[::-1])
-
-        # save result
-        col_order  = ['gene', 'Total Mutations', 'Unmapped to Ref Tx',
-                      'num deleterious', 'deleterious p-value',
-                      'deleterious BH q-value']
-        permutation_df[col_order].to_csv(opts['output'], sep='\t', index=False)
+    # save output
+    permutation_df.to_csv(opts['output'], sep='\t', index=False)
 
     return permutation_df
 
