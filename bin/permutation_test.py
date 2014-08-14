@@ -219,31 +219,6 @@ def position_permutation(context_counts,
     return num_recur_list, entropy_list, kde_entropy_list, bw_list
 
 
-def read_bed(file_path, filtered_genes):
-    """Reads BED file and populates a dictionary separating genes
-    by chromosome.
-
-    Parameters
-    ----------
-    file_path : str
-        path to BED file
-    filtered_genes: list
-        list of gene names to not use
-
-    Returns
-    -------
-    bed_dict: dict
-        dictionary mapping chromosome keys to a list of BED lines
-    """
-    # read in entire bed file into a dict with keys as chromsomes
-    bed_dict = {}
-    for bed_row in utils.bed_generator(file_path):
-        if bed_row.gene_name not in filtered_genes:
-            bed_dict.setdefault(bed_row.chrom, [])
-            bed_dict[bed_row.chrom].append(bed_row)
-    return bed_dict
-
-
 def calc_deleterious_p_value(mut_info,
                              unmapped_mut_info,
                              sc,
@@ -456,25 +431,33 @@ def multiprocess_permutation(bed_dict, mut_df, opts):
     by chromosome.
     """
     chroms = sorted(bed_dict.keys())
-    num_processes = opts['processes']
+    multiprocess_flag = opts['processes']>0
+    if multiprocess_flag:
+        num_processes = opts['processes']
+    else:
+        num_processes = 1
     result_list = []
     for i in range(0, len(chroms), num_processes):
-        pool = Pool(processes=num_processes)
-        tmp_num_proc = len(chroms) - i if i + num_processes > len(chroms) else num_processes
-        info_repeat = ((bed_dict[chroms[tmp_ix]], mut_df, opts)
-                        for tmp_ix in range(i, i+tmp_num_proc))
-        process_results = pool.imap(singleprocess_permutation, info_repeat)
-        process_results.next = keyboard_exit_wrapper(process_results.next)
-        try:
-            for chrom_result in process_results:
-                result_list += chrom_result
-        except KeyboardInterrupt:
+        if multiprocess_flag:
+            pool = Pool(processes=num_processes)
+            tmp_num_proc = len(chroms) - i if i + num_processes > len(chroms) else num_processes
+            info_repeat = ((bed_dict[chroms[tmp_ix]], mut_df, opts)
+                            for tmp_ix in range(i, i+tmp_num_proc))
+            process_results = pool.imap(singleprocess_permutation, info_repeat)
+            process_results.next = keyboard_exit_wrapper(process_results.next)
+            try:
+                for chrom_result in process_results:
+                    result_list += chrom_result
+            except KeyboardInterrupt:
+                pool.close()
+                pool.join()
+                logger.info('Exited by user. ctrl-c')
+                sys.exit(0)
             pool.close()
             pool.join()
-            logger.info('Exited by user. ctrl-c')
-            sys.exit(0)
-        pool.close()
-        pool.join()
+        else:
+            info = (bed_dict[chroms[i]], mut_df, opts)
+            result_list += singleprocess_permutation(info)
 
     return result_list
 
@@ -529,35 +512,6 @@ def handle_oncogene_results(permutation_result, non_tested_genes):
                  'kde entropy p-value', 'kde entropy BH q-value', 'kde bandwidth p-value',
                  'kde bandwidth BH q-value', 'Performed Recurrency Test']
     return permutation_df[col_order]
-
-
-def _fix_mutation_df(mutation_df):
-    allowed_types = ['Missense_Mutation', 'Silent', 'Nonsense_Mutation', 'Splice_Site']
-    mutation_df = mutation_df[mutation_df.Variant_Classification.isin(allowed_types)]  # only keep SNV
-    valid_nuc_flag = (mutation_df['Reference_Allele'].apply(utils.is_valid_nuc) & \
-                      mutation_df['Tumor_Allele'].apply(utils.is_valid_nuc))
-    mutation_df = mutation_df[valid_nuc_flag]  # filter bad lines
-    mutation_df['Start_Position'] = mutation_df['Start_Position'] - 1
-    mutation_df = mutation_df[mutation_df['Tumor_Allele'].apply(lambda x: len(x)==1)]
-    mutation_df = mutation_df[mutation_df['Reference_Allele'].apply(lambda x: len(x)==1)]
-    return mutation_df
-
-
-def _get_high_tsg_score(mutation_df, tsg_score_thresh):
-    mutation_df['indicator'] = 1
-    table = pd.pivot_table(mutation_df,
-                           values='indicator',
-                           cols='Variant_Classification',
-                           rows='Gene',
-                           aggfunc=np.sum)
-    mut_type_frac = table.div(table.sum(axis=1).astype(float), axis=0).fillna(0.0)
-    for c in ['Nonsense_Mutation', 'Frame_Shift_Indel', 'Splice_Site', 'Nonstop_Mutation']:
-        if c not in mut_type_frac.columns:
-            mut_type_frac[c] = 0.0  # make sure columns are defined
-    tsg_score = mut_type_frac['Nonsense_Mutation'] + mut_type_frac['Frame_Shift_Indel'] + \
-                mut_type_frac['Splice_Site'] + mut_type_frac['Nonstop_Mutation']
-    non_tested_genes = set(tsg_score[tsg_score>=tsg_score_thresh].index.tolist())
-    return non_tested_genes
 
 
 def parse_arguments():
@@ -685,16 +639,16 @@ def main(opts):
     if opts['kind'] == 'oncogene':
         # find genes with tsg score above threshold to filter out for oncogene
         # permutation test
-        non_tested_genes = _get_high_tsg_score(mut_df, opts['tsg_score'])
+        non_tested_genes = utils._get_high_tsg_score(mut_df, opts['tsg_score'])
     else:
         # don't filter out genes for tsg permutation test
         non_tested_genes = []
 
     # select valid single nucleotide variants only
-    mut_df = _fix_mutation_df(mut_df)
+    mut_df = utils._fix_mutation_df(mut_df)
 
     # perform permutation test
-    bed_dict = read_bed(opts['bed'], non_tested_genes)
+    bed_dict = utils.read_bed(opts['bed'], non_tested_genes)
     permutation_result = multiprocess_permutation(bed_dict, mut_df, opts)
 
     # Perform BH p-value adjustment and tidy up data for output
