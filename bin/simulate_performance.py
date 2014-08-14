@@ -368,6 +368,10 @@ def parse_arguments():
         print('You must specify a genome fasta with -g if you set the '
               '--use-unmapped flag to true.')
         sys.exit(1)
+
+    # log user entered command
+    logger.info('Command: {0}'.format(' '.join(sys.argv)))
+
     return opts
 
 
