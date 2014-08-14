@@ -547,7 +547,7 @@ def parse_arguments():
                         help=help_str)
     help_str = 'Number of processes to use (more==Faster, default: 1).'
     parser.add_argument('-p', '--processes',
-                        type=int, default=1,
+                        type=int, default=0,
                         help=help_str)
     help_str = 'Number of permutations for null model'
     parser.add_argument('-n', '--num-permutations',
