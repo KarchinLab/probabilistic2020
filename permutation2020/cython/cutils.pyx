@@ -50,12 +50,13 @@ def pos_to_codon(seq, int pos):
     else:
         # by assumption, "positions" of splice sites are greater than the
         # length of the coding region to distinguish splice site mutations
-        # from coding region mutations
+        # from coding region mutations. To indicate the mutation is at a
+        # splice site, I return None for positions.
         return 'Splice_Site', None, None
 
 
-def calc_pos_info(aa_mut_pos, germ_aa, somatic_aa,
-                  kde_bw):
+def calc_pos_info(aa_mut_pos, germ_aa, somatic_aa):
+                  # kde_bw):
     cdef:
         map[int, int] pos_ctr
         int num_recur = 0
@@ -77,13 +78,14 @@ def calc_pos_info(aa_mut_pos, germ_aa, somatic_aa,
                 tmp_pos_list.append(pos)
     num_recur = recurrent_sum(pos_ctr)
     pos_ent = position_entropy(pos_ctr)
-    pos_array = np.sort(np.array(tmp_pos_list, dtype=DTYPE_INT, order='c'))
-    kde_ent, used_bandwidth = uniform_kde_entropy(pos_array, kde_bw)
+    # pos_array = np.sort(np.array(tmp_pos_list, dtype=DTYPE_INT, order='c'))
+    # kde_ent, used_bandwidth = uniform_kde_entropy(pos_array, kde_bw)
     # kde_ent, used_bandwidth = mymath.kde_entropy(np.array(tmp_pos_list, dtype=DTYPE_INT),
     #                                             bandwidth=kde_bw)
     #kde_ent, used_bandwidth = kde_entropy(np.sort(np.array(tmp_pos_list, dtype=DTYPE_INT, order='c')),
     #                                      bandwidth_param=kde_bw)
-    return num_recur, pos_ent, kde_ent, used_bandwidth
+    #return num_recur, pos_ent, kde_ent, used_bandwidth
+    return num_recur, pos_ent
 
 
 def calc_deleterious_info(germ_aa, somatic_aa):
