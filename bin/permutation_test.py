@@ -26,7 +26,6 @@ from multiprocessing import Pool
 import logging
 import datetime
 import itertools as it
-from functools import wraps
 
 logger = logging.getLogger(__name__)  # module logger
 
@@ -66,33 +65,6 @@ def start_logging(log_file='', log_level='INFO'):
         stdout_stream.setFormatter(formatter)
         root.addHandler(stdout_stream)
         root.propagate = True
-
-
-def log_error_decorator(f):
-    """Writes exception to log file if occured in decorated function.
-
-    This decorator wrapper is needed for multiprocess logging since otherwise
-    the python multiprocessing module will obscure the actual line of the error.
-    """
-    @wraps(f)
-    def wrapper(*args, **kwds):
-        try:
-            result = f(*args, **kwds)
-            return result
-        except KeyboardInterrupt:
-            logger.info('Ctrl-C stopped a process.')
-        except Exception, e:
-            logger.exception(e)
-            raise
-    return wrapper
-
-
-def keyboard_exit_wrapper(func):
-    def wrap(self, timeout=None):
-        # Note: the timeout of 1 googol seconds introduces a rather subtle
-        # bug for Python scripts intended to run many times the age of the universe.
-        return func(self, timeout=timeout if timeout is not None else 1e100)
-    return wrap
 
 
 def deleterious_permutation(context_counts,
@@ -367,7 +339,7 @@ def recover_unmapped_mut_info(mut_info, bed, sc, opts):
     return unmapped_mut_info
 
 
-@log_error_decorator
+@utils.log_error_decorator
 def singleprocess_permutation(info):
     bed_list, mut_df, opts = info
     current_chrom = bed_list[0].chrom
@@ -450,7 +422,7 @@ def multiprocess_permutation(bed_dict, mut_df, opts):
             info_repeat = ((bed_dict[chroms[tmp_ix]], mut_df, opts)
                             for tmp_ix in range(i, i+tmp_num_proc))
             process_results = pool.imap(singleprocess_permutation, info_repeat)
-            process_results.next = keyboard_exit_wrapper(process_results.next)
+            process_results.next = utils.keyboard_exit_wrapper(process_results.next)
             try:
                 for chrom_result in process_results:
                     result_list += chrom_result

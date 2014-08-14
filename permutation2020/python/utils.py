@@ -12,7 +12,10 @@ import csv
 import itertools as it
 import cutils
 from amino_acid import AminoAcid
+from functools import wraps
+import logging
 
+logger = logging.getLogger(__name__)  # module logger
 
 # global dictionary mapping codons to AA
 codon_table = {'TTT': 'F', 'TTC': 'F', 'TTA': 'L', 'TTG': 'L', 'TCT': 'S',
@@ -42,6 +45,33 @@ base_pairing = {'A': 'T',
                 '-': '-',  # some people denote indels with '-'
                 'n': 'n',
                 'N': 'N'}
+
+def log_error_decorator(f):
+    """Writes exception to log file if occured in decorated function.
+
+    This decorator wrapper is needed for multiprocess logging since otherwise
+    the python multiprocessing module will obscure the actual line of the error.
+    """
+    @wraps(f)
+    def wrapper(*args, **kwds):
+        try:
+            result = f(*args, **kwds)
+            return result
+        except KeyboardInterrupt:
+            logger.info('Ctrl-C stopped a process.')
+        except Exception, e:
+            logger.exception(e)
+            raise
+    return wrapper
+
+
+def keyboard_exit_wrapper(func):
+    def wrap(self, timeout=None):
+        # Note: the timeout of 1 googol seconds introduces a rather subtle
+        # bug for Python scripts intended to run many times the age of the universe.
+        return func(self, timeout=timeout if timeout is not None else 1e100)
+    return wrap
+
 
 def filter_list(mylist, bad_ixs):
     # indices need to be in reverse order for filtering

@@ -34,7 +34,6 @@ from scipy import stats
 import pysam
 from multiprocessing import Pool
 import itertools as it
-from functools import wraps
 import time
 import datetime
 import argparse
@@ -78,33 +77,6 @@ def start_logging(log_file='', log_level='INFO'):
         stdout_stream.setFormatter(formatter)
         root.addHandler(stdout_stream)
         root.propagate = True
-
-
-def log_error_decorator(f):
-    """Writes exception to log file if occured in decorated function.
-
-    This decorator wrapper is needed for multiprocess logging since otherwise
-    the python multiprocessing module will obscure the actual line of the error.
-    """
-    @wraps(f)
-    def wrapper(*args, **kwds):
-        try:
-            result = f(*args, **kwds)
-            return result
-        except KeyboardInterrupt:
-            logger.info('Ctrl-C stopped a process.')
-        except Exception, e:
-            logger.exception(e)
-            raise
-    return wrapper
-
-
-def keyboard_exit_wrapper(func):
-    def wrap(self, timeout=None):
-        # Note: the timeout of 1 googol seconds introduces a rather subtle
-        # bug for Python scripts intended to run many times the age of the universe.
-        return func(self, timeout=timeout if timeout is not None else 1e100)
-    return wrap
 
 
 def calculate_sem(wp):
@@ -242,13 +214,13 @@ def multiprocess_simulate(dfg, bed_dict, non_tested_genes, opts):
         info_repeat = it.repeat((dfg, bed_dict, non_tested_genes, opts), tmp_num_pred)
         #pool = Pool(processes=tmp_num_pred)
         process_results = pool.imap(singleprocess_simulate, info_repeat)
-        process_results.next = keyboard_exit_wrapper(process_results.next)
+        process_results.next = utils.keyboard_exit_wrapper(process_results.next)
         pool.close()
         pool.join()
         yield process_results
 
 
-@log_error_decorator
+@utils.log_error_decorator
 def singleprocess_simulate(info):
     dfg, bed_dict, non_tested_genes, opts = info  # unpack tuple
     df = next(dfg.dataframe_generator())
