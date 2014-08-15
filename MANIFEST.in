@@ -1,2 +1,2 @@
-include README.md
+include README.rst
 include permutation2020/cpp/permutation.hpp
