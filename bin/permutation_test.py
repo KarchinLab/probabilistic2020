@@ -26,7 +26,6 @@ import numpy as np
 from multiprocessing import Pool
 import logging
 import datetime
-import itertools as it
 
 logger = logging.getLogger(__name__)  # module logger
 
