@@ -1,11 +1,12 @@
 cimport cython
 from libcpp.map cimport map
+from libcpp.string cimport string
 import numpy as np
 cimport numpy as np
 
 # cython imports
-from uniform_kde import uniform_kde_entropy
-from gaussian_kde import kde_entropy
+#from uniform_kde import uniform_kde_entropy
+#from gaussian_kde import kde_entropy
 
 # define data types for kde function
 DTYPE_INT = np.int
@@ -16,7 +17,9 @@ ctypedef np.int_t DTYPE_INT_t
 cdef extern from "permutation.hpp":
     # import functions from the C++ header permutation.hpp
     int recurrent_sum(map[int, int] pos_ctr)
-    double position_entropy(map[int, int] pos_ctr)
+    double frac_position_entropy(map[int, int] pos_ctr)
+    double delta_position_entropy(map[int, int] pos_ctr)
+    map[string, double] position_info(map[int, int] pos_ctr)
 
 
 @cython.cdivision(True)
@@ -59,8 +62,10 @@ def calc_pos_info(aa_mut_pos, germ_aa, somatic_aa):
                   # kde_bw):
     cdef:
         map[int, int] pos_ctr
+        map[string, double] pos_info
         int num_recur = 0
-        double pos_ent = 0.0
+        double frac_pos_ent = 0.0
+        double delta_pos_ent = 0.0
         int i, num_pos
         DTYPE_INT_t[::1] pos_array
     tmp_pos_list = []
@@ -76,8 +81,13 @@ def calc_pos_info(aa_mut_pos, germ_aa, somatic_aa):
                     pos_ctr[pos] = 0
                 pos_ctr[pos] += 1
                 tmp_pos_list.append(pos)
-    num_recur = recurrent_sum(pos_ctr)
-    pos_ent = position_entropy(pos_ctr)
+    pos_info = position_info(pos_ctr)
+    num_recur = <int> pos_info["recurrent"]
+    frac_pos_ent = pos_info["entropy_fraction"]
+    delta_pos_ent = pos_info["delta_entropy"]
+    #num_recur = recurrent_sum(pos_ctr)
+    #frac_pos_ent = frac_position_entropy(pos_ctr)
+    #delta_pos_ent = delta_position_entropy(pos_ctr)
     # pos_array = np.sort(np.array(tmp_pos_list, dtype=DTYPE_INT, order='c'))
     # kde_ent, used_bandwidth = uniform_kde_entropy(pos_array, kde_bw)
     # kde_ent, used_bandwidth = mymath.kde_entropy(np.array(tmp_pos_list, dtype=DTYPE_INT),
@@ -85,7 +95,7 @@ def calc_pos_info(aa_mut_pos, germ_aa, somatic_aa):
     #kde_ent, used_bandwidth = kde_entropy(np.sort(np.array(tmp_pos_list, dtype=DTYPE_INT, order='c')),
     #                                      bandwidth_param=kde_bw)
     #return num_recur, pos_ent, kde_ent, used_bandwidth
-    return num_recur, pos_ent
+    return num_recur, frac_pos_ent, delta_pos_ent
 
 
 def calc_deleterious_info(germ_aa, somatic_aa):

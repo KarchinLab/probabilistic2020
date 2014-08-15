@@ -13,6 +13,7 @@ try:
     from sequence_context import SequenceContext
     import cutils
 except:
+    raise
     import permutation2020.python.utils as utils
     from permutation2020.python.gene_sequence import GeneSequence
     from permutation2020.python.sequence_context import SequenceContext
@@ -177,7 +178,8 @@ def position_permutation(context_counts,
     tmp_mut_pos = np.hstack(pos_array for base, pos_array in tmp_contxt_pos)
 
     # calculate position-based statistics as a result of random positions
-    num_recur_list, entropy_list, kde_entropy_list, bw_list = [], [], [], []
+    #num_recur_list, entropy_list, kde_entropy_list, bw_list = [], [], [], []
+    num_recur_list, entropy_list, delta_entropy_list = [], [], []
     for row in tmp_mut_pos:
         # get info about mutations
         tmp_mut_info = utils.get_aa_mut_info(row,
@@ -185,15 +187,16 @@ def position_permutation(context_counts,
                                              gene_seq)
 
         # calculate position info
-        tmp_recur_ct, tmp_entropy = cutils.calc_pos_info(tmp_mut_info['Codon Pos'],
-                                                         tmp_mut_info['Reference AA'],
-                                                         tmp_mut_info['Somatic AA'])
+        tmp_recur_ct, tmp_entropy, tmp_delta_entropy = cutils.calc_pos_info(tmp_mut_info['Codon Pos'],
+                                                                            tmp_mut_info['Reference AA'],
+                                                                            tmp_mut_info['Somatic AA'])
         num_recur_list.append(tmp_recur_ct)
         entropy_list.append(tmp_entropy)
+        delta_entropy_list.append(tmp_delta_entropy)
         #kde_entropy_list.append(tmp_kde_ent)
         #bw_list.append(tmp_bw)
 
-    return num_recur_list, entropy_list
+    return num_recur_list, entropy_list, delta_entropy_list
 
 
 def calc_deleterious_p_value(mut_info,
@@ -271,7 +274,7 @@ def calc_position_p_value(mut_info,
                                                   sc,  # sequence context obj
                                                   gs,
                                                   num_permutations)  # gene sequence obj
-        num_recur_list, pos_entropy_list = permutation_result  # unpack results
+        num_recur_list, pos_entropy_list, delta_pos_entropy_list = permutation_result  # unpack results
 
         # get recurrent info for actual mutations
         aa_mut_info = utils.get_aa_mut_info(mut_info['Coding Position'],
@@ -280,36 +283,42 @@ def calc_position_p_value(mut_info,
         codon_pos = aa_mut_info['Codon Pos'] + unmapped_mut_info['Codon Pos']
         ref_aa = aa_mut_info['Reference AA'] + unmapped_mut_info['Reference AA']
         somatic_aa = aa_mut_info['Somatic AA'] + unmapped_mut_info['Somatic AA']
-        num_recurrent, pos_ent = cutils.calc_pos_info(codon_pos,
-                                                      ref_aa,
-                                                      somatic_aa)
-                                                      # None)
+        num_recurrent, pos_ent, delta_pos_ent = cutils.calc_pos_info(codon_pos,
+                                                                     ref_aa,
+                                                                     somatic_aa)
+                                                                     # None)
 
         # calculate permutation p-value
         recur_num_nulls = sum([1 for null_recur in num_recur_list
                                if null_recur >= num_recurrent])
         entropy_num_nulls = sum([1 for null_ent in pos_entropy_list
                                  if null_ent <= pos_ent])
+        delta_entropy_num_nulls = sum([1 for null_ent in pos_entropy_list
+                                       if null_ent >= delta_pos_ent])
         #kde_entropy_num_nulls = sum([1 for null_ent in kde_entropy_list
                                      #if null_ent <= kde_ent])
         #kde_bw_num_nulls = sum([1 for null_bw in bw_list
                                 #if null_bw <= opt_bw])
         recur_p_value = recur_num_nulls / float(num_permutations)
         ent_p_value = entropy_num_nulls / float(num_permutations)
+        delta_ent_p_value = delta_entropy_num_nulls / float(num_permutations)
         #kde_ent_p_value = kde_entropy_num_nulls / float(num_permutations)
         #kde_bw_p_value = kde_bw_num_nulls / float(num_permutations)
     else:
         num_recurrent = 0
         pos_ent = 0
+        delta_pos_ent = 0
         #kde_ent = 0
         #opt_bw = 0
         recur_p_value = 1.0
         ent_p_value = 1.0
+        delta_ent_p_value = 1.0
         #kde_ent_p_value = 1.0
         #kde_bw_p_value = 1.0
     #result = [bed.gene_name, num_recurrent, pos_ent, kde_ent, opt_bw,
               #recur_p_value, ent_p_value, kde_ent_p_value, kde_bw_p_value]
-    result = [bed.gene_name, num_recurrent, pos_ent, recur_p_value, ent_p_value]
+    result = [bed.gene_name, num_recurrent, pos_ent, delta_pos_ent,
+              recur_p_value, ent_p_value, delta_ent_p_value]
     return result
 
 
@@ -465,16 +474,19 @@ def handle_tsg_results(permutation_result):
 
 def handle_oncogene_results(permutation_result, non_tested_genes):
     mycols = ['gene', 'num recurrent', 'position entropy',
+              'delta position entropy',
               # 'kde position entropy', 'kde bandwidth',
               'recurrent p-value', 'entropy p-value',
+              'delta entropy p-value',
               # 'kde entropy p-value', 'kde bandwidth p-value',
               'Total Mutations', "Unmapped to Ref Tx"]
-    permutation_df = pd.DataFrame(sorted(permutation_result, key=lambda x: x[3]),
+    permutation_df = pd.DataFrame(sorted(permutation_result, key=lambda x: x[4]),
                                   columns=mycols)
 
     # get benjamani hochberg adjusted p-values
     permutation_df['recurrent BH q-value'] = utils.bh_fdr(permutation_df['recurrent p-value'])
     permutation_df['entropy BH q-value'] = utils.bh_fdr(permutation_df['entropy p-value'])
+    permutation_df['delta entropy BH q-value'] = utils.bh_fdr(permutation_df['delta entropy p-value'])
     #permutation_df['kde entropy BH q-value'] = utils.bh_fdr(permutation_df['kde entropy p-value'])
     #permutation_df['kde bandwidth BH q-value'] = utils.bh_fdr(permutation_df['kde bandwidth p-value'])
 
@@ -489,9 +501,11 @@ def handle_oncogene_results(permutation_result, non_tested_genes):
     permutation_df['num recurrent'] = permutation_df['num recurrent'].fillna(-1).astype(int)  # fix dtype isssue
     col_order = ['gene', 'Total Mutations', 'Unmapped to Ref Tx',
                  'num recurrent', 'position entropy',
+                 'delta position entropy',
                  #'kde position entropy', 'kde bandwidth',
                  'recurrent p-value', 'recurrent BH q-value', 'entropy p-value', 'entropy BH q-value',
                  #'kde entropy p-value', 'kde entropy BH q-value', 'kde bandwidth p-value', 'kde bandwidth BH q-value',
+                 'delta entropy p-value', 'delta entropy BH q-value',
                  'Performed Recurrency Test']
     return permutation_df[col_order]
 
