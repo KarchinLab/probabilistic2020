@@ -1,13 +1,15 @@
+SRC_DIR = permutation2020
+
 clean:
 	rm -f -r build/
-	rm -f src/cython/cutils.so
-	rm -f src/cython/gaussian_kde.so
-	rm -f src/cython/uniform_kde.so
+	rm -f $(SRC_DIR)/cython/cutils.so
+	rm -f $(SRC_DIR)/cython/gaussian_kde.so
+	rm -f $(SRC_DIR)/cython/uniform_kde.so
 
 clean-cpp:
-	rm -f src/cython/cutils.cpp
-	rm -f src/cython/gaussian_kde.cpp
-	rm -f src/cython/uniform_kde.cpp
+	rm -f $(SRC_DIR)/cython/cutils.cpp
+	rm -f $(SRC_DIR)/cython/gaussian_kde.cpp
+	rm -f $(SRC_DIR)/cython/uniform_kde.cpp
 
 clean-all: clean clean-cpp
 

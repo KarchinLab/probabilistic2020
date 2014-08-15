@@ -50,10 +50,6 @@ if USE_CYTHON:
     from Cython.Build import cythonize
     extensions = cythonize(extensions)
 
-#for extension in extensions:
-    #setup(
-        #ext_modules = [extension]
-    #)
 if 'build_ext' in sys.argv:
     # just build cython extension module if build_ext subcommand is used
     setup(ext_modules = extensions)
@@ -73,6 +69,9 @@ else:
           install_requires=['numpy', 'scipy', 'pandas==0.12.0', 'pysam'],
           scripts=['bin/permutation_test.py', 'bin/extract_gene_seq.py'],
           long_description=open('README.md').read(),
-          classifiers=["Topic :: Scientific/Engineering :: Bio-Informatics"],
+          classifiers=['Topic :: Scientific/Engineering :: Bio-Informatics',
+                       'Environment :: Console',
+                       'Intended Audience :: Developers',
+                       'Intended Audience :: Science/Research'],
           ext_modules=extensions
     )
