@@ -7,84 +7,6 @@ to make a reasonable looking plot.
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.stats as stats
-import IPython
-
-
-def heatmap(df, file_path, title='', xlabel='', ylabel='', cmap=plt.cm.Blues):
-    """Plot a heatmap from a pandas dataframe.
-
-    Parameters
-    ----------
-    df : pandas.DataFrame
-        data for heatmap plotting
-    file_path : str
-        path to save figure (png, pdf, etc.)
-    xlabel : str
-        x-axis label
-    ylabel : str
-        y-axis label
-    cmap : cm
-        color scheme for heatmap
-
-    Code from:
-    http://stackoverflow.com/questions/14391959/heatmap-in-matplotlib-with-pcolor
-
-    For information on colorbars:
-    http://stackoverflow.com/questions/13943217/how-to-add-colorbars-to-scatterplots-created-like-this
-    """
-    df = df.fillna(0)  # fills missing values with 0's
-
-    # make heatmap
-    fig, ax = plt.subplots()
-    hmap = ax.pcolor(df, cmap=cmap, alpha=0.8)
-
-    fig = plt.gcf()
-    fig.set_size_inches(8,11)
-
-    # turn off the frame
-    ax.set_frame_on(False)
-
-    # put the major ticks at the middle of each cell
-    ax.set_yticks(np.arange(df.shape[0])+0.5, minor=False)
-    ax.set_xticks(np.arange(df.shape[1])+0.5, minor=False)
-
-    # want a more natural, table-like display
-    ax.invert_yaxis()
-    ax.xaxis.tick_top()
-
-    # Set the labels
-    labels = df.index
-    ax.set_xticklabels(labels, minor=False)
-    ax.set_yticklabels(df.index, minor=False)
-
-    # rotate the
-    plt.xticks(rotation=90)
-
-    ax.grid(False)
-
-    # Turn off all the ticks
-    ax = plt.gca()
-
-    for t in ax.xaxis.get_major_ticks():
-        t.tick1On = False
-        t.tick2On = False
-    for t in ax.yaxis.get_major_ticks():
-        t.tick1On = False
-        t.tick2On = False
-
-    # handle labels
-    plt.title(title)
-    plt.xlabel(xlabel)
-    plt.ylabel(ylabel)
-    plt.tight_layout()
-
-    # turn on color bar
-    cb = plt.colorbar(hmap)
-    cb.set_label('Transition Probability')
-
-    # save figure
-    plt.savefig(file_path)
-    plt.close()
 
 
 def barplot(df,
@@ -260,51 +182,6 @@ def scatter(x, y,
     plt.tight_layout()
     plt.savefig(file_path)
     plt.clf()  # clear figure
-    plt.close()
-
-
-def line_fill_between(data, sem,
-                      save_path,
-                      style=[],
-                      title='',
-                      xlabel='',
-                      ylabel=''):
-    """Plot a line graph from data but also add a fill between effect
-    base on the standard error of the mean (sem).
-
-    Parameters
-    ----------
-    data : pd.DataFrame
-        data for one to multiple lines
-    sem : pd.DataFrame
-        sem for each point in data
-    save_path : str
-        file path for saving
-    title :str
-        title of figure
-    xlabel : str
-        x-axis label
-    ylabel : str
-        y-axis label
-    """
-    # plot lines
-    ax = data.plot(kind='line', style=style)
-
-    # plot fill between which indicates the standard error of the mean
-    line_colors = [x.get_color() for x in ax.get_lines()]
-    x = data.index.values.astype(float)  # x values for plotting
-    for i in range(len(line_colors)):
-        y = data.iloc[:, i]
-        color = line_colors[i]  # get matching line color
-        tmp_sem = sem.iloc[:, i]  # get a single column
-        plt.fill_between(x, y-tmp_sem, y+tmp_sem, alpha=.5, facecolor=color)
-
-    plt.title(title)
-    plt.xlabel(xlabel)
-    plt.ylabel(ylabel)
-    plt.tight_layout()
-    plt.savefig(save_path)
-    plt.clf()
     plt.close()
 
 
