@@ -81,12 +81,12 @@ def simulate(df1, df2, bed_dict, non_tested_genes, opts):
                                                   permutation_df2['delta entropy p-value'])
 
         # rank genes
-        recurrent_rank1, recurrent_rank2 = sim.rank_genes(permutation_df1['recurrent p-value'],
-                                                          permutation_df2['recurrent p-value'])
-        entropy_rank1, entropy_rank2 = sim.rank_genes(permutation_df1['entropy p-value'],
-                                                      permutation_df2['entropy p-value'])
-        delta_entropy_rank1, delta_entropy_rank2 = sim.rank_genes(permutation_df1['delta entropy p-value'],
-                                                                  permutation_df2['delta entropy p-value'])
+        recurrent_rank1, recurrent_rank2 = sim.rank_genes(permutation_df1['recurrent p-value'].copy(),
+                                                          permutation_df2['recurrent p-value'].copy())
+        entropy_rank1, entropy_rank2 = sim.rank_genes(permutation_df1['entropy p-value'].copy(),
+                                                      permutation_df2['entropy p-value'].copy())
+        delta_entropy_rank1, delta_entropy_rank2 = sim.rank_genes(permutation_df1['delta entropy p-value'].copy(),
+                                                                  permutation_df2['delta entropy p-value'].copy())
 
         # calc spearman rank correlation
         sp_rho_recurrent, sp_pval_recurrent = stats.pearsonr(recurrent_rank1,
@@ -128,9 +128,10 @@ def simulate(df1, df2, bed_dict, non_tested_genes, opts):
         # calculate jaccard similarity
         deleterious_jaccard = sim.jaccard_index(permutation_df1['deleterious p-value'],
                                                 permutation_df2['deleterious p-value'])
+
         # rank genes
-        deleterious_rank1, deleterious_rank2 = sim.rank_genes(permutation_df1['deleterious p-value'],
-                                                              permutation_df2['deleterious p-value'])
+        deleterious_rank1, deleterious_rank2 = sim.rank_genes(permutation_df1['deleterious p-value'].copy(),
+                                                              permutation_df2['deleterious p-value'].copy())
 
         # calc spearman rank correlation
         sp_rho_deleterious, sp_pval_deleterious = stats.pearsonr(deleterious_rank1,
