@@ -1,36 +1,21 @@
 #!/usr/bin/env python
+# fix problems with pythons terrible import system
+import os
 import sys
-try:
-    # fix problems with pythons terrible import system
-    import os
-    file_dir = os.path.dirname(os.path.realpath(__file__))
-    sys.path.append(os.path.join(file_dir, '../permutation2020/python'))
-    sys.path.append(os.path.join(file_dir, '../permutation2020/cython'))
+file_dir = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.join(file_dir, '../'))
 
-    # normal imports
-    import utils
-    from gene_sequence import GeneSequence
-    from sequence_context import SequenceContext
-    import cutils
-    import simulation_plots as plot_data
-    from bootstrap import Bootstrap
-    from random_sample_names import RandomSampleNames
-    from random_tumor_types import RandomTumorTypes
-except:
-    raise
-    import permutation2020.python.utils as utils
-    from permutation2020.python.gene_sequence import GeneSequence
-    from permutation2020.python.sequence_context import SequenceContext
-    import permutation2020.cython.cutils as cutils
-    from permutation2020.python.bootstrap import Bootstrap
-    from permutation2020.python.random_sample_names import RandomSampleNames
-    from permutation2020.python.random_tumor_types import RandomTumorTypes
-    import permutation2020.python.simulation_plots as plot_data
+# package imports
+import permutation2020.python.utils as utils
+from permutation2020.python.bootstrap import Bootstrap
+from permutation2020.python.random_sample_names import RandomSampleNames
+from permutation2020.python.random_tumor_types import RandomTumorTypes
+import permutation2020.python.simulation_plots as plot_data
+import permutation2020.python.simulation as sim
 
 import permutation_test as pt
 import pandas as pd
 import numpy as np
-from scipy import stats
 import pysam
 from multiprocessing import Pool
 import itertools as it
@@ -77,73 +62,6 @@ def start_logging(log_file='', log_level='INFO'):
         stdout_stream.setFormatter(formatter)
         root.addHandler(stdout_stream)
         root.propagate = True
-
-
-def calculate_sem(wp):
-    """Calculates the standard error of the mean for a pd.Panel object.
-
-    **Note:** The pd.Panel.apply method seems to have a bug preventing
-    me from using it. So instead I am using the numpy apply function
-    for calculating sem.
-
-    Parameters
-    ----------
-    wp : pd.Panel
-        panel that stratifies samples
-
-    Returns
-    -------
-    tmp_sem : pd.DataFrame
-        standard error of the mean calculated along the sample axis
-    """
-    tmp_sem_matrix = np.apply_along_axis(stats.sem, 0, wp.values)  # hack because pandas apply method has a bug
-    tmp_sem = pd.DataFrame(tmp_sem_matrix,
-                           columns=wp.minor_axis,
-                           index=wp.major_axis)
-    return tmp_sem
-
-
-def calculate_stats(result_dict,
-                    metrics=['precision', 'recall', 'ROC AUC', 'PR AUC', 'count']):
-    """Computes mean and sem of classification performance metrics.
-
-    Parameters
-    ----------
-    result_dict : dict
-        dictionary with the i'th sample as the key and data frames
-        with "oncogene"/"tsg" (row) classification performance metrics
-        (columns) as values
-
-    Returns
-    -------
-    result_df : pd.DataFrame
-        Data frame with mean and sem of classification performance
-        metrics. (rows: "oncogene"/"tsg", columns: summarized metrics)
-    """
-    wp = pd.Panel(result_dict)
-    tmp_means = wp.mean(axis=0)
-    tmp_sem = calculate_sem(wp)
-    result_df = pd.merge(tmp_means, tmp_sem,
-                         left_index=True, right_index=True,
-                         suffixes=(' mean', ' sem'))
-    return result_df
-
-
-def save_simulation_result(mypanel, mypath):
-    # make 'oncogenes'/'tsg' as the 'items' axis
-    mypan = mypanel.swapaxes('items', 'major')
-
-    # collapse pd.panel into a data frame
-    myitems = mypan.items
-    num_items = len(myitems)
-    mydf = mypan[myitems[0]]
-    if num_items > 1:
-        for i in range(1, num_items):
-            mydf = pd.merge(mydf, mypan[myitems[i]],
-                            left_on='Gene', right_on='Gene')
-
-    # save data frame to specified paths
-    mydf.to_csv(mypath, sep='\t')
 
 
 def simulate(df, bed_dict, non_tested_genes, opts):
@@ -434,14 +352,14 @@ def main(opts):
                 i += 1
 
         # record result for a specific sample rate
-        tmp_results = calculate_stats(sim_results)
+        tmp_results = sim.calculate_stats(sim_results)
         result[sample_rate] = tmp_results
 
     # make pandas panel objects out of summarized
     # results from simulations
     panel_result = pd.Panel(result)
 
-    save_simulation_result(panel_result, opts['output'])
+    sim.save_simulation_result(panel_result, opts['output'])
 
     # aggregate results for plotting
     plot_results = {'Permutation Test': panel_result}
