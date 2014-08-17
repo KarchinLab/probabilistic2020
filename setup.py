@@ -68,7 +68,7 @@ else:
           packages=PACKAGES,
           install_requires=['numpy', 'scipy', 'pandas==0.12.0', 'pysam'],
           scripts=['bin/permutation_test.py', 'bin/extract_gene_seq.py'],
-          long_description=open('README.md').read(),
+          long_description=open('README.rst').read(),
           classifiers=['Topic :: Scientific/Engineering :: Bio-Informatics',
                        'Environment :: Console',
                        'Intended Audience :: Developers',
