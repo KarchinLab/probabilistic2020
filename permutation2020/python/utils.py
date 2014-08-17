@@ -1,19 +1,14 @@
-# fix problems with pythons terrible import system
-import os
-import sys
-file_dir = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(os.path.join(file_dir, '../cython'))
-
 # normal imports
 from bed_line import BedLine
 import numpy as np
 import pandas as pd
 import csv
 import itertools as it
-import cutils
+from ..cython import cutils
 from amino_acid import AminoAcid
 from functools import wraps
 import logging
+import pysam
 
 logger = logging.getLogger(__name__)  # module logger
 
@@ -432,3 +427,30 @@ def get_unmapped_aa_mut_info(mut_info, genome_fa, strand, chr, context_type):
                'Tumor_Allele': tumor_allele}
 
     return aa_info
+
+
+def recover_unmapped_mut_info(mut_info, bed, sc, opts):
+    # retreive info based on annotated protein effects and genomic coordinates
+    if opts['use_unmapped'] and opts['genome']:
+        genome_fa = pysam.Fastafile(opts['genome'])
+        # try to still use mutations that are not on the reference transcript
+        tmp_mut_info = mut_info[mut_info['Coding Position'].isnull()]
+        unmapped_mut_info = get_unmapped_aa_mut_info(tmp_mut_info,
+                                                     genome_fa,
+                                                     bed.strand,
+                                                     bed.chrom,
+                                                     opts['context'])
+        genome_fa.close()
+
+        # filter out cases where the nucleotide context does not exist
+        # on the reference transcript
+        bad_contexts = [i for i in range(len(unmapped_mut_info['Context']))
+                        if not sc.is_valid_context(unmapped_mut_info['Context'][i])]
+        for key in unmapped_mut_info:
+            unmapped_mut_info[key] = filter_list(unmapped_mut_info[key],
+                                                 bad_contexts)
+    else:
+        unmapped_mut_info = {'Context': [], 'Reference AA': [], 'Codon Pos': [],
+                             'Somatic AA': [], 'Tumor_Allele': []}
+    return unmapped_mut_info
+

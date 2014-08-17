@@ -1,23 +1,16 @@
 #!/usr/bin/env python
+# fix problems with pythons terrible import system
 import sys
-try:
-    # fix problems with pythons terrible import system
-    import os
-    file_dir = os.path.dirname(os.path.realpath(__file__))
-    sys.path.append(os.path.join(file_dir, '../permutation2020/python'))
-    sys.path.append(os.path.join(file_dir, '../permutation2020/cython'))
+import os
+file_dir = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.join(file_dir, '../'))
 
-    # normal imports
-    import utils
-    from gene_sequence import GeneSequence
-    from sequence_context import SequenceContext
-    import cutils
-except:
-    raise
-    import permutation2020.python.utils as utils
-    from permutation2020.python.gene_sequence import GeneSequence
-    from permutation2020.python.sequence_context import SequenceContext
-    import permutation2020.cython.cutils as cutils
+# package imports
+import permutation2020.python.utils as utils
+from permutation2020.python.gene_sequence import GeneSequence
+from permutation2020.python.sequence_context import SequenceContext
+import permutation2020.cython.cutils as cutils
+import permutation2020.python.permutation as pm
 
 import argparse
 import pysam
@@ -67,137 +60,6 @@ def start_logging(log_file='', log_level='INFO'):
         root.propagate = True
 
 
-def deleterious_permutation(context_counts,
-                            context_to_mut,
-                            seq_context,
-                            gene_seq,
-                            num_permutations=10000):
-    """Performs null-permutations for deleterious mutation statistics
-    in a single gene.
-
-    Parameters
-    ----------
-    context_counts : pd.Series
-        number of mutations for each context
-    context_to_mut : dict
-        dictionary mapping nucleotide context to a list of observed
-        somatic base changes.
-    seq_context : SequenceContext
-        Sequence context for the entire gene sequence (regardless
-        of where mutations occur). The nucleotide contexts are
-        identified at positions along the gene.
-    gene_seq : GeneSequence
-        Sequence of gene of interest
-    num_permutations : int, default: 10000
-        number of permutations to create for null
-
-    Returns
-    -------
-    del_count_list : list
-        list of deleterious mutation counts under the null
-    """
-    mycontexts = context_counts.index.tolist()
-    somatic_base = [base
-                    for one_context in mycontexts
-                    for base in context_to_mut[one_context]]
-
-    # get random positions determined by sequence context
-    tmp_contxt_pos = seq_context.random_pos(context_counts.iteritems(),
-                                            num_permutations)
-    tmp_mut_pos = np.hstack(pos_array for base, pos_array in tmp_contxt_pos)
-
-    # determine result of random positions
-    del_count_list = []
-    for row in tmp_mut_pos:
-        # get info about mutations
-        tmp_mut_info = utils.get_aa_mut_info(row,
-                                             somatic_base,
-                                             gene_seq)
-
-        # calc deleterious mutation info
-        tmp_del_count = cutils.calc_deleterious_info(tmp_mut_info['Reference AA'],
-                                                     tmp_mut_info['Somatic AA'])
-        del_count_list.append(tmp_del_count)
-    return del_count_list
-
-
-def position_permutation(context_counts,
-                         context_to_mut,
-                         seq_context,
-                         gene_seq,
-                         num_permutations=10000):
-                         # kde_bandwidth=None):
-    """Performs null-permutations for position-based mutation statistics
-    in a single gene.
-
-    Parameters
-    ----------
-    context_counts : pd.Series
-        number of mutations for each context
-    context_to_mut : dict
-        dictionary mapping nucleotide context to a list of observed
-        somatic base changes.
-    seq_context : SequenceContext
-        Sequence context for the entire gene sequence (regardless
-        of where mutations occur). The nucleotide contexts are
-        identified at positions along the gene.
-    gene_seq : GeneSequence
-        Sequence of gene of interest
-    num_permutations : int, default: 10000
-        number of permutations to create for null
-
-    Old Parameter
-    -------------
-    kde_bandwidth : int, default: None
-        ?possibly deprecated parameter
-
-    Returns
-    -------
-    num_recur_list : list
-        list of recurrent mutation counts under the null
-    entropy_list : list
-        list of position entropy values under the null
-
-    Removed these Returns
-    ---------------------
-    kde_entropy_list : list
-        list of position entropy values after KDE smoothing
-        under the null.
-    bw_list : list
-        list of cross-validated KDE bandwidth values under the null.
-    """
-    mycontexts = context_counts.index.tolist()
-    somatic_base = [base
-                    for one_context in mycontexts
-                    for base in context_to_mut[one_context]]
-
-    # get random positions determined by sequence context
-    tmp_contxt_pos = seq_context.random_pos(context_counts.iteritems(),
-                                            num_permutations)
-    tmp_mut_pos = np.hstack(pos_array for base, pos_array in tmp_contxt_pos)
-
-    # calculate position-based statistics as a result of random positions
-    #num_recur_list, entropy_list, kde_entropy_list, bw_list = [], [], [], []
-    num_recur_list, entropy_list, delta_entropy_list = [], [], []
-    for row in tmp_mut_pos:
-        # get info about mutations
-        tmp_mut_info = utils.get_aa_mut_info(row,
-                                             somatic_base,
-                                             gene_seq)
-
-        # calculate position info
-        tmp_recur_ct, tmp_entropy, tmp_delta_entropy = cutils.calc_pos_info(tmp_mut_info['Codon Pos'],
-                                                                            tmp_mut_info['Reference AA'],
-                                                                            tmp_mut_info['Somatic AA'])
-        num_recur_list.append(tmp_recur_ct)
-        entropy_list.append(tmp_entropy)
-        delta_entropy_list.append(tmp_delta_entropy)
-        #kde_entropy_list.append(tmp_kde_ent)
-        #bw_list.append(tmp_bw)
-
-    return num_recur_list, entropy_list, delta_entropy_list
-
-
 def calc_deleterious_p_value(mut_info,
                              unmapped_mut_info,
                              sc,
@@ -229,11 +91,11 @@ def calc_deleterious_p_value(mut_info,
         # least meet some user-specified threshold
         if num_del >= del_threshold:
             # perform permutations
-            null_del_list = deleterious_permutation(context_cts,
-                                                    context_to_mutations,
-                                                    sc,  # sequence context obj
-                                                    gs,
-                                                    num_permutations)  # gene sequence obj
+            null_del_list = pm.deleterious_permutation(context_cts,
+                                                       context_to_mutations,
+                                                       sc,  # sequence context obj
+                                                       gs,
+                                                       num_permutations)  # gene sequence obj
 
             # calculate p-value
             del_num_nulls = sum([1 for d in null_del_list
@@ -268,11 +130,11 @@ def calc_position_p_value(mut_info,
                                     for name, group in tmp_df.groupby('Context'))
 
         # perform permutations
-        permutation_result = position_permutation(context_cts,
-                                                  context_to_mutations,
-                                                  sc,  # sequence context obj
-                                                  gs,
-                                                  num_permutations)  # gene sequence obj
+        permutation_result = pm.position_permutation(context_cts,
+                                                     context_to_mutations,
+                                                     sc,  # sequence context obj
+                                                     gs,
+                                                     num_permutations)  # gene sequence obj
         num_recur_list, pos_entropy_list, delta_pos_entropy_list = permutation_result  # unpack results
 
         # get recurrent info for actual mutations
@@ -321,32 +183,6 @@ def calc_position_p_value(mut_info,
     return result
 
 
-def recover_unmapped_mut_info(mut_info, bed, sc, opts):
-    # retreive info based on annotated protein effects and genomic coordinates
-    if opts['use_unmapped'] and opts['genome']:
-        genome_fa = pysam.Fastafile(opts['genome'])
-        # try to still use mutations that are not on the reference transcript
-        tmp_mut_info = mut_info[mut_info['Coding Position'].isnull()]
-        unmapped_mut_info = utils.get_unmapped_aa_mut_info(tmp_mut_info,
-                                                           genome_fa,
-                                                           bed.strand,
-                                                           bed.chrom,
-                                                           opts['context'])
-        genome_fa.close()
-
-        # filter out cases where the nucleotide context does not exist
-        # on the reference transcript
-        bad_contexts = [i for i in range(len(unmapped_mut_info['Context']))
-                        if not sc.is_valid_context(unmapped_mut_info['Context'][i])]
-        for key in unmapped_mut_info:
-            unmapped_mut_info[key] = utils.filter_list(unmapped_mut_info[key],
-                                                       bad_contexts)
-    else:
-        unmapped_mut_info = {'Context': [], 'Reference AA': [], 'Codon Pos': [],
-                             'Somatic AA': [], 'Tumor_Allele': []}
-    return unmapped_mut_info
-
-
 @utils.log_error_decorator
 def singleprocess_permutation(info):
     bed_list, mut_df, opts = info
@@ -383,7 +219,7 @@ def singleprocess_permutation(info):
 
         # recover mutations that could not be mapped to the reference transcript
         # for a gene before being dropped (next step)
-        unmapped_mut_info = recover_unmapped_mut_info(mut_info, bed, sc, opts)
+        unmapped_mut_info = utils.recover_unmapped_mut_info(mut_info, bed, sc, opts)
 
         # drop mutations wich do not map to reference tx
         mut_info = mut_info.dropna(subset=['Coding Position'])  # mutations need to map to tx
