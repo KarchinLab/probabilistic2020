@@ -102,12 +102,22 @@ def simulate(df1, df2, bed_dict, non_tested_genes, opts):
                                                                      delta_entropy_rank2)
 
         # calc kendall tau correlation
-        kt_rho_recurrent, kt_pval_recurrent = stats.kendalltau(recurrent_rank1,
-                                                               recurrent_rank2)
-        kt_rho_entropy, kt_pval_entropy = stats.kendalltau(entropy_rank1,
-                                                           entropy_rank2)
-        kt_rho_delta_entropy, kt_pval_delta_entropy = stats.kendalltau(delta_entropy_rank1,
-                                                                       delta_entropy_rank2)
+        if recurrent_rank1.shape[0]:
+            kt_rho_recurrent, kt_pval_recurrent = stats.kendalltau(recurrent_rank1,
+                                                                   recurrent_rank2)
+        else:
+            kt_rho_recurrent, kt_pval_recurrent = 0.0, 1.0
+        if entropy_rank1.shape[0]:
+            kt_rho_entropy, kt_pval_entropy = stats.kendalltau(entropy_rank1,
+                                                               entropy_rank2)
+        else:
+            kt_rho_entropy, kt_pval_entropy = 0.0, 1.0
+        if delta_entropy_rank1.shape[0]:
+            kt_rho_delta_entropy, kt_pval_delta_entropy = stats.kendalltau(delta_entropy_rank1,
+                                                                           delta_entropy_rank2)
+        else:
+            kt_rho_delta_entropy, kt_pval_delta_entropy = 0.0, 1.0
+
 
         results = pd.DataFrame({'jaccard index': [recurrent_jaccard,
                                                   entropy_jaccard,
@@ -146,8 +156,11 @@ def simulate(df1, df2, bed_dict, non_tested_genes, opts):
                                                                  deleterious_rank2)
 
         # calc kendall tau correlation
-        kt_rho_deleterious, kt_pval_deleterious = stats.kendalltau(deleterious_rank1,
-                                                                   deleterious_rank2)
+        if deleterious_rank1.shape[0]:
+            kt_rho_deleterious, kt_pval_deleterious = stats.kendalltau(deleterious_rank1,
+                                                                       deleterious_rank2)
+        else:
+            kt_rho_deleterious, kt_pval_deleterious = 0.0, 1.0
 
         results = pd.DataFrame({'jaccard index': [deleterious_jaccard],
                                 'spearman correlation': [sp_rho_deleterious],
@@ -384,15 +397,18 @@ def main(opts):
     # record result for a specific sample rate
     tmp_results = sim.calculate_stats(sim_results)
     result[sample_rate] = tmp_results
+    result[sample_rate].to_csv(opts['output'], sep='\t')
 
     # make pandas panel objects out of summarized
     # results from simulations
     panel_result = pd.Panel(result)
 
-    sim.save_simulation_result(panel_result, opts['output'])
+    # sim.save_simulation_result(panel_result, opts['output'])
 
     # aggregate results for plotting
     plot_results = {'Permutation Test': panel_result}
+
+    return panel_result
 
 
 if __name__ == "__main__":
