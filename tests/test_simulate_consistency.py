@@ -7,9 +7,9 @@ sys.path.append(os.path.join(file_dir, '../permutation2020/python/'))
 sys.path.append(os.path.join(file_dir, '../permutation2020/cython/'))
 
 import simulate_consistency as sc
-import numpy as np
 
 def test_100genes_main():
+    # check oncogene simulation
     opts = {'input': os.path.join(file_dir, 'data/100genes.fa'),
             'bed': os.path.join(file_dir, 'data/100genes.bed'),
             'mutations': os.path.join(file_dir, 'data/100genes_mutations.txt'),
@@ -22,3 +22,9 @@ def test_100genes_main():
             'num_permutations': 1000,
             'kind': 'oncogene'}
     result = sc.main(opts)
+
+    # check tsg simulation
+    opts['deleterious'] = 1
+    opts['kind'] = 'tsg'
+    result = sc.main(opts)
+
