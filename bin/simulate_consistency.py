@@ -73,20 +73,26 @@ def simulate(df1, df2, bed_dict, non_tested_genes, opts):
         permutation_df2 = pt.handle_oncogene_results(permutation_result2, non_tested_genes)
 
         # calculate jaccard similarity
-        recurrent_jaccard = sim.jaccard_index(permutation_df1['recurrent p-value'],
-                                              permutation_df2['recurrent p-value'])
-        entropy_jaccard = sim.jaccard_index(permutation_df1['entropy p-value'],
-                                            permutation_df2['entropy p-value'])
-        delta_entropy_jaccard = sim.jaccard_index(permutation_df1['delta entropy p-value'],
-                                                  permutation_df2['delta entropy p-value'])
+        recurrent_jaccard = sim.jaccard_index(permutation_df1['recurrent BH q-value'],
+                                              permutation_df2['recurrent BH q-value'])
+        entropy_jaccard = sim.jaccard_index(permutation_df1['entropy BH q-value'],
+                                            permutation_df2['entropy BH q-value'])
+        delta_entropy_jaccard = sim.jaccard_index(permutation_df1['delta entropy BH q-value'],
+                                                  permutation_df2['delta entropy BH q-value'])
 
         # rank genes
         recurrent_rank1, recurrent_rank2 = sim.rank_genes(permutation_df1['recurrent p-value'].copy(),
-                                                          permutation_df2['recurrent p-value'].copy())
+                                                          permutation_df2['recurrent p-value'].copy(),
+                                                          permutation_df1['recurrent BH q-value'].copy(),
+                                                          permutation_df2['recurrent BH q-value'].copy())
         entropy_rank1, entropy_rank2 = sim.rank_genes(permutation_df1['entropy p-value'].copy(),
-                                                      permutation_df2['entropy p-value'].copy())
+                                                      permutation_df2['entropy p-value'].copy(),
+                                                      permutation_df1['entropy BH q-value'].copy(),
+                                                      permutation_df2['entropy BH q-value'].copy())
         delta_entropy_rank1, delta_entropy_rank2 = sim.rank_genes(permutation_df1['delta entropy p-value'].copy(),
-                                                                  permutation_df2['delta entropy p-value'].copy())
+                                                                  permutation_df2['delta entropy p-value'].copy(),
+                                                                  permutation_df1['delta entropy BH q-value'].copy(),
+                                                                  permutation_df2['delta entropy BH q-value'].copy())
 
         # calc spearman rank correlation
         sp_rho_recurrent, sp_pval_recurrent = stats.pearsonr(recurrent_rank1,
@@ -131,7 +137,9 @@ def simulate(df1, df2, bed_dict, non_tested_genes, opts):
 
         # rank genes
         deleterious_rank1, deleterious_rank2 = sim.rank_genes(permutation_df1['deleterious p-value'].copy(),
-                                                              permutation_df2['deleterious p-value'].copy())
+                                                              permutation_df2['deleterious p-value'].copy(),
+                                                              permutation_df1['deleterious BH q-value'].copy(),
+                                                              permutation_df2['deleterious BH q-value'].copy())
 
         # calc spearman rank correlation
         sp_rho_deleterious, sp_pval_deleterious = stats.pearsonr(deleterious_rank1,

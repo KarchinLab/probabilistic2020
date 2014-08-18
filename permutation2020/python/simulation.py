@@ -70,21 +70,23 @@ def save_simulation_result(mypanel, mypath):
     mydf.to_csv(mypath, sep='\t')
 
 
-def rank_genes(s1, s2, thresh=.1):
-    s1.sort(ascending=True)
-    s2.sort(ascending=True)
-    all_ixs = list(set(s1[s1<thresh].index) | set(s2[s2<thresh].index))
+def rank_genes(s1, s2,
+               fdr1, fdr2,
+               thresh=.1,
+               na_fill=1.):
+    all_ixs = list(set(fdr1[fdr1<thresh].index) | set(fdr1[fdr2<thresh].index))
     top_s1 = s1[all_ixs]
     top_s2 = s2[all_ixs]
-    top_rank1 = top_s1.fillna(0).rank()
-    top_rank2 = top_s2.fillna(0).rank()
+    top_rank1 = top_s1.fillna(na_fill).rank()
+    top_rank2 = top_s2.fillna(na_fill).rank()
     top_rank2 = top_rank2[top_rank1.index]  # match ordering of index
     return top_rank1, top_rank2
 
 
-def jaccard_index(s1, s2, thresh=.1):
-    s1_genes = set(s1[s1<thresh].index)
-    s2_genes = set(s2[s2<thresh].index)
+def jaccard_index(fdr1, fdr2,
+                  thresh=.1):
+    s1_genes = set(fdr1[fdr2<thresh].index)
+    s2_genes = set(fdr1[fdr2<thresh].index)
     num_intersect = len(s1_genes & s2_genes)
     num_union = len(s1_genes | s2_genes)
     jaccard_sim = num_intersect / float(num_union)
