@@ -301,6 +301,7 @@ def handle_tsg_results(permutation_result):
     permutation_df = permutation_df.reindex(index=permutation_df.index[::-1])
 
     # order result
+    permutation_df = permutation_df.set_index('gene', drop=False)
     col_order  = ['gene', 'Total Mutations', 'Unmapped to Ref Tx',
                   'num deleterious', 'deleterious p-value',
                   'deleterious BH q-value']
@@ -333,6 +334,7 @@ def handle_oncogene_results(permutation_result, non_tested_genes):
     permutation_df['Performed Recurrency Test'] = permutation_df['Performed Recurrency Test'].fillna(1).astype(int)
 
     # order output
+    permutation_df = permutation_df.set_index('gene', drop=False)  # make sure genes are indices
     permutation_df['num recurrent'] = permutation_df['num recurrent'].fillna(-1).astype(int)  # fix dtype isssue
     col_order = ['gene', 'Total Mutations', 'Unmapped to Ref Tx',
                  'num recurrent', 'position entropy',
