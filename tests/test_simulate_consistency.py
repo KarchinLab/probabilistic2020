@@ -13,7 +13,7 @@ def test_100genes_main():
     opts = {'input': os.path.join(file_dir, 'data/100genes.fa'),
             'bed': os.path.join(file_dir, 'data/100genes.bed'),
             'mutations': os.path.join(file_dir, 'data/100genes_mutations.txt'),
-            'output': os.path.join(file_dir, 'output/100genes_position_single_nuc_output.txt'),
+            'output': os.path.join(file_dir, 'output/100genes_position_sim_chasm_output.txt'),
             'context': 1.5,
             'tsg_score': .1,
             'iterations': 5,
@@ -26,5 +26,6 @@ def test_100genes_main():
     # check tsg simulation
     opts['deleterious'] = 1
     opts['kind'] = 'tsg'
+    opts['output'] = os.path.join(file_dir, 'output/100genes_deleterious_sim_chasm_output.txt')
     result = sc.main(opts)
 
