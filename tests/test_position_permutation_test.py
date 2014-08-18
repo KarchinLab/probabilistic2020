@@ -4,6 +4,7 @@ import sys
 file_dir = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(file_dir, '../bin/'))
 sys.path.append(os.path.join(file_dir, '../permutation2020/python/'))
+sys.path.append(os.path.join(file_dir, '../permutation2020/cython/'))
 
 import permutation_test as pt
 import numpy as np
@@ -16,8 +17,9 @@ def test_ctnnb1_main():
             'mutations': os.path.join(file_dir, 'data/CTNNB1_mutations.txt'),
             'output': os.path.join(file_dir, 'output/CTNNB1_output.txt'),
             'context': 1,
+            'use_unmapped': False,
             'tsg_score': .05,
-            'processes': 1,
+            'processes': 0,
             'num_permutations': 10000,
             'kind': 'oncogene'}
     # single nucleotide context
@@ -68,10 +70,11 @@ def test_100genes_main():
     opts = {'input': os.path.join(file_dir, 'data/100genes.fa'),
             'bed': os.path.join(file_dir, 'data/100genes.bed'),
             'mutations': os.path.join(file_dir, 'data/100genes_mutations.txt'),
-            'output': os.path.join(file_dir, 'output/100genes_single_nuc_output.txt'),
+            'output': os.path.join(file_dir, 'output/100genes_position_single_nuc_output.txt'),
             'context': 1,
             'tsg_score': .1,
-            'processes': 5,
+            'use_unmapped': False,
+            'processes': 1,
             'num_permutations': 1000,
             'kind': 'oncogene'}
     # single nucleotide context
@@ -84,7 +87,7 @@ def test_100genes_main():
 
     # no context case
     opts['context'] = 0
-    opts['output'] = os.path.join(file_dir, 'output/100genes_no_context_output.txt')
+    opts['output'] = os.path.join(file_dir, 'output/100genes_position_no_context_output.txt')
     result = pt.main(opts)
     tested_result = result[result['Performed Recurrency Test']==1]
     num_recur_sig = np.sum(tested_result['recurrent BH q-value'] < .1)
@@ -94,7 +97,7 @@ def test_100genes_main():
 
     # di-nucleotide context
     opts['context'] = 2
-    opts['output'] = os.path.join(file_dir, 'output/100genes_dinuc_output.txt')
+    opts['output'] = os.path.join(file_dir, 'output/100genes_position_dinuc_output.txt')
     result = pt.main(opts)
     tested_result = result[result['Performed Recurrency Test']==1]
     num_recur_sig = np.sum(tested_result['recurrent BH q-value'] < .1)
