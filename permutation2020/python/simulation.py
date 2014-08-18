@@ -70,13 +70,41 @@ def save_simulation_result(mypanel, mypath):
     mydf.to_csv(mypath, sep='\t')
 
 
-def rank_genes(s1, s2,
+def rank_genes(p1, p2,
                fdr1, fdr2,
                thresh=.1,
                na_fill=1.):
+    """Rank the p-values of statistically significant genes in either list.
+
+    The thresh variable is the FDR threshold for statistically significant in either
+    list. The union of statistically significant genes in both lists is taken.
+    This union of genes is then ranked in both lists by p-value.
+
+    Parameters
+    ----------
+    p1 : pd.Series
+        P-values of first test
+    p2 : pd.Series
+        P-values of second test
+    fdr1 : pd.Series
+        q-values of first test
+    fdr2 : pd.Series
+        q-values of second test
+    thresh : float
+        FDR threshold for statistical significance
+    na_fill : float
+        value to fill missing p-values (NA's)
+
+    Returns
+    -------
+    top_rank1 : pd.Series
+        gene ranks for first test
+    top_rank2 : pd.Series
+        gene ranks for second test
+    """
     all_ixs = list(set(fdr1[fdr1<thresh].index) | set(fdr1[fdr2<thresh].index))
-    top_s1 = s1[all_ixs]
-    top_s2 = s2[all_ixs]
+    top_s1 = p1[all_ixs]
+    top_s2 = p2[all_ixs]
     top_rank1 = top_s1.fillna(na_fill).rank()
     top_rank2 = top_s2.fillna(na_fill).rank()
     top_rank2 = top_rank2[top_rank1.index]  # match ordering of index
@@ -85,6 +113,26 @@ def rank_genes(s1, s2,
 
 def jaccard_index(fdr1, fdr2,
                   thresh=.1):
+    """Calculates the Jaccard Index for statistically significant genes.
+
+    The thresh parameter determines statistical significance for each list.
+    It represents the FDR threshold.
+
+    Parameters
+    ----------
+    fdr1 : pd.Series
+        q-values for first test, index should be gene names
+    fdr2 : pd.Series
+        q-values for second test, index should be gene names
+    thresh : float
+        FDR threshold for statistical signficance
+
+    Returns
+    -------
+    jaccard_sim : float
+        Jaccard index measuring simularity of statistically significant
+        genes in both tests
+    """
     s1_genes = set(fdr1[fdr2<thresh].index)
     s2_genes = set(fdr1[fdr2<thresh].index)
     num_intersect = len(s1_genes & s2_genes)
