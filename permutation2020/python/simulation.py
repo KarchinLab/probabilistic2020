@@ -133,9 +133,14 @@ def jaccard_index(fdr1, fdr2,
         Jaccard index measuring simularity of statistically significant
         genes in both tests
     """
-    s1_genes = set(fdr1[fdr2<thresh].index)
-    s2_genes = set(fdr1[fdr2<thresh].index)
+    s1_genes = set(fdr1[fdr1<thresh].index)
+    s2_genes = set(fdr2[fdr2<thresh].index)
     num_intersect = len(s1_genes & s2_genes)
     num_union = len(s1_genes | s2_genes)
-    jaccard_sim = num_intersect / float(num_union)
+    if num_union:
+        # there are significant genes
+        jaccard_sim = num_intersect / float(num_union)
+    else:
+        # no significant gene case
+        jaccard_sim = 0
     return jaccard_sim
