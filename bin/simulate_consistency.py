@@ -142,8 +142,8 @@ def simulate(df1, df2, bed_dict, non_tested_genes, opts):
         permutation_df2 = pt.handle_tsg_results(permutation_result2)
 
         # calculate jaccard similarity
-        deleterious_jaccard = sim.jaccard_index(permutation_df1['deleterious p-value'],
-                                                permutation_df2['deleterious p-value'])
+        deleterious_jaccard = sim.jaccard_index(permutation_df1['deleterious BH q-value'],
+                                                permutation_df2['deleterious BH q-value'])
 
         # rank genes
         deleterious_rank1, deleterious_rank2 = sim.rank_genes(permutation_df1['deleterious p-value'].copy(),
