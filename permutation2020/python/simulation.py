@@ -1,6 +1,55 @@
 import numpy as np
 import pandas as pd
 from scipy import stats
+import time
+import sys
+import utils
+from multiprocessing import Pool
+import itertools as it
+import logging
+
+logger = logging.getLogger(__name__)  # module logger
+
+def multiprocess_simulate(dfg, bed_dict, non_tested_genes, opts,
+                          singleprocess_func):
+    # handle the number of processes to use, should it even use the
+    # multiprocessing module?
+    multiprocess_flag = opts['processes']>0
+    if multiprocess_flag:
+        num_processes = opts['processes']
+    else:
+        num_processes = 1
+    opts['processes'] = 0  # do not use multi-processing within permutation test
+
+    # handle multiprocessing of simulation if necessary
+    process_results = None
+    result_list = []
+    for i in range(0, dfg.num_iter, num_processes):
+        if multiprocess_flag:
+            pool = Pool(processes=num_processes)
+            del process_results  # possibly help free up more memory
+            time.sleep(5)  # wait 5 seconds, might help make sure memory is free
+            tmp_num_pred = dfg.num_iter - i if  i + num_processes > dfg.num_iter else num_processes
+            # df_generator = dfg.dataframe_generator()
+            info_repeat = it.repeat((dfg, bed_dict, non_tested_genes, opts), tmp_num_pred)
+            #pool = Pool(processes=tmp_num_pred)
+            process_results = pool.imap(singleprocess_func, info_repeat)
+            process_results.next = utils.keyboard_exit_wrapper(process_results.next)
+            try:
+                for tmp_result in process_results:
+                    result_list.append(tmp_result)
+            except KeyboardInterrupt:
+                pool.close()
+                pool.join()
+                logger.info('Exited by user. ctrl-c')
+                sys.exit(0)
+            pool.close()
+            pool.join()
+        else:
+            info = (dfg, bed_dict, non_tested_genes, opts)
+            tmp_result = singleprocess_func(info)
+            result_list.append(tmp_result)
+    return result_list
 
 
 def calculate_sem(wp):

@@ -15,9 +15,6 @@ import permutation_test as pt
 import pandas as pd
 from scipy import stats
 import pysam
-from multiprocessing import Pool
-import itertools as it
-import time
 import datetime
 import argparse
 import logging
@@ -62,7 +59,7 @@ def start_logging(log_file='', log_level='INFO'):
         root.propagate = True
 
 
-def simulate(df1, df2, bed_dict, non_tested_genes, opts):
+def consistency_comparison(df1, df2, bed_dict, non_tested_genes, opts):
     """Function called by multiprocessing to run predictions.
 
     """
@@ -172,30 +169,11 @@ def simulate(df1, df2, bed_dict, non_tested_genes, opts):
     return results
 
 
-def multiprocess_simulate(dfg, bed_dict, non_tested_genes, opts):
-    num_processes = opts['processes']
-    opts['processes'] = 0  # do not use multi-processing within permutation test
-    process_results = None
-    for i in range(0, dfg.num_iter, num_processes):
-        pool = Pool(processes=num_processes)
-        del process_results  # possibly help free up more memory
-        time.sleep(5)  # wait 5 seconds, might help make sure memory is free
-        tmp_num_pred = dfg.num_iter - i if  i + num_processes > dfg.num_iter else num_processes
-        # df_generator = dfg.dataframe_generator()
-        info_repeat = it.repeat((dfg, bed_dict, non_tested_genes, opts), tmp_num_pred)
-        #pool = Pool(processes=tmp_num_pred)
-        process_results = pool.imap(singleprocess_simulate, info_repeat)
-        process_results.next = utils.keyboard_exit_wrapper(process_results.next)
-        pool.close()
-        pool.join()
-        yield process_results
-
-
 @utils.log_error_decorator
 def singleprocess_simulate(info):
     dfg, bed_dict, non_tested_genes, opts = info  # unpack tuple
     df_left, df_right = next(dfg.dataframe_generator())
-    single_result = simulate(df_left, df_right, bed_dict, non_tested_genes, opts)
+    single_result = consistency_comparison(df_left, df_right, bed_dict, non_tested_genes, opts)
     return single_result
 
 
@@ -351,18 +329,14 @@ def main(opts):
                       sub_sample=sample_rate,
                       num_iter=opts['iterations'])
 
-    result = {}
-    # iterate through each sampled data set
-    sim_results = {}
-    i = 0  # counter for index of data frames
-    for df_list in multiprocess_simulate(dfg, bed_dict, non_tested_genes, opts.copy()):
-        # save all the results
-        for j, mydf in enumerate(df_list):
-            sim_results[i] = mydf
-            i += 1
+    # perform simulation
+    multiproces_output = sim.multiprocess_simulate(dfg, bed_dict, non_tested_genes,
+                                                   opts.copy(), singleprocess_simulate)
+    sim_results = {i: mydf for i, mydf in enumerate(multiproces_output)}
 
     # record result for a specific sample rate
     tmp_results = sim.calculate_stats(sim_results)
+    result = {}
     result[sample_rate] = tmp_results
     result[sample_rate].to_csv(opts['output'], sep='\t')
 
