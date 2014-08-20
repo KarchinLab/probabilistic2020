@@ -69,6 +69,22 @@ def keyboard_exit_wrapper(func):
 
 
 def filter_list(mylist, bad_ixs):
+    """Removes indices from a list.
+
+    All elements in bad_ixs will be removed from the list.
+
+    Parameters
+    ----------
+    mylist : list
+        list to filter out specific indices
+    bad_ixs : list of ints
+        indices to remove from list
+
+    Returns
+    -------
+    mylist : list
+        list with elements filtered out
+    """
     # indices need to be in reverse order for filtering
     # to prevent .pop() from yielding eroneous results
     bad_ixs = sorted(bad_ixs, reverse=True)
@@ -98,6 +114,18 @@ def rev_comp(seq):
 
 
 def is_valid_nuc(nuc):
+    """Check if valid single letter base.
+
+    Parameters
+    ----------
+    nuc : str
+        String to check if valid single nucleotide base
+
+    Returns
+    -------
+    is_valid : bool
+        flag indicating valid nucleotide base
+    """
     valid_nucs = ['A', 'C', 'T', 'G', 'N']
     is_valid = nuc in valid_nucs
     return is_valid
@@ -149,18 +177,55 @@ def read_bed(file_path, filtered_genes):
 
 
 def _fix_mutation_df(mutation_df):
+    """Drops invalid mutations and corrects for 1-based coordinates.
+
+    TODO: Be smarter about what coordinate system is put in the provided
+    mutations.
+
+    Parameters
+    ----------
+    mutation_df : pd.DataFrame
+        user provided mutations
+
+    Returns
+    -------
+    mutation_df : pd.DataFrame
+        mutations filtered for being valid and correct mutation type. Also
+        converted 1-base coordinates to 0-based.
+
+    """
+    # only keep allowed mutation types
+    orig_len = len(mutation_df)  # number of mutations before filtering
     allowed_types = ['Missense_Mutation', 'Silent', 'Nonsense_Mutation', 'Splice_Site']
     mutation_df = mutation_df[mutation_df.Variant_Classification.isin(allowed_types)]  # only keep SNV
+    type_len = len(mutation_df)  # number of mutations after filtering based on mut type
+
+    # log the number of dropped mutations
+    log_msg = ('Dropped {num_dropped} mutations after only keeping '
+               '{mut_types}'.format(num_dropped=orig_len-type_len,
+                                    mut_types=', '.join(allowed_types)))
+    logger.info(log_msg)
+
+    # check if mutations are valid SNVs
     valid_nuc_flag = (mutation_df['Reference_Allele'].apply(is_valid_nuc) & \
                       mutation_df['Tumor_Allele'].apply(is_valid_nuc))
     mutation_df = mutation_df[valid_nuc_flag]  # filter bad lines
-    mutation_df['Start_Position'] = mutation_df['Start_Position'] - 1
     mutation_df = mutation_df[mutation_df['Tumor_Allele'].apply(lambda x: len(x)==1)]
     mutation_df = mutation_df[mutation_df['Reference_Allele'].apply(lambda x: len(x)==1)]
+    valid_len = len(mutation_df)
+
+    # log the number of dropped mutations
+    log_msg = ('Dropped {num_dropped} mutations after only keeping '
+               'valid SNVs'.format(num_dropped=type_len-valid_len))
+    logger.info(log_msg)
+
+    # correct for 1-based coordinates
+    mutation_df['Start_Position'] = mutation_df['Start_Position'] - 1
     return mutation_df
 
 
 def _get_high_tsg_score(mutation_df, tsg_score_thresh):
+    # find genes above a tsg score threshold
     mutation_df['indicator'] = 1
     table = pd.pivot_table(mutation_df,
                            values='indicator',
@@ -174,6 +239,12 @@ def _get_high_tsg_score(mutation_df, tsg_score_thresh):
     tsg_score = mut_type_frac['Nonsense_Mutation'] + mut_type_frac['Frame_Shift_Indel'] + \
                 mut_type_frac['Splice_Site'] + mut_type_frac['Nonstop_Mutation']
     non_tested_genes = set(tsg_score[tsg_score>=tsg_score_thresh].index.tolist())
+
+    # log the number of non tested genes
+    log_msg = ('{0} genes will not be tested due to high TSG '
+               'score'.format(len(non_tested_genes)))
+    logger.info(log_msg)
+
     return non_tested_genes
 
 
