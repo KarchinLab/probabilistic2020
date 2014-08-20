@@ -5,13 +5,13 @@ Specifically, this script tests mutations to check whether they are
 reported as being on the positive strand or on the coding strand.
 """
 # fix problems with pythons terrible import system
-import os
 import sys
+import os
 file_dir = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(os.path.join(file_dir, '../src/python'))
+sys.path.append(os.path.join(file_dir, '../'))
 
 # actually important imports
-import utils
+import permutation2020.python.utils as utils
 import pysam
 import pandas as pd
 import argparse
