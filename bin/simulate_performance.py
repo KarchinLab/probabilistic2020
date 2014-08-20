@@ -86,39 +86,6 @@ def simulate(df, bed_dict, non_tested_genes, opts):
     return results
 
 
-def yield_sim_df(dfg, num_processes):
-    """Yields (a generator) data frame objects according to
-    the number of processes.
-
-    Parameters
-    ----------
-    dfg : one of my random sampling classes
-        either a bootstrap object or RandomSampleNames object
-    num_processes : int
-        number of processes indicates how many data frames
-        to yield.
-
-    Returns
-    -------
-    dfg_list : list
-        a list of data frames of length num_processes
-    """
-    # yield lists of data frames until the last modulo
-    # operator returns 0
-    dfg_list = []
-    for i, df in enumerate(dfg.dataframe_generator()):
-        dfg_list.append(df)
-        i_plus_1 = i + 1  # operator precedence requires this statement
-        if not i_plus_1 % num_processes:
-            yield dfg_list
-            dfg_list = []
-
-    # if number of data frames not perfectly divisible
-    # by number of processes
-    if dfg_list:
-        yield dfg_list
-
-
 def multiprocess_simulate(dfg, bed_dict, non_tested_genes, opts):
     num_processes = opts['processes']
     opts['processes'] = 0  # do not use multi-processing within permutation test
