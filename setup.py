@@ -1,22 +1,11 @@
 from distutils.core import setup
 from distutils.extension import Extension
 import sys
-# from Cython.Distutils import build_ext
 
 # fix problems with pythons terrible import system
 import os
 file_dir = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(file_dir, 'permutation2020/cython'))
-
-# import numpy as np
-
-#setup(
-    #cmdclass = {'build_ext': build_ext},
-    #ext_modules = [Extension("src.python.cython_utils",
-                             #["src/python/cython_utils.pyx"],
-                             #language='c++',
-                             #include_dirs=['src/cpp/'])]
-#)
 
 SRC_DIR = 'permutation2020'
 
@@ -54,13 +43,15 @@ if 'build_ext' in sys.argv:
     # just build cython extension module if build_ext subcommand is used
     setup(ext_modules = extensions)
 else:
+    import permutation2020
+    version = permutation2020.__version__
     AUTHOR = 'Collin Tokheim'
     EMAIL = 'fake@gmail.com'
     URL = 'https://github.com/ctokheim/2020permutation'
     DESCRIPTION = '20/20 Permutation Test'
     PACKAGES = [SRC_DIR, SRC_DIR + '.python', SRC_DIR + '.cython', SRC_DIR + '.cpp']
     setup(name='permutation2020',
-          version='0.1.0',
+          version=version,
           description=DESCRIPTION,
           author=AUTHOR,
           author_email=EMAIL,
