@@ -151,7 +151,7 @@ def rank_genes(p1, p2,
     top_rank2 : pd.Series
         gene ranks for second test
     """
-    all_ixs = list(set(fdr1[fdr1<thresh].index) | set(fdr1[fdr2<thresh].index))
+    all_ixs = list(set(fdr1[fdr1<thresh].index) | set(fdr2[fdr2<thresh].index))
     top_s1 = p1[all_ixs]
     top_s2 = p2[all_ixs]
     top_rank1 = top_s1.fillna(na_fill).rank()
