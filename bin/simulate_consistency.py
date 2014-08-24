@@ -213,11 +213,14 @@ def parse_arguments():
     parser.add_argument('-b', '--bed',
                         type=str, required=True,
                         help=help_str)
-    help_str = 'Number of processes to use (more==Faster, default: 1).'
+    help_str = ('Number of processes to use. 0 indicates using a single '
+                'process without using a multiprocessing pool '
+                '(more means Faster, default: 0).')
     parser.add_argument('-p', '--processes',
-                        type=int, default=1,
+                        type=int, default=0,
                         help=help_str)
-    help_str = 'Number of permutations for null model'
+    help_str = ('Number of permutations for null model. p-value precision '
+                'increases with more permutations (Default: 10000).')
     parser.add_argument('-n', '--num-permutations',
                         type=int, default=10000,
                         help=help_str)
