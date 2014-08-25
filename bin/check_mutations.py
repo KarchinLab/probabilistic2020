@@ -114,7 +114,7 @@ def detect_coordinates(mut_df, genome_fa):
             zero_len_count += 1
         no_shift_seq = genome_fa.fetch(reference=row['Chromosome'],
                                        start=row['Start_Position'],
-                                       end=row['End_Position']+1)
+                                       end=row['End_Position'])
         minus_1_seq = genome_fa.fetch(reference=row['Chromosome'],
                                       start=row['Start_Position']-1,
                                       end=row['End_Position'])
