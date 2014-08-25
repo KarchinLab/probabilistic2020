@@ -3,12 +3,11 @@ import os
 import sys
 file_dir = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(file_dir, '../bin/'))
-sys.path.append(os.path.join(file_dir, '../permutation2020/python/'))
-sys.path.append(os.path.join(file_dir, '../permutation2020/cython/'))
+sys.path.append(os.path.join(file_dir, '..'))
 
 import permutation_test as pt
+import permutation2020.python.utils as utils
 import numpy as np
-import utils
 
 
 def test_ctnnb1_main():
@@ -42,7 +41,7 @@ def test_ctnnb1_main():
 
 def test_ctnnb1_get_aa_mut_info():
     import pysam
-    from gene_sequence import GeneSequence
+    from permutation2020.python.gene_sequence import GeneSequence
 
     # read fasta
     ctnnb1_fasta = os.path.join(file_dir, 'data/CTNNB1.fa')
@@ -74,7 +73,7 @@ def test_100genes_main():
             'context': 1,
             'tsg_score': .1,
             'use_unmapped': False,
-            'processes': 1,
+            'processes': 0,
             'num_permutations': 1000,
             'kind': 'oncogene'}
     # single nucleotide context

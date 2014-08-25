@@ -3,10 +3,11 @@ import os
 import sys
 file_dir = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(file_dir, '../bin/'))
+sys.path.append(os.path.join(file_dir, '..'))
 
 # import extract_genes module
 import extract_gene_seq as eg
-import utils
+import permutation2020.python.utils as utils
 
 def test_rev_comp():
     seq1 = 'CT'
