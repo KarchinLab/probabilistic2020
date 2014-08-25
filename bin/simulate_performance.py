@@ -294,7 +294,8 @@ def main(opts):
     orig_num_mut = len(mut_df)
     mut_df = mut_df.dropna(subset=['Tumor_Allele', 'Start_Position', 'Chromosome'])
     logger.info('Kept {0} mutations after droping mutations with missing '
-                'information (Droped: {1})'.format(len(mut_df), orig_num_mut - len(mut_df)))
+                'information (Droped: {1})'.format(len(mut_df),
+                                                   orig_num_mut - len(mut_df)))
 
     # specify genes to skip
     if opts['kind'] == 'oncogene':
@@ -337,15 +338,6 @@ def main(opts):
                                                        opts.copy(), singleprocess_simulate)
         sim_results = {i: mydf for i, mydf in enumerate(multiproces_output)}
 
-        # iterate through each sampled data set
-        #sim_results = {}
-        #i = 0  # counter for index of data frames
-        #for df_list in multiprocess_simulate(dfg, bed_dict, non_tested_genes, opts.copy()):
-            # save all the results
-            #for j, mydf in enumerate(df_list):
-                #sim_results[i] = mydf
-                #i += 1
-
         # record result for a specific sample rate
         tmp_results = sim.calculate_stats(sim_results)
         result[sample_rate] = tmp_results
@@ -368,7 +360,6 @@ def main(opts):
                                  title='Number of significant genes vs. relative size',
                                  xlabel='Sample rate',
                                  ylabel='Number of significant genes')
-
 
 
 if __name__ == "__main__":
