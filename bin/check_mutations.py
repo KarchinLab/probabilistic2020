@@ -114,7 +114,7 @@ def detect_coordinates(mut_df, genome_fa):
             zero_len_count += 1
         no_shift_seq = genome_fa.fetch(reference=row['Chromosome'],
                                        start=row['Start_Position'],
-                                       end=row['End_Position'])
+                                       end=row['End_Position']+1)
         minus_1_seq = genome_fa.fetch(reference=row['Chromosome'],
                                       start=row['Start_Position']-1,
                                       end=row['End_Position'])
@@ -126,7 +126,7 @@ def detect_coordinates(mut_df, genome_fa):
         for i in range(len(seqs)):
             if seqs[i].upper() == row['Reference_Allele'].upper() and len(row['Reference_Allele']) == 1:
                 matching_ref[i] += 1
-            elif seqs[i].upper() == utils.rev_comp(row['Reference_Allele']).upper() and len(row['Reference_Allele']) == 0:
+            elif seqs[i].upper() == utils.rev_comp(row['Reference_Allele']).upper() and len(row['Reference_Allele']) == 1:
                 matching_pair[i] += 1
 
     # return coordinate type
@@ -134,9 +134,9 @@ def detect_coordinates(mut_df, genome_fa):
     zero_len_pct = zero_len_count / float(num_mut)
     matching_pair_pct = map(lambda x: x / float(num_snv), matching_pair)
     matching_pct = map(lambda x: x / float(num_snv), matching_ref)
-    logger.info('{0} of {1} tested mutations had zero length'.format(zero_len_pct, num_mut))
-    logger.info('{0} of {1} did match the + strand reference genome'.format(matching_pct, num_snv))
-    logger.info('{0} of {1} did match the - strand reference genome'.format(matching_pair_pct, num_snv))
+    logger.info('{0:.2f}%% for {1} tested mutations had zero length'.format(100*zero_len_pct, num_mut))
+    logger.info('{0} for {1} did match the + strand reference genome'.format(matching_pct, num_snv))
+    logger.info('{0} for {1} did match the - strand reference genome'.format(matching_pair_pct, num_snv))
     if zero_len_pct > .3:
         logger.info('1-based coordinate system likely used.')
         if matching_pair_pct[1] > .25:
