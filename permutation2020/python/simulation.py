@@ -110,10 +110,16 @@ def save_simulation_result(mypanel, mypath):
     myitems = mypan.items
     num_items = len(myitems)
     mydf = mypan[myitems[0]]
+    rename_dict = {'count mean': 'count mean {0}'.format(myitems[0]),
+                   'count sem': 'count sem {0}'.format(myitems[0])}
+    mydf = mydf.rename(columns=rename_dict)
     if num_items > 1:
         for i in range(1, num_items):
-            mydf = pd.merge(mydf, mypan[myitems[i]],
-                            left_on='Gene', right_on='Gene')
+            tmp_df = mypan[myitems[i]]
+            rename_dict = {'count mean': 'count mean {0}'.format(myitems[i]),
+                           'count sem': 'count sem {0}'.format(myitems[i])}
+            mydf = pd.merge(mydf, tmp_df.rename(columns=rename_dict),
+                            left_index=True, right_index=True)
 
     # save data frame to specified paths
     mydf.to_csv(mypath, sep='\t')
