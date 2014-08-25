@@ -5,6 +5,7 @@ clean:
 	rm -f $(SRC_DIR)/cython/cutils.so
 	rm -f $(SRC_DIR)/cython/gaussian_kde.so
 	rm -f $(SRC_DIR)/cython/uniform_kde.so
+	find . -name '*.pyc' -delete
 
 clean-cpp:
 	rm -f $(SRC_DIR)/cython/cutils.cpp
