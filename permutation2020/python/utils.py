@@ -524,4 +524,3 @@ def recover_unmapped_mut_info(mut_info, bed, sc, opts):
         unmapped_mut_info = {'Context': [], 'Reference AA': [], 'Codon Pos': [],
                              'Somatic AA': [], 'Tumor_Allele': []}
     return unmapped_mut_info
-
