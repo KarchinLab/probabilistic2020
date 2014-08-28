@@ -17,9 +17,6 @@ import permutation_test as pt
 import pandas as pd
 import numpy as np
 import pysam
-from multiprocessing import Pool
-import itertools as it
-import time
 import datetime
 import argparse
 import logging
@@ -214,9 +211,13 @@ def parse_arguments():
     parser.add_argument('-t', '--tsg-score',
                         type=float, default=.10,
                         help=help_str)
-    help_str = 'Output of probabilistic 20/20 results'
-    parser.add_argument('-o', '--output',
+    help_str = 'Tab-delimited output path for performance simulation'
+    parser.add_argument('-to', '--text-output',
                         type=str, required=True,
+                        help=help_str)
+    help_str = 'Plot output directory of performance simulation'
+    parser.add_argument('-po', '--plot-output',
+                        type=str, default='./',
                         help=help_str)
     args = parser.parse_args()
 
@@ -306,14 +307,14 @@ def main(opts):
     # results from simulations
     panel_result = pd.Panel(result)
 
-    sim.save_simulation_result(panel_result, opts['output'])
+    sim.save_simulation_result(panel_result, opts['text_output'])
 
     # aggregate results for plotting
     plot_results = {'Permutation Test': panel_result}
 
     # plot number of predicted genes
     for plot_type in plot_results['Permutation Test'].major_axis:
-        tmp_save_path = plot_type + '.png'
+        tmp_save_path = os.path.join(opts['plot_output'], plot_type + '.png')
         plot_data.count_errorbar(plot_results,
                                  gene_type=plot_type,
                                  save_path=tmp_save_path,
