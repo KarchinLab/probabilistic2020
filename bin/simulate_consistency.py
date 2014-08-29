@@ -253,11 +253,6 @@ def parse_arguments():
     parser.add_argument('-g', '--genome',
                         type=str, default='',
                         help=help_str)
-    help_str = ('Perform recurrent mutation permutation test if gene has '
-                'atleast a user specified number of recurrent mutations (default: 2)')
-    parser.add_argument('-r', '--recurrent',
-                        type=int, default=2,
-                        help=help_str)
     help_str = ('Perform tsg permutation test if gene has '
                 'at least a user specified number of deleterious mutations (default: 5)')
     parser.add_argument('-d', '--deleterious',
@@ -267,6 +262,16 @@ def parse_arguments():
                 'permutation test. (Default: .10)')
     parser.add_argument('-t', '--tsg-score',
                         type=float, default=.10,
+                        help=help_str)
+    help_str = ('Deleterious mutation pseudo-count for null distribution '
+                'statistics. (Default: 0)')
+    parser.add_argument('-dp', '--deleterious-pseudo-count',
+                        type=int, default=0,
+                        help=help_str)
+    help_str = ('Recurrent missense mutation pseudo-count for null distribution '
+                'statistics. (Default: 0)')
+    parser.add_argument('-rp', '--recurrent-pseudo-count',
+                        type=int, default=0,
                         help=help_str)
     help_str = 'Output of probabilistic 20/20 results'
     parser.add_argument('-o', '--output',

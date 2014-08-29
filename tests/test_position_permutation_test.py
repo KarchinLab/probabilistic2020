@@ -17,9 +17,10 @@ def test_ctnnb1_main():
             'output': os.path.join(file_dir, 'output/CTNNB1_output.txt'),
             'context': 1,
             'use_unmapped': False,
-            'tsg_score': .05,
+            'tsg_score': .1,
             'processes': 0,
             'num_permutations': 10000,
+            'recurrent_pseudo_count': 0,
             'kind': 'oncogene'}
     # single nucleotide context
     result = pt.main(opts)
@@ -75,6 +76,7 @@ def test_100genes_main():
             'use_unmapped': False,
             'processes': 0,
             'num_permutations': 1000,
+            'recurrent_pseudo_count': 0,
             'kind': 'oncogene'}
     # single nucleotide context
     result = pt.main(opts)
