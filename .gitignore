@@ -49,3 +49,4 @@ Session.vim
 *.fa
 tests/output/*
 MANIFEST
+.ropeproject
