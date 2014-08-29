@@ -418,20 +418,15 @@ def parse_arguments():
     parser.add_argument('-g', '--genome',
                         type=str, default='',
                         help=help_str)
-    help_str = ('Perform recurrent mutation permutation test if gene has '
-                'atleast a user specified number of recurrent mutations (default: 2)')
-    parser.add_argument('-r', '--recurrent',
+    help_str = ('Perform tsg permutation test if gene has '
+                'at least a user specified number of deleterious mutations (default: 2)')
+    parser.add_argument('-d', '--deleterious',
                         type=int, default=2,
                         help=help_str)
-    help_str = ('Perform tsg permutation test if gene has '
-                'at least a user specified number of deleterious mutations (default: 5)')
-    parser.add_argument('-d', '--deleterious',
-                        type=int, default=5,
-                        help=help_str)
     help_str = ('Maximum TSG score to allow gene to be tested for oncogene '
-                'permutation test. (Default: .10)')
+                'permutation test. (Default: .1)')
     parser.add_argument('-t', '--tsg-score',
-                        type=float, default=.10,
+                        type=float, default=.1,
                         help=help_str)
     help_str = 'Output of probabilistic 20/20 results'
     parser.add_argument('-o', '--output',
