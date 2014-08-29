@@ -66,7 +66,8 @@ def calc_deleterious_p_value(mut_info,
                              gs,
                              bed,
                              num_permutations,
-                             del_threshold):
+                             del_threshold,
+                             pseudo_count):
     if len(mut_info) > 0:
         mut_info['Coding Position'] = mut_info['Coding Position'].astype(int)
         mut_info['Context'] = mut_info['Coding Position'].apply(lambda x: sc.pos2context[x])
@@ -94,8 +95,9 @@ def calc_deleterious_p_value(mut_info,
             null_del_list = pm.deleterious_permutation(context_cts,
                                                        context_to_mutations,
                                                        sc,  # sequence context obj
-                                                       gs,
-                                                       num_permutations)  # gene sequence obj
+                                                       gs,  # gene sequence obj
+                                                       num_permutations,
+                                                       pseudo_count)
 
             # calculate p-value
             del_num_nulls = sum([1 for d in null_del_list
@@ -116,7 +118,8 @@ def calc_position_p_value(mut_info,
                           sc,
                           gs,
                           bed,
-                          num_permutations):
+                          num_permutations,
+                          pseudo_count):
     if len(mut_info) > 0:
         mut_info['Coding Position'] = mut_info['Coding Position'].astype(int)
         mut_info['Context'] = mut_info['Coding Position'].apply(lambda x: sc.pos2context[x])
@@ -133,8 +136,9 @@ def calc_position_p_value(mut_info,
         permutation_result = pm.position_permutation(context_cts,
                                                      context_to_mutations,
                                                      sc,  # sequence context obj
-                                                     gs,
-                                                     num_permutations)  # gene sequence obj
+                                                     gs,  # gene sequence obj
+                                                     num_permutations,
+                                                     pseudo_count)
         num_recur_list, pos_entropy_list, delta_pos_entropy_list = permutation_result  # unpack results
 
         # get recurrent info for actual mutations
@@ -147,7 +151,6 @@ def calc_position_p_value(mut_info,
         num_recurrent, pos_ent, delta_pos_ent = cutils.calc_pos_info(codon_pos,
                                                                      ref_aa,
                                                                      somatic_aa)
-                                                                     # None)
 
         # calculate permutation p-value
         recur_num_nulls = sum([1 for null_recur in num_recur_list
@@ -156,28 +159,16 @@ def calc_position_p_value(mut_info,
                                  if null_ent <= pos_ent])
         delta_entropy_num_nulls = sum([1 for null_ent in pos_entropy_list
                                        if null_ent >= delta_pos_ent])
-        #kde_entropy_num_nulls = sum([1 for null_ent in kde_entropy_list
-                                     #if null_ent <= kde_ent])
-        #kde_bw_num_nulls = sum([1 for null_bw in bw_list
-                                #if null_bw <= opt_bw])
         recur_p_value = recur_num_nulls / float(num_permutations)
         ent_p_value = entropy_num_nulls / float(num_permutations)
         delta_ent_p_value = delta_entropy_num_nulls / float(num_permutations)
-        #kde_ent_p_value = kde_entropy_num_nulls / float(num_permutations)
-        #kde_bw_p_value = kde_bw_num_nulls / float(num_permutations)
     else:
         num_recurrent = 0
         pos_ent = 0
         delta_pos_ent = 0
-        #kde_ent = 0
-        #opt_bw = 0
         recur_p_value = 1.0
         ent_p_value = 1.0
         delta_ent_p_value = 1.0
-        #kde_ent_p_value = 1.0
-        #kde_bw_p_value = 1.0
-    #result = [bed.gene_name, num_recurrent, pos_ent, kde_ent, opt_bw,
-              #recur_p_value, ent_p_value, kde_ent_p_value, kde_bw_p_value]
     result = [bed.gene_name, num_recurrent, pos_ent, delta_pos_ent,
               recur_p_value, ent_p_value, delta_ent_p_value]
     return result
@@ -234,13 +225,15 @@ def singleprocess_permutation(info):
         if opts['kind'] == 'oncogene':
             # calculate position based permutation results
             tmp_result = calc_position_p_value(mut_info, unmapped_mut_info, sc,
-                                               gs, bed, num_permutations)
+                                               gs, bed, num_permutations,
+                                               opts['recurrent_pseudo_count'])
             result.append(tmp_result + [total_mut, unmapped_muts])
         else:
             # calculate results for deleterious mutation permutation test
             tmp_result = calc_deleterious_p_value(mut_info, unmapped_mut_info,
                                                   sc, gs, bed, num_permutations,
-                                                  opts['deleterious'])
+                                                  opts['deleterious'],
+                                                  opts['deleterious_pseudo_count'])
             result.append(tmp_result + [total_mut, unmapped_muts])
 
     gene_fa.close()
@@ -427,6 +420,16 @@ def parse_arguments():
                 'permutation test. (Default: .1)')
     parser.add_argument('-t', '--tsg-score',
                         type=float, default=.1,
+                        help=help_str)
+    help_str = ('Deleterious mutation pseudo-count for null distribution '
+                'statistics. (Default: 0)')
+    parser.add_argument('-dp', '--deleterious-pseudo-count',
+                        type=int, default=0,
+                        help=help_str)
+    help_str = ('Recurrent missense mutation pseudo-count for null distribution '
+                'statistics. (Default: 0)')
+    parser.add_argument('-rp', '--recurrent-pseudo-count',
+                        type=int, default=0,
                         help=help_str)
     help_str = 'Output of probabilistic 20/20 results'
     parser.add_argument('-o', '--output',

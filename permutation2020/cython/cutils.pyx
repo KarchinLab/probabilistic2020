@@ -4,9 +4,6 @@ from libcpp.string cimport string
 import numpy as np
 cimport numpy as np
 
-# cython imports
-#from uniform_kde import uniform_kde_entropy
-#from gaussian_kde import kde_entropy
 
 # define data types for kde function
 DTYPE_INT = np.int
@@ -19,7 +16,7 @@ cdef extern from "permutation.hpp":
     int recurrent_sum(map[int, int] pos_ctr)
     double frac_position_entropy(map[int, int] pos_ctr)
     double delta_position_entropy(map[int, int] pos_ctr)
-    map[string, double] position_info(map[int, int] pos_ctr)
+    map[string, double] calc_position_statistics(map[int, int] pos_ctr)
 
 
 @cython.cdivision(True)
@@ -58,8 +55,10 @@ def pos_to_codon(seq, int pos):
         return 'Splice_Site', None, None
 
 
-def calc_pos_info(aa_mut_pos, germ_aa, somatic_aa):
-                  # kde_bw):
+def calc_pos_info(aa_mut_pos,
+                  germ_aa,
+                  somatic_aa,
+                  int pseudo_count=0):
     cdef:
         map[int, int] pos_ctr
         map[string, double] pos_info
@@ -68,6 +67,7 @@ def calc_pos_info(aa_mut_pos, germ_aa, somatic_aa):
         double delta_pos_ent = 0.0
         int i, num_pos
         DTYPE_INT_t[::1] pos_array
+        cdef int DUMMY_INT = 9999999  # dummy pos if prior used
     tmp_pos_list = []
     num_pos = len(aa_mut_pos)
     for i in range(num_pos):
@@ -81,20 +81,16 @@ def calc_pos_info(aa_mut_pos, germ_aa, somatic_aa):
                     pos_ctr[pos] = 0
                 pos_ctr[pos] += 1
                 tmp_pos_list.append(pos)
-    pos_info = position_info(pos_ctr)
+
+    # add pseudo-counts if specified
+    if pseudo_count:
+        pos_ctr[DUMMY_INT] = pseudo_count
+
+    # get position statistics
+    pos_info = calc_position_statistics(pos_ctr)
     num_recur = <int> pos_info["recurrent"]
     frac_pos_ent = pos_info["entropy_fraction"]
     delta_pos_ent = pos_info["delta_entropy"]
-    #num_recur = recurrent_sum(pos_ctr)
-    #frac_pos_ent = frac_position_entropy(pos_ctr)
-    #delta_pos_ent = delta_position_entropy(pos_ctr)
-    # pos_array = np.sort(np.array(tmp_pos_list, dtype=DTYPE_INT, order='c'))
-    # kde_ent, used_bandwidth = uniform_kde_entropy(pos_array, kde_bw)
-    # kde_ent, used_bandwidth = mymath.kde_entropy(np.array(tmp_pos_list, dtype=DTYPE_INT),
-    #                                             bandwidth=kde_bw)
-    #kde_ent, used_bandwidth = kde_entropy(np.sort(np.array(tmp_pos_list, dtype=DTYPE_INT, order='c')),
-    #                                      bandwidth_param=kde_bw)
-    #return num_recur, pos_ent, kde_ent, used_bandwidth
     return num_recur, frac_pos_ent, delta_pos_ent
 
 

@@ -7,7 +7,8 @@ def deleterious_permutation(context_counts,
                             context_to_mut,
                             seq_context,
                             gene_seq,
-                            num_permutations=10000):
+                            num_permutations=10000,
+                            pseudo_count=0):
     """Performs null-permutations for deleterious mutation statistics
     in a single gene.
 
@@ -26,6 +27,10 @@ def deleterious_permutation(context_counts,
         Sequence of gene of interest
     num_permutations : int, default: 10000
         number of permutations to create for null
+    pseudo_count : int, default: 0
+        Pseudo-count for number of deleterious mutations for each
+        permutation of the null distribution. Increasing pseudo_count
+        makes the statistical test more stringent.
 
     Returns
     -------
@@ -53,7 +58,7 @@ def deleterious_permutation(context_counts,
         # calc deleterious mutation info
         tmp_del_count = cutils.calc_deleterious_info(tmp_mut_info['Reference AA'],
                                                      tmp_mut_info['Somatic AA'])
-        del_count_list.append(tmp_del_count)
+        del_count_list.append(tmp_del_count + pseudo_count)
     return del_count_list
 
 
@@ -61,8 +66,8 @@ def position_permutation(context_counts,
                          context_to_mut,
                          seq_context,
                          gene_seq,
-                         num_permutations=10000):
-                         # kde_bandwidth=None):
+                         num_permutations=10000,
+                         pseudo_count=0):
     """Performs null-permutations for position-based mutation statistics
     in a single gene.
 
@@ -81,11 +86,10 @@ def position_permutation(context_counts,
         Sequence of gene of interest
     num_permutations : int, default: 10000
         number of permutations to create for null
-
-    Old Parameter
-    -------------
-    kde_bandwidth : int, default: None
-        ?possibly deprecated parameter
+    pseudo_count : int, default: 0
+        Pseudo-count for number of recurrent missense mutations for each
+        permutation for the null distribution. Increasing pseudo_count
+        makes the statistical test more stringent.
 
     Returns
     -------
@@ -93,14 +97,6 @@ def position_permutation(context_counts,
         list of recurrent mutation counts under the null
     entropy_list : list
         list of position entropy values under the null
-
-    Removed these Returns
-    ---------------------
-    kde_entropy_list : list
-        list of position entropy values after KDE smoothing
-        under the null.
-    bw_list : list
-        list of cross-validated KDE bandwidth values under the null.
     """
     mycontexts = context_counts.index.tolist()
     somatic_base = [base
@@ -124,11 +120,10 @@ def position_permutation(context_counts,
         # calculate position info
         tmp_recur_ct, tmp_entropy, tmp_delta_entropy = cutils.calc_pos_info(tmp_mut_info['Codon Pos'],
                                                                             tmp_mut_info['Reference AA'],
-                                                                            tmp_mut_info['Somatic AA'])
+                                                                            tmp_mut_info['Somatic AA'],
+                                                                            prior=pseudo_count)
         num_recur_list.append(tmp_recur_ct)
         entropy_list.append(tmp_entropy)
         delta_entropy_list.append(tmp_delta_entropy)
-        #kde_entropy_list.append(tmp_kde_ent)
-        #bw_list.append(tmp_bw)
 
     return num_recur_list, entropy_list, delta_entropy_list
