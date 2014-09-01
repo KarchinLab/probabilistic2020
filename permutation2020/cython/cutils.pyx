@@ -13,9 +13,6 @@ ctypedef np.int_t DTYPE_INT_t
 
 cdef extern from "permutation.hpp":
     # import functions from the C++ header permutation.hpp
-    int recurrent_sum(map[int, int] pos_ctr)
-    double frac_position_entropy(map[int, int] pos_ctr)
-    double delta_position_entropy(map[int, int] pos_ctr)
     map[string, double] calc_position_statistics(map[int, int] pos_ctr)
 
 
