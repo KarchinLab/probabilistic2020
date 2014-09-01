@@ -197,9 +197,9 @@ def parse_arguments():
                         type=str, default='',
                         help=help_str)
     help_str = ('Perform tsg permutation test if gene has '
-                'at least a user specified number of deleterious mutations (default: 5)')
+                'at least a user specified number of deleterious mutations (default: 2)')
     parser.add_argument('-d', '--deleterious',
-                        type=int, default=5,
+                        type=int, default=2,
                         help=help_str)
     help_str = ('Maximum TSG score to allow gene to be tested for oncogene '
                 'permutation test. (Default: .10)')
