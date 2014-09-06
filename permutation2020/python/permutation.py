@@ -127,3 +127,56 @@ def position_permutation(context_counts,
         delta_entropy_list.append(tmp_delta_entropy)
 
     return num_recur_list, entropy_list, delta_entropy_list
+
+
+def non_silent_ratio_permutation(context_counts,
+                                 context_to_mut,
+                                 seq_context,
+                                 gene_seq,
+                                 num_permutations=10000):
+    """Performs null-permutations for non-silent ratio across all genes.
+
+    Parameters
+    ----------
+    context_counts : pd.Series
+        number of mutations for each context
+    context_to_mut : dict
+        dictionary mapping nucleotide context to a list of observed
+        somatic base changes.
+    seq_context : SequenceContext
+        Sequence context for the entire gene sequence (regardless
+        of where mutations occur). The nucleotide contexts are
+        identified at positions along the gene.
+    gene_seq : GeneSequence
+        Sequence of gene of interest
+    num_permutations : int, default: 10000
+        number of permutations to create for null
+
+    Returns
+    -------
+    non_silent_count_list : list of tuples
+        list of non-silent and silent mutation counts under the null
+    """
+    mycontexts = context_counts.index.tolist()
+    somatic_base = [base
+                    for one_context in mycontexts
+                    for base in context_to_mut[one_context]]
+
+    # get random positions determined by sequence context
+    tmp_contxt_pos = seq_context.random_pos(context_counts.iteritems(),
+                                            num_permutations)
+    tmp_mut_pos = np.hstack(pos_array for base, pos_array in tmp_contxt_pos)
+
+    # determine result of random positions
+    non_silent_count_list = []
+    for row in tmp_mut_pos:
+        # get info about mutations
+        tmp_mut_info = utils.get_aa_mut_info(row,
+                                             somatic_base,
+                                             gene_seq)
+
+        # calc deleterious mutation info
+        tmp_non_silent = cutils.calc_non_silent_info(tmp_mut_info['Reference AA'],
+                                                     tmp_mut_info['Somatic AA'])
+        non_silent_count_list.append(tmp_non_silent)
+    return non_silent_count_list

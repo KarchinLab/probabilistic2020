@@ -107,3 +107,22 @@ def calc_deleterious_info(germ_aa, somatic_aa):
             num_deleterious += 1
 
     return num_deleterious
+
+
+def calc_non_silent_info(germ_aa, somatic_aa):
+    cdef:
+        int i, num_mutations = 0, num_non_silent = 0, num_silent = 0
+
+    num_mutations = len(somatic_aa)
+    if len(germ_aa) != num_mutations:
+        raise ValueError('There should be equal number of germline and somatic bases')
+
+    for i in range(num_mutations):
+        if germ_aa[i] and somatic_aa[i] and \
+           somatic_aa[i] == 'Splice_Site' or \
+           somatic_aa[i] != germ_aa[i]:
+            num_non_silent += 1
+        else:
+            num_silent += 1
+
+    return [num_non_silent, num_silent]
