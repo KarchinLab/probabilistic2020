@@ -86,6 +86,14 @@ def parse_arguments():
     parser.add_argument('-m', '--mutations',
                         type=str, required=True,
                         help=help_str)
+    help_str = 'BED file of reference transcripts'
+    parser.add_argument('-b', '--bed',
+                        type=str, required=True,
+                        help=help_str)
+    help_str = 'Save mutations that could not be found on the reference transcript'
+    parser.add_argument('-u', '--unmapped',
+                        type=str, required=True,
+                        help=help_str)
     args = parser.parse_args()
 
     # handle logging
@@ -166,9 +174,52 @@ def detect_coordinates(mut_df, genome_fa):
 def main(opts):
     # read in mutations
     mut_df = pd.read_csv(opts['mutations'], sep='\t')
+    orig_num_mut = len(mut_df)
+    mut_df = mut_df.dropna(subset=['Tumor_Allele', 'Start_Position', 'Chromosome'])
+    logger.info('Kept {0} mutations after droping mutations with missing '
+                'information (Droped: {1})'.format(len(mut_df), orig_num_mut - len(mut_df)))
+    mut_df = utils._fix_mutation_df(mut_df)
 
     # read genome fasta file
     genome_fa = pysam.Fastafile(opts['fasta'])
+
+    # read BED file for transcripts
+    bed_dict = utils.read_bed(opts['bed'], [])
+    gene2bed = {item.gene_name: item
+                for bed_list in bed_dict.values()
+                for item in bed_list}
+
+    # group mutations by gene
+    mut_grpby = mut_df.groupby('Gene')
+    unmapped_mut_list = []
+    for i, mut_info in mut_grpby:
+        gene_name = mut_info['Gene'].iloc[0]
+
+        # try to find tx annotation for gene
+        bed = None
+        try:
+            bed = gene2bed[gene_name]
+        except KeyError:
+            pass
+
+        if bed:
+            # get coding positions, mutations unmapped to the reference tx will have
+            # NA for a coding position
+            for ix, row in mut_info.iterrows():
+                coding_pos = bed.query_position(bed.strand,
+                                                row['Chromosome'],
+                                                row['Start_Position'])
+                if not coding_pos:
+                    unmapped_mut_list.append(row.tolist())
+        else:
+            #unmapped_mut_df = pd.concat([unmapped_mut_df, mut_info])
+            unmapped_mut_list += mut_info.values.tolist()
+
+    # save the unmapped mutations to a file
+    unmapped_mut_df = pd.DataFrame(unmapped_mut_list, columns=mut_df.columns)
+    logger.info('{0} mutations were unmappable to a '
+                'reference transcript'.format(len(unmapped_mut_df)))
+    unmapped_mut_df.to_csv(opts['unmapped'], sep='\t', index=False)
 
     coord_base, coord_strand = detect_coordinates(mut_df, genome_fa)
     logger.info('RESULT: {0}-based coordinates, positions reported on {1} strand'.format(coord_base, coord_strand))
