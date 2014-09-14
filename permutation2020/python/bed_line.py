@@ -78,7 +78,7 @@ class BedLine(object):
             logger.debug('{0} has an invalid coding region specified by thickStart '
                          'and thickEnd (only {1} bps long). This gene is possibly either '
                          'a non-coding transcript or a pseudo gene.'.format(self.gene_name,
-                                                                             coding_end-coding_start))
+                                                                            coding_end-coding_start))
             return []
 
         filtered_exons = []
@@ -156,7 +156,6 @@ class BedLine(object):
         if chr != self.chrom:
             logger.debug('Wrong chromosome queried. You provided {0} but gene is '
                          'on {1}.'.format(chr, self.chrom))
-            return pos
 
         # return position if contained within coding region or splice site
         for i, (estart, eend) in enumerate(self.exons):
@@ -171,11 +170,13 @@ class BedLine(object):
                     pos = self.cds_len + 2*i + (genome_coord - eend)
                 elif strand == '-':
                     pos = self.cds_len + self.five_ss_len + 2*(self.num_exons-(i+2)) + (genome_coord - eend)
+                return pos
             # in splice site
             elif (estart - 2 <= genome_coord < estart) and i != 0:
                 if strand == '-':
                     pos = self.cds_len + 2*(self.num_exons-(i+2)) + (genome_coord - (estart - 2))
                 elif strand == '+':
                     pos = self.cds_len + self.five_ss_len + 2*(i-1) + (genome_coord - (estart - 2))
+                return pos
 
         return pos
