@@ -1,6 +1,7 @@
 #include <map>
 #include <cmath>
 #include <string>
+#include <algorithm>
 
 #define M_LOG2E 1.44269504088896340736L //log2(e)
 
@@ -25,8 +26,10 @@ inline long double log2(const long double x){
  * out : map<string, double>
  *      STL map contianer containing position statistics
  */
-std::map<std::string, double> calc_position_statistics(std::map<int, int> pos_ctr){
-    int recurrent_sum = 0, val = 0;
+std::map<std::string, double> calc_position_statistics(std::map<int, int> pos_ctr,
+                                                       float min_frac=0.02){
+    int recurrent_sum = 0, val = 0, min_frac_thresh = 0;
+    int min_recurrent = 2;  // by default need two recurrent mutations
     long double myent_2 = 0.0L, myent_e = 0.0L, mysum = 0.0L, p = 0.0L;
     long double frac_of_uniform_ent = 1.0L, num_pos = 0.0L;
     long double delta_ent = 0.0L;
@@ -36,20 +39,41 @@ std::map<std::string, double> calc_position_statistics(std::map<int, int> pos_ct
     // count total mutations
     for(it_type iterator = pos_ctr.begin(); iterator != pos_ctr.end(); iterator++) {
         val = iterator->second;
-        if (val>1){
-            recurrent_sum += val;
-        }
         mysum += val;
     }
 
+    // set definition of recurrent count number based either on the minimum or 
+    // on some percentage of the total missense mutations (specified by min_frac)
+    min_frac_thresh = (int) (mysum*min_frac + .5);  // recurrent pos definition using min_frac defiintion
+    min_recurrent = ((min_recurrent>min_frac_thresh) ?  min_recurrent:min_frac_thresh);
+
     // calculate entropy 
     for(it_type iterator = pos_ctr.begin(); iterator != pos_ctr.end(); iterator++) {
+        // get number of mutations per position
         val = iterator->second;
-        p = val / mysum;
-        myent_2 -= p * log2(p);
-        myent_e -= p * log(p);
-        num_pos += 1;
+
+        // add to recurrent count if defined as recurrently mutated position
+        if (val>min_recurrent){
+            recurrent_sum += val;
+        }
+
+        // update entropy metrics
+        if (val<=min_recurrent){
+            p = 1 / mysum;
+            for (int i=0; i<val; i++){
+                myent_2 -= p * log2(p);
+                myent_e -= p * log(p);
+                num_pos += 1;
+            }
+        } else {
+            p = val / mysum;
+            myent_2 -= p * log2(p);
+            myent_e -= p * log(p);
+            num_pos += 1;
+        }
     }
+
+    // normalize the entropy metrics
     if (num_pos > 1) {
         delta_ent = log(num_pos) - myent_e;
     }

@@ -13,7 +13,7 @@ ctypedef np.int_t DTYPE_INT_t
 
 cdef extern from "permutation.hpp":
     # import functions from the C++ header permutation.hpp
-    map[string, double] calc_position_statistics(map[int, int] pos_ctr)
+    map[string, double] calc_position_statistics(map[int, int] pos_ctr, double min_frac)
 
 
 @cython.cdivision(True)
@@ -55,7 +55,8 @@ def pos_to_codon(seq, int pos):
 def calc_pos_info(aa_mut_pos,
                   germ_aa,
                   somatic_aa,
-                  int pseudo_count=0):
+                  int pseudo_count=0,
+                  double min_frac=0.0):
     cdef:
         map[int, int] pos_ctr
         map[string, double] pos_info
@@ -84,7 +85,7 @@ def calc_pos_info(aa_mut_pos,
         pos_ctr[DUMMY_INT] = pseudo_count
 
     # get position statistics
-    pos_info = calc_position_statistics(pos_ctr)
+    pos_info = calc_position_statistics(pos_ctr, min_frac)
     num_recur = <int> pos_info["recurrent"]
     frac_pos_ent = pos_info["entropy_fraction"]
     delta_pos_ent = pos_info["delta_entropy"]
