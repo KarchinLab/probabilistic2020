@@ -83,8 +83,8 @@ def test_100genes_main():
     tested_result = result[result['Performed Recurrency Test']==1]
     num_recur_sig = np.sum(tested_result['recurrent BH q-value'] < .1)
     num_ent_sig = np.sum(tested_result['entropy BH q-value'] < .1)
-    assert num_recur_sig < 7, 'Few of the 100 test genes should not be significant ({0})'.format(num_recur_sig)
-    assert num_ent_sig < 7, 'Few of the 100 test genes should not be significant ({0})'.format(num_ent_sig)
+    assert num_recur_sig < 9, 'Few of the 100 test genes should not be significant ({0})'.format(num_recur_sig)
+    assert num_ent_sig < 9, 'Few of the 100 test genes should not be significant ({0})'.format(num_ent_sig)
 
     # no context case
     opts['context'] = 0
@@ -103,5 +103,5 @@ def test_100genes_main():
     tested_result = result[result['Performed Recurrency Test']==1]
     num_recur_sig = np.sum(tested_result['recurrent BH q-value'] < .1)
     num_ent_sig = np.sum(tested_result['entropy BH q-value'] < .1)
-    assert num_recur_sig < 7, 'Few of the 100 test genes should not be significant ({0})'.format(num_recur_sig)
-    assert num_ent_sig < 7, 'Few of the 100 test genes should not be significant ({0})'.format(num_ent_sig)
+    assert num_recur_sig < 9, 'Few of the 100 test genes should not be significant ({0})'.format(num_recur_sig)
+    assert num_ent_sig < 9, 'Few of the 100 test genes should not be significant ({0})'.format(num_ent_sig)
