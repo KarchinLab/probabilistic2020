@@ -12,6 +12,9 @@ import pysam
 
 logger = logging.getLogger(__name__)  # module logger
 
+# small epsilon value to prevent issues with machine decimal precision
+epsilon = 0.0001
+
 # global dictionary mapping codons to AA
 codon_table = {'TTT': 'F', 'TTC': 'F', 'TTA': 'L', 'TTG': 'L', 'TCT': 'S',
                'TCC': 'S', 'TCA': 'S', 'TCG': 'S', 'TAT': 'Y', 'TAC': 'Y',

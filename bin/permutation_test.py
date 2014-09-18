@@ -101,7 +101,7 @@ def calc_deleterious_p_value(mut_info,
 
             # calculate p-value
             del_num_nulls = sum([1 for d in null_del_list
-                                 if d >= num_del])
+                                 if d+utils.epsilon >= num_del])
             del_p_value = del_num_nulls / float(num_permutations)
         else:
             del_p_value = None
@@ -150,15 +150,16 @@ def calc_position_p_value(mut_info,
         somatic_aa = aa_mut_info['Somatic AA'] + unmapped_mut_info['Somatic AA']
         num_recurrent, pos_ent, delta_pos_ent = cutils.calc_pos_info(codon_pos,
                                                                      ref_aa,
-                                                                     somatic_aa)
+                                                                     somatic_aa,
+                                                                     min_frac=0.02)
 
         # calculate permutation p-value
         recur_num_nulls = sum([1 for null_recur in num_recur_list
-                               if null_recur >= num_recurrent])
+                               if null_recur+utils.epsilon >= num_recurrent])
         entropy_num_nulls = sum([1 for null_ent in pos_entropy_list
-                                 if null_ent <= pos_ent])
+                                 if null_ent-utils.epsilon <= pos_ent])
         delta_entropy_num_nulls = sum([1 for null_ent in pos_entropy_list
-                                       if null_ent >= delta_pos_ent])
+                                       if null_ent+utils.epsilon >= delta_pos_ent])
         recur_p_value = recur_num_nulls / float(num_permutations)
         ent_p_value = entropy_num_nulls / float(num_permutations)
         delta_ent_p_value = delta_entropy_num_nulls / float(num_permutations)
