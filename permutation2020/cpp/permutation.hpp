@@ -1,7 +1,6 @@
 #include <map>
 #include <cmath>
 #include <string>
-#include <algorithm>
 
 #define M_LOG2E 1.44269504088896340736L //log2(e)
 
@@ -27,9 +26,11 @@ inline long double log2(const long double x){
  *      STL map contianer containing position statistics
  */
 std::map<std::string, double> calc_position_statistics(std::map<int, int> pos_ctr,
-                                                       float min_frac=0.02){
+                                                       float min_frac=0.02,
+                                                       int min_recurrent=2,
+                                                       int is_observed=1){
     int recurrent_sum = 0, val = 0, min_frac_thresh = 0;
-    int min_recurrent = 2;  // by default need two recurrent mutations
+    // int min_recurrent = 2;  // by default need two recurrent mutations
     long double myent_2 = 0.0L, myent_e = 0.0L, mysum = 0.0L, p = 0.0L;
     long double frac_of_uniform_ent = 1.0L, num_pos = 0.0L;
     long double delta_ent = 0.0L;
@@ -53,12 +54,16 @@ std::map<std::string, double> calc_position_statistics(std::map<int, int> pos_ct
         val = iterator->second;
 
         // add to recurrent count if defined as recurrently mutated position
-        if (val>min_recurrent){
+        //if (val>=min_recurrent+is_observed){
+        if (val>=min_recurrent && is_observed==1){
             recurrent_sum += val;
+        } else if(val>=2 && is_observed==0){
+            recurrent_sum += val; 
         }
 
         // update entropy metrics
-        if (val<=min_recurrent){
+        //if (val<min_recurrent+is_observed){
+        if (val<min_recurrent && is_observed==1){
             p = 1 / mysum;
             for (int i=0; i<val; i++){
                 myent_2 -= p * log2(p);

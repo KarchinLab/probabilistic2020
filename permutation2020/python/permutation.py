@@ -121,7 +121,8 @@ def position_permutation(context_counts,
         tmp_recur_ct, tmp_entropy, tmp_delta_entropy = cutils.calc_pos_info(tmp_mut_info['Codon Pos'],
                                                                             tmp_mut_info['Reference AA'],
                                                                             tmp_mut_info['Somatic AA'],
-                                                                            pseudo_count=pseudo_count)
+                                                                            pseudo_count=pseudo_count,
+                                                                            is_obs=0)
         num_recur_list.append(tmp_recur_ct)
         entropy_list.append(tmp_entropy)
         delta_entropy_list.append(tmp_delta_entropy)

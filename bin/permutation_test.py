@@ -119,7 +119,9 @@ def calc_position_p_value(mut_info,
                           gs,
                           bed,
                           num_permutations,
-                          pseudo_count):
+                          pseudo_count,
+                          min_recurrent,
+                          min_fraction):
     if len(mut_info) > 0:
         mut_info['Coding Position'] = mut_info['Coding Position'].astype(int)
         mut_info['Context'] = mut_info['Coding Position'].apply(lambda x: sc.pos2context[x])
@@ -151,7 +153,8 @@ def calc_position_p_value(mut_info,
         num_recurrent, pos_ent, delta_pos_ent = cutils.calc_pos_info(codon_pos,
                                                                      ref_aa,
                                                                      somatic_aa,
-                                                                     min_frac=0.02)
+                                                                     min_frac=min_fraction,
+                                                                     min_recur=min_recurrent)
 
         # calculate permutation p-value
         recur_num_nulls = sum([1 for null_recur in num_recur_list
@@ -227,7 +230,9 @@ def singleprocess_permutation(info):
             # calculate position based permutation results
             tmp_result = calc_position_p_value(mut_info, unmapped_mut_info, sc,
                                                gs, bed, num_permutations,
-                                               opts['recurrent_pseudo_count'])
+                                               opts['recurrent_pseudo_count'],
+                                               opts['recurrent'],
+                                               opts['fraction'])
             result.append(tmp_result + [total_mut, unmapped_muts])
         else:
             # calculate results for deleterious mutation permutation test
@@ -379,7 +384,8 @@ def parse_arguments():
                         type=int, default=0,
                         help=help_str)
     help_str = ('Number of permutations for null model. p-value precision '
-                'increases with more permutations (Default: 10000).')
+                'increases with more permutations, however this will also '
+                'increase the run time (Default: 10000).')
     parser.add_argument('-n', '--num-permutations',
                         type=int, default=10000,
                         help=help_str)
@@ -411,6 +417,17 @@ def parse_arguments():
                 'is used. (Default: None)')
     parser.add_argument('-g', '--genome',
                         type=str, default='',
+                        help=help_str)
+    help_str = ('Minimum number of mutations at a position for it to be '
+                'considered a recurrently mutated position (Default: 3).')
+    parser.add_argument('-r', '--recurrent',
+                        type=int, default=3,
+                        help=help_str)
+    help_str = ('Fraction of total mutations in a gene. This define the '
+                'minimumm number of mutations for a position to be defined '
+                'as recurrently mutated (Defaul: .02).')
+    parser.add_argument('-f', '--fraction',
+                        type=float, default=.02,
                         help=help_str)
     help_str = ('Perform tsg permutation test if gene has '
                 'at least a user specified number of deleterious mutations (default: 2)')
