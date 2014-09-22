@@ -156,6 +156,7 @@ class BedLine(object):
         if chr != self.chrom:
             logger.debug('Wrong chromosome queried. You provided {0} but gene is '
                          'on {1}.'.format(chr, self.chrom))
+            # return pos
 
         # return position if contained within coding region or splice site
         for i, (estart, eend) in enumerate(self.exons):
