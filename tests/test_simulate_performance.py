@@ -17,6 +17,8 @@ def test_100genes_main():
             'plot_output': os.path.join(file_dir, 'output/'),
             'context': 1.5,
             'tsg_score': .1,
+            'recurrent': 3,
+            'fraction': .02,
             'recurrent_pseudo_count': 0,
             'deleterious_pseudo_count': 0,
             'iterations': 5,
