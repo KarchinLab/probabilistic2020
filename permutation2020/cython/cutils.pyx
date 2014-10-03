@@ -126,8 +126,8 @@ def calc_non_silent_info(germ_aa, somatic_aa):
 
     for i in range(num_mutations):
         if germ_aa[i] and somatic_aa[i] and \
-           somatic_aa[i] == 'Splice_Site' or \
-           somatic_aa[i] != germ_aa[i]:
+           (somatic_aa[i] == 'Splice_Site' or \
+            somatic_aa[i] != germ_aa[i]):
             num_non_silent += 1
         else:
             num_silent += 1
