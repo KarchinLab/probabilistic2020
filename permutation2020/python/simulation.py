@@ -167,11 +167,14 @@ def rank_genes(p1, p2,
 
 
 def jaccard_index(fdr1, fdr2,
-                  thresh=.1):
+                  thresh=.1,
+                  depth=None):
     """Calculates the Jaccard Index for statistically significant genes.
 
     The thresh parameter determines statistical significance for each list.
-    It represents the FDR threshold.
+    It represents the FDR threshold. If the depth parameter is provided, then
+    it overides the thresh parameter. Simply, the depth parameter specifies
+    how many of the top genes should be compared.
 
     Parameters
     ----------
@@ -181,6 +184,8 @@ def jaccard_index(fdr1, fdr2,
         q-values for second test, index should be gene names
     thresh : float
         FDR threshold for statistical signficance
+    depth : int
+        Number of top genes to evaluate the jaccard index for
 
     Returns
     -------
@@ -188,8 +193,13 @@ def jaccard_index(fdr1, fdr2,
         Jaccard index measuring simularity of statistically significant
         genes in both tests
     """
-    s1_genes = set(fdr1[fdr1<thresh].index)
-    s2_genes = set(fdr2[fdr2<thresh].index)
+    if not depth:
+        s1_genes = set(fdr1[fdr1<thresh].index)
+        s2_genes = set(fdr2[fdr2<thresh].index)
+    else:
+        s1_genes = set(fdr1[:depth].index)
+        s2_genes = set(fdr2[:depth].index)
+
     num_intersect = len(s1_genes & s2_genes)
     num_union = len(s1_genes | s2_genes)
     if num_union:
@@ -199,3 +209,33 @@ def jaccard_index(fdr1, fdr2,
         # no significant gene case
         jaccard_sim = 0
     return jaccard_sim
+
+
+def weighted_jaccard_index(fdr1, fdr2,
+                           max_depth,
+                           step_size,
+                           weight_factor):
+    # calculate jaccard index at specified intervals
+    num_depths = (max_depth) // step_size
+    num_depths_total = (len(fdr1)) // step_size
+    ji = np.zeros(num_depths)
+    ji_all = np.zeros(num_depths_total)
+    for i, depth in enumerate(range(step_size, num_depths_total+1, step_size)):
+        if depth <= max_depth:
+            ji_tmp = jaccard_index(fdr1, fdr2, depth=depth)
+            ji[i] = ji_tmp
+            ji_all[i] = ji_tmp
+        else:
+            ji_all[i] = jaccard_index(fdr1, fdr2, depth=depth)
+
+    # calculate the weighting for jaccard index
+    p = weight_factor ** (1./(num_depths-1))
+    w = p*np.ones(num_depths_total)
+    w[0] = 1
+    w = np.cumprod(w)  # calculate geometric weights
+    w = w / w.sum()  # normalize weights to 1
+
+    weighted_mean_ji = np.dot(w, ji_all)
+    mean_ji = np.mean(ji)
+
+    return ji, mean_ji, weighted_mean_ji

@@ -69,104 +69,90 @@ def consistency_comparison(df1, df2, bed_dict, non_tested_genes, opts):
         permutation_df1 = pt.handle_oncogene_results(permutation_result1, non_tested_genes)
         permutation_df2 = pt.handle_oncogene_results(permutation_result2, non_tested_genes)
 
-        # calculate jaccard similarity
+        ## calculate jaccard similarity
+        # calculate recurrent info
+        permutation_df1 = permutation_df1.sort(columns=['recurrent p-value'])
+        permutation_df2 = permutation_df2.sort(columns=['recurrent p-value'])
         recurrent_jaccard = sim.jaccard_index(permutation_df1['recurrent BH q-value'],
                                               permutation_df2['recurrent BH q-value'])
+        ji_mean_tuple = sim.weighted_jaccard_index(permutation_df1['recurrent BH q-value'],
+                                                   permutation_df2['recurrent BH q-value'],
+                                                   max_depth=opts['depth'],
+                                                   step_size=opts['step_size'],
+                                                   weight_factor=opts['weight'])
+        recurrent_ji, recurrent_mean_ji, recurrent_weighted_mean_ji = ji_mean_tuple
+        # calculate entropy consistency
+        permutation_df1 = permutation_df1.sort(columns=['entropy p-value'])
+        permutation_df2 = permutation_df2.sort(columns=['entropy p-value'])
         entropy_jaccard = sim.jaccard_index(permutation_df1['entropy BH q-value'],
                                             permutation_df2['entropy BH q-value'])
+        ji_mean_tuple = sim.weighted_jaccard_index(permutation_df1['entropy BH q-value'],
+                                                   permutation_df2['entropy BH q-value'],
+                                                   max_depth=opts['depth'],
+                                                   step_size=opts['step_size'],
+                                                   weight_factor=opts['weight'])
+        entropy_ji, entropy_mean_ji, entropy_weighted_mean_ji = ji_mean_tuple
+        # calculate delta entropy consistency
+        permutation_df1 = permutation_df1.sort(columns=['delta entropy p-value'])
+        permutation_df2 = permutation_df2.sort(columns=['delta entropy p-value'])
         delta_entropy_jaccard = sim.jaccard_index(permutation_df1['delta entropy BH q-value'],
                                                   permutation_df2['delta entropy BH q-value'])
-
-        # rank genes
-        recurrent_rank1, recurrent_rank2 = sim.rank_genes(permutation_df1['recurrent p-value'].copy(),
-                                                          permutation_df2['recurrent p-value'].copy(),
-                                                          permutation_df1['recurrent BH q-value'].copy(),
-                                                          permutation_df2['recurrent BH q-value'].copy())
-        entropy_rank1, entropy_rank2 = sim.rank_genes(permutation_df1['entropy p-value'].copy(),
-                                                      permutation_df2['entropy p-value'].copy(),
-                                                      permutation_df1['entropy BH q-value'].copy(),
-                                                      permutation_df2['entropy BH q-value'].copy())
-        delta_entropy_rank1, delta_entropy_rank2 = sim.rank_genes(permutation_df1['delta entropy p-value'].copy(),
-                                                                  permutation_df2['delta entropy p-value'].copy(),
-                                                                  permutation_df1['delta entropy BH q-value'].copy(),
-                                                                  permutation_df2['delta entropy BH q-value'].copy())
-
-        # calc spearman rank correlation
-        sp_rho_recurrent, sp_pval_recurrent = stats.pearsonr(recurrent_rank1,
-                                                             recurrent_rank2)
-        sp_rho_entropy, sp_pval_entropy = stats.pearsonr(entropy_rank1, entropy_rank2)
-        sp_rho_delta_entropy, sp_pval_delta_entropy = stats.pearsonr(delta_entropy_rank1,
-                                                                     delta_entropy_rank2)
-
-        # calc kendall tau correlation
-        if recurrent_rank1.shape[0]:
-            kt_rho_recurrent, kt_pval_recurrent = stats.kendalltau(recurrent_rank1,
-                                                                   recurrent_rank2)
-        else:
-            kt_rho_recurrent, kt_pval_recurrent = 0.0, 1.0
-        if entropy_rank1.shape[0]:
-            kt_rho_entropy, kt_pval_entropy = stats.kendalltau(entropy_rank1,
-                                                               entropy_rank2)
-        else:
-            kt_rho_entropy, kt_pval_entropy = 0.0, 1.0
-        if delta_entropy_rank1.shape[0]:
-            kt_rho_delta_entropy, kt_pval_delta_entropy = stats.kendalltau(delta_entropy_rank1,
-                                                                           delta_entropy_rank2)
-        else:
-            kt_rho_delta_entropy, kt_pval_delta_entropy = 0.0, 1.0
-
+        ji_mean_tuple = sim.weighted_jaccard_index(permutation_df1['delta entropy BH q-value'],
+                                                   permutation_df2['delta entropy BH q-value'],
+                                                   max_depth=opts['depth'],
+                                                   step_size=opts['step_size'],
+                                                   weight_factor=opts['weight'])
+        delta_entropy_ji, delta_entropy_mean_ji, delta_entropy_weighted_mean_ji = ji_mean_tuple
 
         results = pd.DataFrame({'jaccard index': [recurrent_jaccard,
                                                   entropy_jaccard,
                                                   delta_entropy_jaccard],
-                                'spearman correlation': [sp_rho_recurrent,
-                                                         sp_rho_entropy,
-                                                         sp_rho_delta_entropy],
-                                'kendall tau correlation': [kt_rho_recurrent,
-                                                            kt_rho_entropy,
-                                                            kt_rho_delta_entropy],
-                                'spearman p-value': [sp_pval_recurrent,
-                                                     sp_pval_entropy,
-                                                     sp_pval_delta_entropy],
-                                'kendall tau p-value': [kt_pval_recurrent,
-                                                        kt_pval_entropy,
-                                                        kt_pval_delta_entropy]},
+                                'mean jaccard index': [recurrent_mean_ji,
+                                                       entropy_mean_ji,
+                                                       delta_entropy_mean_ji],
+                                'weighted mean jaccard index': [recurrent_weighted_mean_ji,
+                                                                entropy_weighted_mean_ji,
+                                                                delta_entropy_weighted_mean_ji],
+
+                                },
                                 index=['{0} recurrent'.format(opts['kind']),
                                        '{0} entropy'.format(opts['kind']),
                                        '{0} delta entropy'.format(opts['kind'])])
+
+        # record jaccard index at intervals
+        ji_intervals = range(opts['step_size'], opts['depth']+1, opts['step_size'])
+        ji_df = pd.DataFrame({'recurrent ji': recurrent_ji,
+                              'entropy ji': entropy_ji,
+                              'delta entropy ji': delta_entropy_ji},
+                             index=ji_intervals)
     else:
         permutation_df1 = pt.handle_tsg_results(permutation_result1)
         permutation_df2 = pt.handle_tsg_results(permutation_result2)
 
         # calculate jaccard similarity
+        permutation_df1 = permutation_df1.sort(columns=['deleterious p-value'])
+        permutation_df2 = permutation_df2.sort(columns=['deleterious p-value'])
         deleterious_jaccard = sim.jaccard_index(permutation_df1['deleterious BH q-value'],
                                                 permutation_df2['deleterious BH q-value'])
-
-        # rank genes
-        deleterious_rank1, deleterious_rank2 = sim.rank_genes(permutation_df1['deleterious p-value'].copy(),
-                                                              permutation_df2['deleterious p-value'].copy(),
-                                                              permutation_df1['deleterious BH q-value'].copy(),
-                                                              permutation_df2['deleterious BH q-value'].copy())
-
-        # calc spearman rank correlation
-        sp_rho_deleterious, sp_pval_deleterious = stats.pearsonr(deleterious_rank1,
-                                                                 deleterious_rank2)
-
-        # calc kendall tau correlation
-        if deleterious_rank1.shape[0]:
-            kt_rho_deleterious, kt_pval_deleterious = stats.kendalltau(deleterious_rank1,
-                                                                       deleterious_rank2)
-        else:
-            kt_rho_deleterious, kt_pval_deleterious = 0.0, 1.0
+        ji_mean_tuple = sim.weighted_jaccard_index(permutation_df1['deleterious BH q-value'],
+                                                   permutation_df2['deleterious BH q-value'],
+                                                   max_depth=opts['depth'],
+                                                   step_size=opts['step_size'],
+                                                   weight_factor=opts['weight'])
+        deleterious_ji, deleterious_mean_ji, deleterious_weighted_mean_ji = ji_mean_tuple
 
         results = pd.DataFrame({'jaccard index': [deleterious_jaccard],
-                                'spearman correlation': [sp_rho_deleterious],
-                                'kendall tau correlation': [kt_rho_deleterious],
-                                'spearman p-value': [sp_pval_deleterious],
-                                'kendall tau p-value': [kt_pval_deleterious]},
+                                'mean jaccard index': [deleterious_mean_ji],
+                                'weighted mean jaccard index': [deleterious_weighted_mean_ji],
+                                },
                                 index=['{0} deleterious'.format(opts['kind'])])
 
-    return results
+        # record jaccard index at intervals
+        ji_intervals = range(opts['step_size'], opts['depth']+1, opts['step_size'])
+        ji_df = pd.DataFrame({'deleterious ji': deleterious_ji},
+                             index=ji_intervals)
+
+    return results, ji_df
 
 
 @utils.log_error_decorator
@@ -196,6 +182,21 @@ def parse_arguments():
                         help='Path to log file. (accepts "stdout")')
 
     # program arguments
+    help_str = 'Step size for progessing further down list of top genes'
+    parser.add_argument('-step', '--step-size',
+                        type=int,
+                        default=50,
+                        help=help_str)
+    help_str = 'Weight factor for ranked biased consistency measure'
+    parser.add_argument('-weight', '--weight',
+                        type=float,
+                        default=.1,
+                        help=help_str)
+    help_str = 'Maximum depth of genes from top of list to consider for consistency'
+    parser.add_argument('-depth', '--depth',
+                        type=int,
+                        default=200,
+                        help=help_str)
     parser.add_argument('-iter', '--iterations',
                         type=int,
                         action='store',
@@ -240,6 +241,17 @@ def parse_arguments():
                 'and downstream bases. (Default: 1.5)')
     parser.add_argument('-c', '--context',
                         type=float, default=1.5,
+                        help=help_str)
+    help_str = ('Minimum number of mutations at a position for it to be '
+                'considered a recurrently mutated position (Default: 3).')
+    parser.add_argument('-r', '--recurrent',
+                        type=int, default=3,
+                        help=help_str)
+    help_str = ('Fraction of total mutations in a gene. This define the '
+                'minimumm number of mutations for a position to be defined '
+                'as recurrently mutated (Defaul: .02).')
+    parser.add_argument('-f', '--fraction',
+                        type=float, default=.02,
                         help=help_str)
     help_str = ('Use mutations that are not mapped to the the single reference '
                 'transcript for a gene specified in the bed file indicated by '
@@ -332,21 +344,33 @@ def main(opts):
 
     # object that generates features from randomly choosen sample names while
     # still respecting the stratification of tumor types
-    sample_rate = .5  # always do half splits
-    dfg = RandomSplit(mut_df.copy(),
-                      sub_sample=sample_rate,
-                      num_iter=opts['iterations'])
+    if not opts['with_replacement']:
+        sample_rate = .5  # always do half splits
+        dfg = RandomSplit(mut_df.copy(),
+                          sub_sample=sample_rate,
+                          num_iter=opts['iterations'])
+    else:
+        sample_rate = opts['with_replacement']
+        dfg = RandomSplit(mut_df.copy(),
+                          sub_sample=sample_rate,
+                          num_iter=opts['iterations'],
+                          with_replacement=True)
 
     # perform simulation
     multiproces_output = sim.multiprocess_simulate(dfg, bed_dict, non_tested_genes,
                                                    opts.copy(), singleprocess_simulate)
-    sim_results = {i: mydf for i, mydf in enumerate(multiproces_output)}
+    sim_results = {i: output[0] for i, output in enumerate(multiproces_output)}
+    sim_ji_results = {i: output[1] for i, output in enumerate(multiproces_output)}
 
     # record result for a specific sample rate
     tmp_results = sim.calculate_stats(sim_results)
     result = {}
     result[sample_rate] = tmp_results
     result[sample_rate].to_csv(opts['output'], sep='\t')
+
+    # ouptput jaccard index curve information
+    tmp_results = sim.calculate_stats(sim_ji_results)
+    tmp_results.to_csv('jaccard_index_curve.txt', sep='\t')
 
     # make pandas panel objects out of summarized
     # results from simulations
