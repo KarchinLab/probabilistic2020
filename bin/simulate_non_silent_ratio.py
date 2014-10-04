@@ -10,14 +10,18 @@ import permutation2020.python.permutation as pm
 import permutation2020.python.utils as utils
 from permutation2020.python.gene_sequence import GeneSequence
 from permutation2020.python.sequence_context import SequenceContext
+import permutation2020.cython.cutils as cutils
 
 # external imports
+import numpy as np
 import pandas as pd
 import pysam
 from multiprocessing import Pool
 import argparse
 import datetime
 import logging
+import copy
+import IPython
 
 logger = logging.getLogger(__name__)  # module logger
 
@@ -70,6 +74,7 @@ def multiprocess_permutation(bed_dict, mut_df, opts):
     else:
         num_processes = 1
     num_permutations = opts['num_permutations']
+    obs_result = []
     result_list = [[0, 0] for k in range(num_permutations)]
     for i in range(0, len(chroms), num_processes):
         if multiprocess_flag:
@@ -78,6 +83,50 @@ def multiprocess_permutation(bed_dict, mut_df, opts):
             info_repeat = ((bed_dict[chroms[tmp_ix]], mut_df, opts)
                             for tmp_ix in range(i, i+tmp_num_proc))
             process_results = pool.imap(singleprocess_permutation, info_repeat)
+            process_results.next = utils.keyboard_exit_wrapper(process_results.next)
+            try:
+                for chrom_result, obs_mutations in process_results:
+                    for j in range(num_permutations):
+                        result_list[j][0] += chrom_result[j][0]
+                        result_list[j][1] += chrom_result[j][1]
+                    obs_result.append(obs_mutations)
+            except KeyboardInterrupt:
+                pool.close()
+                pool.join()
+                logger.info('Exited by user. ctrl-c')
+                sys.exit(0)
+            pool.close()
+            pool.join()
+        else:
+            info = (bed_dict[chroms[i]], mut_df, opts)
+            chrom_result, obs_mutations = singleprocess_permutation(info)
+            for j in range(num_permutations):
+                result_list[j][0] += chrom_result[j][0]
+                result_list[j][1] += chrom_result[j][1]
+            obs_result.append(obs_mutations)
+
+    return result_list, obs_result
+
+
+def multiprocess_gene_shuffle(info, opts):
+    """Handles parallelization of permutations by splitting work
+    by chromosome.
+    """
+    chroms = sorted(info.keys())
+    multiprocess_flag = opts['processes']>0
+    if multiprocess_flag:
+        num_processes = opts['processes']
+    else:
+        num_processes = 1
+    num_permutations = opts['num_permutations']
+    result_list = [[0, 0] for k in range(num_permutations)]
+    for i in range(0, len(chroms), num_processes):
+        if multiprocess_flag:
+            pool = Pool(processes=num_processes)
+            tmp_num_proc = len(chroms) - i if i + num_processes > len(chroms) else num_processes
+            info_repeat = (info[chroms[tmp_ix]] + [num_permutations]
+                           for tmp_ix in range(i, i+tmp_num_proc))
+            process_results = pool.imap(singleprocess_gene_shuffle, info_repeat)
             process_results.next = utils.keyboard_exit_wrapper(process_results.next)
             try:
                 for chrom_result in process_results:
@@ -92,13 +141,89 @@ def multiprocess_permutation(bed_dict, mut_df, opts):
             pool.close()
             pool.join()
         else:
-            info = (bed_dict[chroms[i]], mut_df, opts)
-            chrom_result = singleprocess_permutation(info)
+            info_repeat = info[chroms[i]] + [num_permutations]
+            chrom_result = singleprocess_gene_shuffle(info_repeat)
             for j in range(num_permutations):
                 result_list[j][0] += chrom_result[j][0]
                 result_list[j][1] += chrom_result[j][1]
 
     return result_list
+
+
+def compute_mutation_context(bed, gs, df):
+    # prepare info for running permutation test
+    gene_mut = df[df['Gene']==bed.gene_name]
+    cols = ['Chromosome', 'Start_Position', 'Reference_Allele',
+            'Tumor_Allele', 'Variant_Classification', 'Protein_Change']
+    mut_info = gene_mut[cols]
+    gs.set_gene(bed)
+    sc = SequenceContext(gs)
+
+    # count total mutations in gene
+    total_mut = len(mut_info)
+
+    # fix nucleotide letter if gene is on - strand
+    if bed.strand == '-':
+        mut_info['Tumor_Allele'].map(lambda x: utils.rev_comp(x))
+
+    # get coding positions, mutations unmapped to the reference tx will have
+    # NA for a coding position
+    pos_list = []
+    for ix, row in mut_info.iterrows():
+        coding_pos = bed.query_position(bed.strand, row['Chromosome'], row['Start_Position'])
+        pos_list.append(coding_pos)
+    mut_info['Coding Position'] = pos_list
+
+    # recover mutations that could not be mapped to the reference transcript
+    # for a gene before being dropped (next step)
+    unmapped_mut_info = utils.recover_unmapped_mut_info(mut_info, bed, sc, opts)
+
+    # drop mutations wich do not map to reference tx
+    mut_info = mut_info.dropna(subset=['Coding Position'])  # mutations need to map to tx
+    mut_info['Coding Position'] = mut_info['Coding Position'].astype(int)
+    unmapped_muts = total_mut - len(mut_info)
+
+    if len(mut_info) > 0:
+        mut_info['Coding Position'] = mut_info['Coding Position'].astype(int)
+        mut_info['Context'] = mut_info['Coding Position'].apply(lambda x: sc.pos2context[x])
+
+        # group mutations by context
+        cols = ['Context', 'Tumor_Allele', 'Coding Position']
+        unmapped_mut_df = pd.DataFrame(unmapped_mut_info)
+        rename_dict = {'Codon Pos': 'Coding Position'}
+        unmapped_mut_df = unmapped_mut_df.rename(columns=rename_dict)
+        tmp_df = pd.concat([mut_info[cols], unmapped_mut_df[cols]])
+        context_cts = tmp_df['Context'].value_counts()
+        context_to_mutations = dict((name, group['Tumor_Allele'])
+                                    for name, group in tmp_df.groupby('Context'))
+    else:
+        # initialize empty results if there are no mutations
+        context_cts = pd.Series([])
+        context_to_mutations = {}
+        tmp_df = pd.DataFrame()
+
+    return context_cts, context_to_mutations, tmp_df, gs, sc
+
+
+@utils.log_error_decorator
+def singleprocess_gene_shuffle(info):
+    #num_permutations = info[0][-1]  # number of permutations is always last column
+    num_permutations = info.pop(-1)  # number of permutations is always last column
+    result = [[0, 0] for k in range(num_permutations)]
+    for (context_cts, context_to_mutations, mut_df, gs, sc) in info:
+        ## Do permutations
+        # calculate non silent count
+        tmp_result = pm.non_silent_ratio_permutation(context_cts,
+                                                     context_to_mutations,
+                                                     sc,  # sequence context obj
+                                                     gs,  # gene sequence obj
+                                                     num_permutations)
+
+        # increment the non-silent/silent counts for each permutation
+        for j in range(num_permutations):
+            result[j][0] += tmp_result[j][0]
+            result[j][1] += tmp_result[j][1]
+    return result
 
 
 @utils.log_error_decorator
@@ -110,52 +235,31 @@ def singleprocess_permutation(info):
     gene_fa = pysam.Fastafile(opts['input'])
     gs = GeneSequence(gene_fa, nuc_context=opts['context'])
 
+    # variables for recording the actual observed number of non-silent
+    # vs. silent mutations
+    obs_silent = 0
+    obs_non_silent = 0
+
+    # go through each gene to permform simulation
     result = [[0, 0] for k in range(num_permutations)]
     for bed in bed_list:
-        # prepare info for running permutation test
-        gene_mut = mut_df[mut_df['Gene']==bed.gene_name]
-        cols = ['Chromosome', 'Start_Position', 'Reference_Allele',
-                'Tumor_Allele', 'Variant_Classification', 'Protein_Change']
-        mut_info = gene_mut[cols]
-        gs.set_gene(bed)
-        sc = SequenceContext(gs)
+        # compute context counts and somatic bases for each context
+        gene_tuple = compute_mutation_context(bed, gs, mut_df)
+        context_cts, context_to_mutations, mutations_df, gs, sc = gene_tuple
 
-        # count total mutations in gene
-        total_mut = len(mut_info)
+        if context_to_mutations:
+            ## get information about observed non-silent counts
+            # get info about mutations
+            tmp_mut_info = utils.get_aa_mut_info(mutations_df['Coding Position'],
+                                                 mutations_df['Tumor_Allele'].tolist(),
+                                                 gs)
+            # calc deleterious mutation info
+            tmp_non_silent = cutils.calc_non_silent_info(tmp_mut_info['Reference AA'],
+                                                         tmp_mut_info['Somatic AA'])
+            obs_non_silent += tmp_non_silent[0]
+            obs_silent += tmp_non_silent[1]
 
-        # fix nucleotide letter if gene is on - strand
-        if bed.strand == '-':
-            mut_info['Tumor_Allele'].map(lambda x: utils.rev_comp(x))
-
-        # get coding positions, mutations unmapped to the reference tx will have
-        # NA for a coding position
-        pos_list = []
-        for ix, row in mut_info.iterrows():
-            coding_pos = bed.query_position(bed.strand, row['Chromosome'], row['Start_Position'])
-            pos_list.append(coding_pos)
-        mut_info['Coding Position'] = pos_list
-
-        # recover mutations that could not be mapped to the reference transcript
-        # for a gene before being dropped (next step)
-        unmapped_mut_info = utils.recover_unmapped_mut_info(mut_info, bed, sc, opts)
-
-        # drop mutations wich do not map to reference tx
-        mut_info = mut_info.dropna(subset=['Coding Position'])  # mutations need to map to tx
-        mut_info['Coding Position'] = mut_info['Coding Position'].astype(int)
-        unmapped_muts = total_mut - len(mut_info)
-
-        if len(mut_info) > 0:
-            mut_info['Coding Position'] = mut_info['Coding Position'].astype(int)
-            mut_info['Context'] = mut_info['Coding Position'].apply(lambda x: sc.pos2context[x])
-
-            # group mutations by context
-            cols = ['Context', 'Tumor_Allele']
-            unmapped_mut_df = pd.DataFrame(unmapped_mut_info)
-            tmp_df = pd.concat([mut_info[cols], unmapped_mut_df[cols]])
-            context_cts = tmp_df['Context'].value_counts()
-            context_to_mutations = dict((name, group['Tumor_Allele'])
-                                        for name, group in tmp_df.groupby('Context'))
-
+            ## Do permutations
             # calculate non silent count
             tmp_result = pm.non_silent_ratio_permutation(context_cts,
                                                          context_to_mutations,
@@ -171,8 +275,9 @@ def singleprocess_permutation(info):
             result[j][1] += tmp_result[j][1]
 
     gene_fa.close()
+    obs_result = [obs_non_silent, obs_silent]
     logger.info('Finished working on chromosome: {0}.'.format(current_chrom))
-    return result
+    return result, obs_result
 
 
 def parse_arguments():
@@ -226,6 +331,14 @@ def parse_arguments():
                 'and downstream bases. (Default: 1.5)')
     parser.add_argument('-c', '--context',
                         type=float, default=1.5,
+                        help=help_str)
+    help_str = ('Shuffle gene names randomly in mutation permutation. Shuffling reassigns all '
+               'mutations from a gene "X" to a new gene "Y". The mutations in '
+               '"Y" are also shuffled to a new gene. Mutational context counts '
+               'are evaluated on the actual gene and these counts are then used '
+               'to perform the permutation on the new gene.')
+    parser.add_argument('-s', '--shuffle-genes',
+                        action='store_true',
                         help=help_str)
     help_str = ('Use mutations that are not mapped to the the single reference '
                 'transcript for a gene specified in the bed file indicated by '
@@ -283,12 +396,75 @@ def main(opts):
     # select valid single nucleotide variants only
     mut_df = utils._fix_mutation_df(mut_df)
 
-    # perform permutation test
+    # read in bed info
     bed_dict = utils.read_bed(opts['bed'], [])
-    permutation_result = multiprocess_permutation(bed_dict, mut_df, opts)
+
+    # if user designated to shuffle gene names, then precompute mutation context
+    # info so that they can be reassigned to a new gene
+    if opts['shuffle_genes']:
+        # compute mutation context counts for all genes
+        gene_fa = pysam.Fastafile(opts['input'])
+        gs = GeneSequence(gene_fa, nuc_context=opts['context'])
+        logger.info('Computing gene context counts . . .')
+        for chrom in bed_dict:
+            bed_dict[chrom] = [list(compute_mutation_context(b, gs, mut_df))
+                               for b in bed_dict[chrom]]
+        logger.info('Computed all mutational context counts.')
+
+        # filter out genes that have no mutations
+        for chrom in bed_dict:
+            bed_dict[chrom] = filter(lambda x: x[1], bed_dict[chrom])
+
+        # shuffle gene mutation context counts
+        logger.info('Shuffling gene names . . .')
+        #gene_pos = [[chrom, i]
+                    #for chrom in bed_dict
+                    #for gene_list in bed_dict[chrom]
+                    #for i, gene_info in enumerate(gene_list)]
+        gene_pos = [[chrom, i]
+                    for chrom, gene_list in bed_dict.iteritems()
+                    for i in range(len(gene_list))]
+        shuffled_gene_pos = copy.deepcopy(gene_pos)
+        prng = np.random.RandomState()
+        prng.shuffle(shuffled_gene_pos)  # shuffling happens inplace
+
+        # update info with new shuffled gene name
+        old_bed_dict = {chrom: [gene_row[:2] for gene_row in bed_dict[chrom]]
+                        for chrom in bed_dict}
+        #old_bed_dict = copy.deepcopy(bed_dict)
+        for i in range(len(shuffled_gene_pos)):
+            old_chrom, old_pos = gene_pos[i]
+            new_chrom, new_pos = shuffled_gene_pos[i]
+            tmp_context_cts = old_bed_dict[old_chrom][old_pos][0]
+            tmp_context2mut = old_bed_dict[old_chrom][old_pos][1]
+            bed_dict[new_chrom][new_pos][0] = tmp_context_cts
+            bed_dict[new_chrom][new_pos][1] = tmp_context2mut
+        logger.info('Finished shuffling gene names.')
+
+        #permutation_result = multiprocess_gene_shuffle(bed_dict, opts)
+        sim_result = multiprocess_gene_shuffle(bed_dict, opts)
+    # if user doesn't shuffle genes, then it is a regular evalutation
+    # of non-silent/silent ratio based on the genes the mutations actually
+    # occurred in
+    else:
+        # perform permutation test
+        #permutation_result = multiprocess_permutation(bed_dict, mut_df, opts)
+        sim_result, obs_result = multiprocess_permutation(bed_dict, mut_df, opts)
+
+        # report number of observed non-silent and silent mutations
+        #obs_result = [x[1] for x in permutation_result]  # actually observed num mutations
+        #obs_result = permutation_result[1]  # actually observed num mutations
+        total_non_silent = sum(o[0] for o in obs_result)
+        total_silent = sum(o[1] for o in obs_result)
+        logger.info('There were {0} non-silent SNVs and {1} silent SNVs actually '
+                    'observed from the provided mutations.'.format(total_non_silent,
+                                                                   total_silent))
+
+    #sim_result = [s[0] for s in permutation_result]  # results with permutation
+    #sim_result = permutation_result[0]
 
     # convert to dataframe to save to file
-    non_silent_ratio_df = pd.DataFrame(permutation_result,
+    non_silent_ratio_df = pd.DataFrame(sim_result,
                                        columns=['non-silent count',
                                                 'silent count'])
     # save output
