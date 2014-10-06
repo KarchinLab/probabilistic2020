@@ -161,7 +161,7 @@ def calc_position_p_value(mut_info,
                                if null_recur+utils.epsilon >= num_recurrent])
         entropy_num_nulls = sum([1 for null_ent in pos_entropy_list
                                  if null_ent-utils.epsilon <= pos_ent])
-        delta_entropy_num_nulls = sum([1 for null_ent in pos_entropy_list
+        delta_entropy_num_nulls = sum([1 for null_ent in delta_pos_entropy_list
                                        if null_ent+utils.epsilon >= delta_pos_ent])
         recur_p_value = recur_num_nulls / float(num_permutations)
         ent_p_value = entropy_num_nulls / float(num_permutations)
