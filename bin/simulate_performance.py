@@ -196,6 +196,17 @@ def parse_arguments():
     parser.add_argument('-g', '--genome',
                         type=str, default='',
                         help=help_str)
+    help_str = ('Minimum number of mutations at a position for it to be '
+                'considered a recurrently mutated position (Default: 3).')
+    parser.add_argument('-r', '--recurrent',
+                        type=int, default=3,
+                        help=help_str)
+    help_str = ('Fraction of total mutations in a gene. This define the '
+                'minimumm number of mutations for a position to be defined '
+                'as recurrently mutated (Defaul: .02).')
+    parser.add_argument('-f', '--fraction',
+                        type=float, default=.02,
+                        help=help_str)
     help_str = ('Perform tsg permutation test if gene has '
                 'at least a user specified number of deleterious mutations (default: 2)')
     parser.add_argument('-d', '--deleterious',
