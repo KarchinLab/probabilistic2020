@@ -10,12 +10,14 @@ class RandomSplit(object):
                  sub_sample,
                  num_iter,
                  table_name='mutation',
-                 col_name='Tumor_Sample'):
+                 col_name='Tumor_Sample',
+                 with_replacement=False):
         self.df = df
         self.set_sub_sample(sub_sample)
         self.set_num_iter(num_iter)
         self.TABLE_NAME = table_name
         self.COLUMN_NAME = col_name
+        self.with_replacement = with_replacement
         drop_dups = self.df.copy()[['Tumor_Sample', 'Tumor_Type']].drop_duplicates()
         self.sample_names = drop_dups.set_index('Tumor_Sample').groupby('Tumor_Type').groups
         self.num_sample_names = len(self.sample_names)
@@ -38,15 +40,22 @@ class RandomSplit(object):
             prng = np.random.RandomState()
             for tmp_ttype, tmp_samples in self.sample_names.iteritems():
                 tmp_num_samps = len(tmp_samples)
-                prng.shuffle(tmp_samples)  # shuffle order of samples
-                split_pos = int(tmp_num_samps*self.sub_sample)
-                tmp_left = tmp_samples[:split_pos]
-                tmp_right = tmp_samples[split_pos:]
+                if not self.with_replacement:
+                    # sample without replacement
+                    prng.shuffle(tmp_samples)  # shuffle order of samples
+                    split_pos = int(tmp_num_samps*self.sub_sample)
+                    tmp_left = tmp_samples[:split_pos]
+                    tmp_right = tmp_samples[split_pos:]
+                else:
+                    # sample with replacement
+                    tmp_num_samps = int(tmp_num_samps*self.sub_sample)
+                    tmp_left = prng.choice(tmp_samples, tmp_num_samps, replace=True)
+                    tmp_right = prng.choice(tmp_samples, tmp_num_samps, replace=True)
                 left_samples += tmp_left
                 right_samples += tmp_right
 
-            left_df = self.df[self.df['Tumor_Sample'].isin(left_samples)]
-            right_df = self.df[self.df['Tumor_Sample'].isin(right_samples)]
+            left_df = self.df[self.df['Tumor_Sample'].isin(left_samples)].copy()
+            right_df = self.df[self.df['Tumor_Sample'].isin(right_samples)].copy()
 
             logger.info('Finished feature generation: Sub-sample rate={0}, Iteration={1}'.format(self.sub_sample, i))
             yield left_df, right_df
