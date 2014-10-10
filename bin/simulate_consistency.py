@@ -71,8 +71,9 @@ def consistency_comparison(df1, df2, bed_dict, non_tested_genes, opts):
 
         ## calculate jaccard similarity
         # calculate recurrent info
-        permutation_df1 = permutation_df1.sort(columns=['recurrent p-value'])
-        permutation_df2 = permutation_df2.sort(columns=['recurrent p-value'])
+        sort_cols = ['recurrent p-value', 'gene']
+        permutation_df1 = permutation_df1.sort(columns=sort_cols)
+        permutation_df2 = permutation_df2.sort(columns=sort_cols)
         recurrent_jaccard = sim.jaccard_index(permutation_df1['recurrent BH q-value'],
                                               permutation_df2['recurrent BH q-value'])
         ji_mean_tuple = sim.weighted_jaccard_index(permutation_df1['recurrent BH q-value'],
@@ -82,8 +83,9 @@ def consistency_comparison(df1, df2, bed_dict, non_tested_genes, opts):
                                                    weight_factor=opts['weight'])
         recurrent_ji, recurrent_mean_ji, recurrent_weighted_mean_ji = ji_mean_tuple
         # calculate entropy consistency
-        permutation_df1 = permutation_df1.sort(columns=['entropy p-value'])
-        permutation_df2 = permutation_df2.sort(columns=['entropy p-value'])
+        sort_cols = ['entropy p-value', 'gene']
+        permutation_df1 = permutation_df1.sort(columns=sort_cols)
+        permutation_df2 = permutation_df2.sort(columns=sort_cols)
         entropy_jaccard = sim.jaccard_index(permutation_df1['entropy BH q-value'],
                                             permutation_df2['entropy BH q-value'])
         ji_mean_tuple = sim.weighted_jaccard_index(permutation_df1['entropy BH q-value'],
@@ -93,8 +95,9 @@ def consistency_comparison(df1, df2, bed_dict, non_tested_genes, opts):
                                                    weight_factor=opts['weight'])
         entropy_ji, entropy_mean_ji, entropy_weighted_mean_ji = ji_mean_tuple
         # calculate delta entropy consistency
-        permutation_df1 = permutation_df1.sort(columns=['delta entropy p-value'])
-        permutation_df2 = permutation_df2.sort(columns=['delta entropy p-value'])
+        sort_cols = ['delta entropy p-value', 'gene']
+        permutation_df1 = permutation_df1.sort(columns=sort_cols)
+        permutation_df2 = permutation_df2.sort(columns=sort_cols)
         delta_entropy_jaccard = sim.jaccard_index(permutation_df1['delta entropy BH q-value'],
                                                   permutation_df2['delta entropy BH q-value'])
         ji_mean_tuple = sim.weighted_jaccard_index(permutation_df1['delta entropy BH q-value'],
@@ -130,8 +133,9 @@ def consistency_comparison(df1, df2, bed_dict, non_tested_genes, opts):
         permutation_df2 = pt.handle_tsg_results(permutation_result2)
 
         # calculate jaccard similarity
-        permutation_df1 = permutation_df1.sort(columns=['deleterious p-value'])
-        permutation_df2 = permutation_df2.sort(columns=['deleterious p-value'])
+        sort_cols = ['deleterious p-value', 'gene']
+        permutation_df1 = permutation_df1.sort(columns=sort_cols)
+        permutation_df2 = permutation_df2.sort(columns=sort_cols)
         deleterious_jaccard = sim.jaccard_index(permutation_df1['deleterious BH q-value'],
                                                 permutation_df2['deleterious BH q-value'])
         ji_mean_tuple = sim.weighted_jaccard_index(permutation_df1['deleterious BH q-value'],
@@ -185,7 +189,7 @@ def parse_arguments():
     help_str = 'Step size for progessing further down list of top genes'
     parser.add_argument('-step', '--step-size',
                         type=int,
-                        default=50,
+                        default=40,
                         help=help_str)
     help_str = 'Weight factor for ranked biased consistency measure'
     parser.add_argument('-weight', '--weight',
@@ -197,11 +201,22 @@ def parse_arguments():
                         type=int,
                         default=200,
                         help=help_str)
+    help_str = ('Output the jaccard index at intervals specified by the "-depth" '
+                'and the "-step" options. Specify the file path to save output.')
+    parser.add_argument('-jc', '--jaccard-curve',
+                        type=str, required=True,
+                        help=help_str)
     parser.add_argument('-iter', '--iterations',
                         type=int,
                         action='store',
                         default=10,
                         help='Number of iterations for each sample rate in the simulation')
+    help_str = ('Sample rate (i.e. fraction of total samples) for sampling with '
+                'replacement. If 0, then sampling without replacement is performed '
+                'at a sample rate of .5 (i.e. split data in half). (Default: 0)')
+    parser.add_argument('-w', '--with-replacement',
+                        type=float, default=0.0,
+                        help=help_str)
     help_str = 'gene FASTA file from extract_gene_seq.py script'
     parser.add_argument('-i', '--input',
                         type=str, required=True,
@@ -370,7 +385,7 @@ def main(opts):
 
     # ouptput jaccard index curve information
     tmp_results = sim.calculate_stats(sim_ji_results)
-    tmp_results.to_csv('jaccard_index_curve.txt', sep='\t')
+    tmp_results.to_csv(opts['jaccard_curve'], sep='\t')
 
     # make pandas panel objects out of summarized
     # results from simulations
