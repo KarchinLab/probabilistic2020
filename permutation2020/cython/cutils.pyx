@@ -17,6 +17,10 @@ cdef extern from "permutation.hpp":
                                                  double min_frac,
                                                  int min_recurrent,
                                                  int is_obs)
+    map[string, double] calc_effect_statistics(map[int, int] pos_ctr,
+                                               double min_frac,
+                                               int min_recurrent,
+                                               int is_obs)
 
 
 @cython.cdivision(True)
@@ -96,6 +100,56 @@ def calc_pos_info(aa_mut_pos,
     frac_pos_ent = pos_info["entropy_fraction"]
     delta_pos_ent = pos_info["delta_entropy"]
     return num_recur, frac_pos_ent, delta_pos_ent
+
+
+def calc_effect_info(aa_mut_pos,
+                     germ_aa,
+                     somatic_aa,
+                     int pseudo_count=0,
+                     double min_frac=0.0,
+                     int min_recur=2,
+                     int is_obs=1):
+    cdef:
+        map[int, int] pos_ctr
+        map[string, double] pos_info
+        int num_recur = 0
+        double frac_pos_ent = 0.0
+        int i, num_pos
+        DTYPE_INT_t[::1] pos_array
+        int DUMMY_INT = 9999999  # dummy pos if prior used
+        int INACTIVATING_INT = -1  # pos for inactivating mutations
+    tmp_pos_list = []
+    num_pos = len(aa_mut_pos)
+    for i in range(num_pos):
+        pos = aa_mut_pos[i]
+        # make sure mutation is missense
+        if germ_aa[i] and somatic_aa[i] and germ_aa[i] != '*' and \
+           somatic_aa[i] != '*' and germ_aa[i] != somatic_aa[i]:
+            # should have a position, but if not skip it
+            if pos is not None:
+                if pos_ctr.count(pos) == 0:
+                    pos_ctr[pos] = 0
+                pos_ctr[pos] += 1
+                tmp_pos_list.append(pos)
+        elif ((germ_aa[i] == '*' or somatic_aa[i] == '*') and \
+              (germ_aa[i] != somatic_aa[i])) or \
+             (germ_aa[i] == 'Splice_Site' or somatic_aa[i] == 'Splice_Site'):
+            # case for inactivating mutations
+            if pos_ctr.count(INACTIVATING_INT) == 0:
+                pos_ctr[INACTIVATING_INT] = 0
+            pos_ctr[INACTIVATING_INT] += 1
+            tmp_pos_list.append(INACTIVATING_INT)
+
+    # add pseudo-counts if specified
+    if pseudo_count:
+        pos_ctr[DUMMY_INT] = pseudo_count
+
+    # get entropy of effect statistics
+    effect_info = calc_effect_statistics(pos_ctr, min_frac, min_recur, is_obs)
+    num_recur = <int> effect_info["recurrent_sum"]
+    frac_effect_ent = effect_info["entropy_fraction"]
+    num_inactivating = effect_info["inactivating_sum"]
+    return frac_effect_ent, num_recur, num_inactivating
 
 
 def calc_deleterious_info(germ_aa, somatic_aa):

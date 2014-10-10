@@ -178,6 +178,63 @@ def calc_position_p_value(mut_info,
     return result
 
 
+def calc_effect_p_value(mut_info,
+                        unmapped_mut_info,
+                        sc,
+                        gs,
+                        bed,
+                        num_permutations,
+                        pseudo_count,
+                        min_recurrent,
+                        min_fraction):
+    if len(mut_info) > 0:
+        mut_info['Coding Position'] = mut_info['Coding Position'].astype(int)
+        mut_info['Context'] = mut_info['Coding Position'].apply(lambda x: sc.pos2context[x])
+
+        # group mutations by context
+        cols = ['Context', 'Tumor_Allele']
+        unmapped_mut_df = pd.DataFrame(unmapped_mut_info)
+        tmp_df = pd.concat([mut_info[cols], unmapped_mut_df[cols]])
+        context_cts = tmp_df['Context'].value_counts()
+        context_to_mutations = dict((name, group['Tumor_Allele'])
+                                    for name, group in tmp_df.groupby('Context'))
+
+        # perform permutations
+        permutation_result = pm.effect_permutation(context_cts,
+                                                   context_to_mutations,
+                                                   sc,  # sequence context obj
+                                                   gs,  # gene sequence obj
+                                                   num_permutations,
+                                                   pseudo_count)
+        effect_entropy_list, recur_list, inactivating_list = permutation_result  # unpack results
+
+        # get effect info for actual mutations
+        aa_mut_info = utils.get_aa_mut_info(mut_info['Coding Position'],
+                                            mut_info['Tumor_Allele'].tolist(),
+                                            gs)
+        codon_pos = aa_mut_info['Codon Pos'] + unmapped_mut_info['Codon Pos']
+        ref_aa = aa_mut_info['Reference AA'] + unmapped_mut_info['Reference AA']
+        somatic_aa = aa_mut_info['Somatic AA'] + unmapped_mut_info['Somatic AA']
+        effect_ent, num_recur, num_inactivating = cutils.calc_effect_info(codon_pos,
+                                                                          ref_aa,
+                                                                          somatic_aa,
+                                                                          min_frac=min_fraction,
+                                                                          min_recur=min_recurrent)
+
+        # calculate permutation p-value
+        entropy_num_nulls = sum([1 for null_ent in effect_entropy_list
+                                 if null_ent-utils.epsilon <= effect_ent])
+        ent_p_value = entropy_num_nulls / float(num_permutations)
+    else:
+        num_recur = 0
+        num_inactivating = 0
+        effect_ent = 0
+        ent_p_value = 1.0
+    result = [bed.gene_name, num_recur, num_inactivating,
+              effect_ent, ent_p_value]
+    return result
+
+
 @utils.log_error_decorator
 def singleprocess_permutation(info):
     bed_list, mut_df, opts = info
@@ -234,12 +291,20 @@ def singleprocess_permutation(info):
                                                opts['recurrent'],
                                                opts['fraction'])
             result.append(tmp_result + [total_mut, unmapped_muts])
-        else:
+        elif opts['kind'] == 'tsg':
             # calculate results for deleterious mutation permutation test
             tmp_result = calc_deleterious_p_value(mut_info, unmapped_mut_info,
                                                   sc, gs, bed, num_permutations,
                                                   opts['deleterious'],
                                                   opts['deleterious_pseudo_count'])
+            result.append(tmp_result + [total_mut, unmapped_muts])
+        else:
+            # calc results for entropy-on-effect permutation test
+            tmp_result = calc_effect_p_value(mut_info, unmapped_mut_info,
+                                             sc, gs, bed, num_permutations,
+                                             opts['recurrent_pseudo_count'],
+                                             opts['recurrent'],
+                                             opts['fraction'])
             result.append(tmp_result + [total_mut, unmapped_muts])
 
     gene_fa.close()
@@ -343,6 +408,25 @@ def handle_oncogene_results(permutation_result, non_tested_genes):
                  #'kde entropy p-value', 'kde entropy BH q-value', 'kde bandwidth p-value', 'kde bandwidth BH q-value',
                  'delta entropy p-value', 'delta entropy BH q-value',
                  'Performed Recurrency Test']
+    return permutation_df[col_order]
+
+
+def handle_effect_results(permutation_result):
+    mycols = ['gene', 'num recurrent', 'num inactivating', 'entropy-on-effect',
+              'entropy-on-effect p-value',
+              'Total Mutations', "Unmapped to Ref Tx"]
+    permutation_df = pd.DataFrame(sorted(permutation_result, key=lambda x: x[4]),
+                                  columns=mycols)
+
+    # get benjamani hochberg adjusted p-values
+    permutation_df['entropy-on-effect BH q-value'] = utils.bh_fdr(permutation_df['entropy-on-effect p-value'])
+
+    # order output
+    permutation_df = permutation_df.set_index('gene', drop=False)  # make sure genes are indices
+    permutation_df['num recurrent'] = permutation_df['num recurrent'].fillna(-1).astype(int)  # fix dtype isssue
+    col_order = ['gene', 'Total Mutations', 'Unmapped to Ref Tx',
+                 'num recurrent', 'num inactivating', 'entropy-on-effect',
+                 'entropy-on-effect p-value', 'entropy-on-effect BH q-value']
     return permutation_df[col_order]
 
 
@@ -509,8 +593,10 @@ def main(opts):
     # Perform BH p-value adjustment and tidy up data for output
     if opts['kind'] == 'oncogene':
         permutation_df = handle_oncogene_results(permutation_result, non_tested_genes)
-    else:
+    elif opts['kind'] == 'tsg':
         permutation_df = handle_tsg_results(permutation_result)
+    elif opts['kind'] == 'effect':
+        permutation_df = handle_effect_results(permutation_result)
 
     # save output
     permutation_df.to_csv(opts['output'], sep='\t', index=False)
