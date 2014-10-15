@@ -128,7 +128,7 @@ def consistency_comparison(df1, df2, bed_dict, non_tested_genes, opts):
                               'entropy ji': entropy_ji,
                               'delta entropy ji': delta_entropy_ji},
                              index=ji_intervals)
-    else:
+    elif opts['kind']=='tsg':
         permutation_df1 = pt.handle_tsg_results(permutation_result1)
         permutation_df2 = pt.handle_tsg_results(permutation_result2)
 
@@ -155,6 +155,34 @@ def consistency_comparison(df1, df2, bed_dict, non_tested_genes, opts):
         ji_intervals = range(opts['step_size'], opts['depth']+1, opts['step_size'])
         ji_df = pd.DataFrame({'deleterious ji': deleterious_ji},
                              index=ji_intervals)
+    else:
+        permutation_df1 = pt.handle_effect_results(permutation_result1)
+        permutation_df2 = pt.handle_effect_results(permutation_result2)
+
+        # calculate jaccard similarity
+        sort_cols = ['entropy-on-effect p-value', 'gene']
+        permutation_df1 = permutation_df1.sort(columns=sort_cols)
+        permutation_df2 = permutation_df2.sort(columns=sort_cols)
+        on_effect_jaccard = sim.jaccard_index(permutation_df1['entropy-on-effect BH q-value'],
+                                              permutation_df2['entropy-on-effect BH q-value'])
+        ji_mean_tuple = sim.weighted_jaccard_index(permutation_df1['entropy-on-effect BH q-value'],
+                                                   permutation_df2['entropy-on-effect BH q-value'],
+                                                   max_depth=opts['depth'],
+                                                   step_size=opts['step_size'],
+                                                   weight_factor=opts['weight'])
+        on_effect_ji, on_effect_mean_ji, on_effect_weighted_mean_ji = ji_mean_tuple
+
+        results = pd.DataFrame({'jaccard index': [on_effect_jaccard],
+                                'mean jaccard index': [on_effect_mean_ji],
+                                'weighted mean jaccard index': [on_effect_weighted_mean_ji],
+                                },
+                                index=['entropy-on-effect'])
+
+        # record jaccard index at intervals
+        ji_intervals = range(opts['step_size'], opts['depth']+1, opts['step_size'])
+        ji_df = pd.DataFrame({'entropy-on-effect ji': on_effect_ji},
+                             index=ji_intervals)
+
 
     return results, ji_df
 
