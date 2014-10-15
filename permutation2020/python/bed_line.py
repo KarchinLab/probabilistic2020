@@ -158,6 +158,15 @@ class BedLine(object):
                          'on {1}.'.format(chr, self.chrom))
             # return pos
 
+        if type(genome_coord) is list:
+            # handle case for indels
+            pos_left = self.query_position(strand, chr, genome_coord[0])
+            pos_right = self.query_position(strand, chr, genome_coord[1])
+            if pos_left is not None or pos_right is not None:
+                return [pos_left, pos_right]
+            else:
+                return None
+
         # return position if contained within coding region or splice site
         for i, (estart, eend) in enumerate(self.exons):
             # in coding region
