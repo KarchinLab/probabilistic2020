@@ -1,10 +1,38 @@
+#!/usr/bin/env python
+# fix problems with pythons terrible import system
+import sys
+import os
+file_dir = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.join(file_dir, '../'))
+
 import pandas as pd
 import numpy as np
 from scipy.stats import binom
+import permutation2020.python.utils as utils
 import argparse
 
 
 def frameshift_test(fs, bases_at_risk, noncoding_bg):
+    """Perform a binomial test on the frequency of frameshifts while accounting
+    for differing rates depending on frameshift length.
+
+    Parameters
+    ----------
+    fs : pd.DataFrame
+        dataframe with genes as index and columns as frameshift lengths.
+    bases_at_risk : pd.Series/np.array
+        contains the number of bases at risk for a frameshift. It equals the
+        number of samples times the gene length.
+    noncoding_bg : pd.DataFrame
+        If using non-coding background for frameshifts provide a table from
+        the read_noncoding_background_rate function. If using a gene based
+        background, then pass in the python object None.
+
+    Returns
+    -------
+    fs_result : pd.DataFrame
+        p-value/q-value for each gene for binomial frameshift test
+    """
     # initialize p-values
     p_values = pd.Series(np.zeros(len(fs)),
                          index=fs.index)
@@ -29,10 +57,39 @@ def frameshift_test(fs, bases_at_risk, noncoding_bg):
         p_val = binomial_test(g_obs, bases_at_risk[k], Pg)
         p_values[k] = p_val
 
-    return p_values
+    # format results
+    qval = utils.bh_fdr(p_values)
+    cols = ['frameshift p-value', 'frameshift BH q-value']
+    fs_result = pd.DataFrame({cols[0]: p_values,
+                              cols[1]: qval},
+                             index=fs.index)[cols]  # make sure cols in right order
+    fs_result = fs_result.sort(columns='frameshift p-value', ascending=True)
+    return fs_result
 
 
 def binomial_test(n, N, P):
+    """Perform binomial test on the observed n being higher than expected.
+
+    Specifically, N bases are at risk and of those there are n that a frameshift
+    occurred at. Given the background probability of a frameshift at a specific
+    base, the p-value is calculated as the probability of observing n or greater
+    frameshifts. Since N is large and n is small, it is computationally more
+    efficient to take 1 - Pr(i<=n).
+
+    Parameters
+    ----------
+    n : int
+        number of frameshifts observed (i.e. num bases where frameshifts occurred)
+    N : int
+        number of bases at risk (num samples * gene length)
+    P : float
+        background probability that a frameshift would occur at a single base
+
+    Returns
+    -------
+    pval : np.array
+        p-value for binomial test
+    """
     if n <= 0:
         return 1.0
     pval = binom.sf(n, N, P)
@@ -40,6 +97,10 @@ def binomial_test(n, N, P):
 
 
 def read_noncoding_background_rate(path):
+    """Reads in the non-coding background rate for frameshift text file.
+
+    Needed for binomial test.
+    """
     background_df = pd.read_csv(path, sep='\t', index_col=0)
     drop_list = ['Genome Length', 'Black List Length',
                  'Non-coding Length', 'Number of Samples']
@@ -85,8 +146,7 @@ def main(opts):
 
     # perform binomial test
     result = frameshift_test(fs_cts, gene_bases_at_risk, f)
-    result = pd.DataFrame({'p-value':result})
-    result.sort(columns='p-value', ascending=True).to_csv(opts['output'], sep='\t')
+    result.to_csv(opts['output'], sep='\t')
 
 
 if __name__ == "__main__":
