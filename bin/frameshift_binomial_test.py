@@ -115,7 +115,7 @@ def parse_arguments():
             'compared to the background.')
     parser = argparse.ArgumentParser(description=info)
     help_str = 'Frameshift counts from count_frameshifts.py'
-    parser.add_argument('-c', '--frameshift-counts',
+    parser.add_argument('-fc', '--frameshift-counts',
                         type=str, required=True,
                         help=help_str)
     help_str = ('Background non-coding rate of INDELs with lengths matching '
@@ -147,6 +147,8 @@ def main(opts):
     # perform binomial test
     result = frameshift_test(fs_cts, gene_bases_at_risk, f)
     result.to_csv(opts['output'], sep='\t')
+
+    return result
 
 
 if __name__ == "__main__":
