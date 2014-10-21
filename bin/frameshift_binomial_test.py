@@ -5,10 +5,18 @@ import argparse
 
 
 def frameshift_test(fs, bases_at_risk, noncoding_bg):
+    # initialize p-values
     p_values = pd.Series(np.zeros(len(fs)),
                          index=fs.index)
-    F = noncoding_bg.ix['non-coding frameshift',:].sum()
-    Favg = F / len(noncoding_bg.ix['non-coding frameshift',:])
+
+    # use specific background type
+    if noncoding_bg:
+        bg = noncoding_bg.ix['non-coding frameshift', :]
+    else:
+        coding_fs_cts = fs.sum()
+        bg = coding_fs_cts.astype(float) / bases_at_risk.sum()
+
+    # iterate through each gene to calculate p-value
     for k in range(len(fs)):
         g_obs = fs.iloc[k,:].sum()
         w = fs.iloc[k,:].astype(float) / g_obs
@@ -16,10 +24,11 @@ def frameshift_test(fs, bases_at_risk, noncoding_bg):
         # get weighting factor
         Pg = 0
         for i in range(len(fs.columns)):
-            Pg += w[i] * noncoding_bg.ix['non-coding frameshift', i]
+            Pg += w[i] * bg[i]
 
         p_val = binomial_test(g_obs, bases_at_risk[k], Pg)
         p_values[k] = p_val
+
     return p_values
 
 
