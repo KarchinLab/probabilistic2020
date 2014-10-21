@@ -14,14 +14,11 @@ def frameshift_test(fs, bases_at_risk, noncoding_bg):
         w = fs.iloc[k,:].astype(float) / g_obs
 
         # get weighting factor
-        weighted_Favg = 0
+        Pg = 0
         for i in range(len(fs.columns)):
-            weighted_Favg += w[i] * noncoding_bg.ix['non-coding frameshift', i]
-        Wg = weighted_Favg / Favg
+            Pg += w[i] * noncoding_bg.ix['non-coding frameshift', i]
 
-        Pg = Wg * F
         p_val = binomial_test(g_obs, bases_at_risk[k], Pg)
-        #p_val = binomial_test(g_obs, bases_at_risk[k], weighted_Favg)
         p_values[k] = p_val
     return p_values
 
