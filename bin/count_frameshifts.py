@@ -38,6 +38,7 @@ def get_frameshift_lengths(num_bins):
 def count_frameshifts(mut_df,
                       bed_path,
                       num_bins,
+                      num_samples,
                       use_unmapped=False):
     fs_cts = {}  # frameshift count information for each gene
     fs_df = keep_frameshifts(mut_df)
@@ -66,10 +67,15 @@ def count_frameshifts(mut_df,
         fs_len_cts = gene_df['indel len'].value_counts()[fs_lens]
         fs_len_cts = fs_len_cts.fillna(0).astype(int)
 
-        fs_cts[bed.gene_name] = fs_len_cts.tolist() + [total_fs, unmapped_fs]
+        # get length of gene
+        gene_len = bed.cds_len
+        gene_bases_at_risk = gene_len * num_samples
+
+        info = [total_fs, unmapped_fs, gene_len, gene_bases_at_risk]
+        fs_cts[bed.gene_name] = fs_len_cts.tolist() + info
 
     fs_cts_df = pd.DataFrame.from_dict(fs_cts, orient='index')
-    cols = map(str, fs_lens) + ['total', 'unmapped']
+    cols = map(str, fs_lens) + ['total', 'unmapped', 'gene length', 'bases at risk']
     fs_cts_df.columns = cols
     return fs_cts_df
 
@@ -87,7 +93,11 @@ def parse_arguments():
                         help=help_str)
     help_str = 'Number of bins to categorize framshift lengths by'
     parser.add_argument('-bins', '--bins',
-                        type=int, default=10,
+                        type=int, default=5,
+                        help=help_str)
+    help_str = 'Number of sequenced samples'
+    parser.add_argument('-n', '--sample-number',
+                        type=int, required=True,
                         help=help_str)
     help_str = 'Use frameshifts that could not be placed onto the reference transcript'
     parser.add_argument('-u', '--use-unmapped',
@@ -104,7 +114,8 @@ def parse_arguments():
 def main(opts):
     df = pd.read_csv(opts['mutations'], sep='\t')
     df['Start_Position'] = df['Start_Position'] - 1  # convert to 0-based coord
-    fs = count_frameshifts(df, opts['bed'], opts['bins'], opts['use_unmapped'])
+    fs = count_frameshifts(df, opts['bed'], opts['bins'],
+                           opts['sample_number'], opts['use_unmapped'])
     fs.to_csv(opts['output'], sep='\t')
 
 
