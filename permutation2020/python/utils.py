@@ -280,6 +280,14 @@ def lzip(*args):
     return result
 
 
+def fishers_method(pvals):
+    pvals = np.asarray(pvals)
+    degrees_of_freedom = 2 * pvals.size
+    chisq_stat = np.sum(-2*np.log(pvals))
+    fishers_pval = stats.chi2.sf(chisq_stat, degrees_of_freedom)
+    return fishers_pval
+
+
 def cummin(x):
     """A python implementation of the cummin function in R"""
     for i in range(1, len(x)):
