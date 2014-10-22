@@ -183,7 +183,6 @@ def consistency_comparison(df1, df2, bed_dict, non_tested_genes, opts):
         ji_df = pd.DataFrame({'entropy-on-effect ji': on_effect_ji},
                              index=ji_intervals)
 
-
     return results, ji_df
 
 

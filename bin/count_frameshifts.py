@@ -112,11 +112,19 @@ def parse_arguments():
 
 
 def main(opts):
+    # read in data
     df = pd.read_csv(opts['mutations'], sep='\t')
     df['Start_Position'] = df['Start_Position'] - 1  # convert to 0-based coord
+
+    # count frameshifts
     fs = count_frameshifts(df, opts['bed'], opts['bins'],
                            opts['sample_number'], opts['use_unmapped'])
-    fs.to_csv(opts['output'], sep='\t')
+
+    # save results
+    if opts['output']:
+        fs.to_csv(opts['output'], sep='\t')
+
+    return fs
 
 
 if __name__ == "__main__":

@@ -599,7 +599,8 @@ def main(opts):
         permutation_df = handle_effect_results(permutation_result)
 
     # save output
-    permutation_df.to_csv(opts['output'], sep='\t', index=False)
+    if opts['output']:
+        permutation_df.to_csv(opts['output'], sep='\t', index=False)
 
     return permutation_df
 
