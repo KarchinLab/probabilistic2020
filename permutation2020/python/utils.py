@@ -1,6 +1,7 @@
 # normal imports
 from bed_line import BedLine
 import numpy as np
+import scipy.stats as stats
 import pandas as pd
 import csv
 import itertools as it
