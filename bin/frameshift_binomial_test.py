@@ -11,6 +11,49 @@ from scipy.stats import binom
 import permutation2020.python.utils as utils
 import argparse
 
+# logging
+import logging
+import datetime
+logger = logging.getLogger(__name__)  # module logger
+
+
+def start_logging(log_file='', log_level='INFO'):
+    """Start logging information into the log directory.
+
+    If os.devnull is specified as the log_file then the log file will
+    not actually be written to a file.
+    """
+    if not log_file:
+        # create log directory if it doesn't exist
+        log_dir = os.path.abspath('log') + '/'
+        if not os.path.isdir(log_dir):
+            os.mkdir(log_dir)
+
+        # path to new log file
+        log_file = log_dir + 'log.run.' + str(datetime.datetime.now()).replace(':', '.') + '.txt'
+
+    # logger options
+    lvl = logging.DEBUG if log_level.upper() == 'DEBUG' else logging.INFO
+    myformat = '%(asctime)s - %(name)s - %(levelname)s \n>>>  %(message)s'
+
+    # create logger
+    if not log_file == 'stdout':
+        # normal logging to a regular file
+        logging.basicConfig(level=lvl,
+                            format=myformat,
+                            filename=log_file,
+                            filemode='w')
+    else:
+        # logging to stdout
+        root = logging.getLogger()
+        root.setLevel(lvl)
+        stdout_stream = logging.StreamHandler(sys.stdout)
+        stdout_stream.setLevel(lvl)
+        formatter = logging.Formatter(myformat)
+        stdout_stream.setFormatter(formatter)
+        root.addHandler(stdout_stream)
+        root.propagate = True
+
 
 def frameshift_test(fs, bases_at_risk, noncoding_bg):
     """Perform a binomial test on the frequency of frameshifts while accounting
@@ -39,12 +82,14 @@ def frameshift_test(fs, bases_at_risk, noncoding_bg):
 
     # use specific background type
     if noncoding_bg:
+        logger.info('Reading non-coding frameshift background rate . . .')
         bg = noncoding_bg.ix['non-coding frameshift', :]
     else:
         coding_fs_cts = fs.sum()
         bg = coding_fs_cts.astype(float) / bases_at_risk.sum()
 
     # iterate through each gene to calculate p-value
+    logger.info('Calculating binomial test p-values . . .')
     for k in range(len(fs)):
         g_obs = fs.iloc[k,:].sum()
         w = fs.iloc[k,:].astype(float) / g_obs
@@ -56,12 +101,14 @@ def frameshift_test(fs, bases_at_risk, noncoding_bg):
 
         p_val = binomial_test(g_obs, bases_at_risk[k], Pg)
         p_values[k] = p_val
+    logger.info('Finished calculating binomial test p-values.')
 
     # format results
     qval = utils.bh_fdr(p_values)
-    cols = ['frameshift p-value', 'frameshift BH q-value']
-    fs_result = pd.DataFrame({cols[0]: p_values,
-                              cols[1]: qval},
+    cols = ['gene', 'frameshift p-value', 'frameshift BH q-value']
+    fs_result = pd.DataFrame({cols[0]: fs.index,
+                              cols[1]: p_values,
+                              cols[2]: qval},
                              index=fs.index)[cols]  # make sure cols in right order
     fs_result = fs_result.sort(columns='frameshift p-value', ascending=True)
     return fs_result
@@ -129,13 +176,28 @@ def parse_arguments():
                         type=str, required=True,
                         help=help_str)
     args = parser.parse_args()
+
+    # handle logging
+    if args.log_level or args.log:
+        if args.log:
+            log_file = args.log
+        else:
+            log_file = ''  # auto-name the log file
+    else:
+        log_file = os.devnull
+    log_level = args.log_level
+    start_logging(log_file=log_file,
+                  log_level=log_level)  # start logging
+    logger.info('Command: {0}'.format(' '.join(sys.argv)))
+
     return vars(args)
 
 
 def main(opts):
     # read in gene frameshift counts
     fs_cts = pd.read_csv(opts['frameshift_counts'], sep='\t', index_col=0)
-    fs_cts = fs_cts.drop(['total', 'unmapped', 'gene length'], axis=1)
+    total_fs = fs_cts.pop('total')
+    fs_cts = fs_cts.drop(['unmapped', 'gene length'], axis=1)
     gene_bases_at_risk = fs_cts.pop('bases at risk')
 
     # read non-coding background rate file
@@ -146,7 +208,12 @@ def main(opts):
 
     # perform binomial test
     result = frameshift_test(fs_cts, gene_bases_at_risk, f)
-    result.to_csv(opts['output'], sep='\t')
+    result['total frameshifts'] = total_fs
+
+    # save results
+    if opts['output']:
+        result.to_csv(opts['output'], sep='\t', index=False)
+    logger.info('Finished!')
 
     return result
 
