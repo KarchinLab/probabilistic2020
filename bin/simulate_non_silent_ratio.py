@@ -21,7 +21,6 @@ import argparse
 import datetime
 import logging
 import copy
-import IPython
 
 logger = logging.getLogger(__name__)  # module logger
 
@@ -75,7 +74,7 @@ def multiprocess_permutation(bed_dict, mut_df, opts):
         num_processes = 1
     num_permutations = opts['num_permutations']
     obs_result = []
-    result_list = [[0, 0] for k in range(num_permutations)]
+    result_list = [[0, 0, 0, 0, 0, 0] for k in range(num_permutations)]
     for i in range(0, len(chroms), num_processes):
         if multiprocess_flag:
             pool = Pool(processes=num_processes)
@@ -89,6 +88,10 @@ def multiprocess_permutation(bed_dict, mut_df, opts):
                     for j in range(num_permutations):
                         result_list[j][0] += chrom_result[j][0]
                         result_list[j][1] += chrom_result[j][1]
+                        result_list[j][2] += chrom_result[j][2]
+                        result_list[j][3] += chrom_result[j][3]
+                        result_list[j][4] += chrom_result[j][4]
+                        result_list[j][5] += chrom_result[j][5]
                     obs_result.append(obs_mutations)
             except KeyboardInterrupt:
                 pool.close()
@@ -103,6 +106,10 @@ def multiprocess_permutation(bed_dict, mut_df, opts):
             for j in range(num_permutations):
                 result_list[j][0] += chrom_result[j][0]
                 result_list[j][1] += chrom_result[j][1]
+                result_list[j][2] += chrom_result[j][2]
+                result_list[j][3] += chrom_result[j][3]
+                result_list[j][4] += chrom_result[j][4]
+                result_list[j][5] += chrom_result[j][5]
             obs_result.append(obs_mutations)
 
     return result_list, obs_result
@@ -239,9 +246,13 @@ def singleprocess_permutation(info):
     # vs. silent mutations
     obs_silent = 0
     obs_non_silent = 0
+    obs_nonsense = 0
+    obs_loststop = 0
+    obs_splice_site = 0
+    obs_missense = 0
 
     # go through each gene to permform simulation
-    result = [[0, 0] for k in range(num_permutations)]
+    result = [[0, 0, 0, 0, 0, 0] for k in range(num_permutations)]
     for bed in bed_list:
         # compute context counts and somatic bases for each context
         gene_tuple = compute_mutation_context(bed, gs, mut_df)
@@ -258,6 +269,10 @@ def singleprocess_permutation(info):
                                                          tmp_mut_info['Somatic AA'])
             obs_non_silent += tmp_non_silent[0]
             obs_silent += tmp_non_silent[1]
+            obs_nonsense += tmp_non_silent[2]
+            obs_loststop += tmp_non_silent[3]
+            obs_splice_site += tmp_non_silent[4]
+            obs_missense += tmp_non_silent[5]
 
             ## Do permutations
             # calculate non silent count
@@ -267,15 +282,20 @@ def singleprocess_permutation(info):
                                                          gs,  # gene sequence obj
                                                          num_permutations)
         else:
-            tmp_result = [[0, 0] for k in range(num_permutations)]
+            tmp_result = [[0, 0, 0, 0, 0, 0] for k in range(num_permutations)]
 
         # increment the non-silent/silent counts for each permutation
         for j in range(num_permutations):
             result[j][0] += tmp_result[j][0]
             result[j][1] += tmp_result[j][1]
+            result[j][2] += tmp_result[j][2]
+            result[j][3] += tmp_result[j][3]
+            result[j][4] += tmp_result[j][4]
+            result[j][5] += tmp_result[j][5]
 
     gene_fa.close()
-    obs_result = [obs_non_silent, obs_silent]
+    obs_result = [obs_non_silent, obs_silent, obs_nonsense,
+                  obs_loststop, obs_splice_site, obs_missense]
     logger.info('Finished working on chromosome: {0}.'.format(current_chrom))
     return result, obs_result
 
@@ -456,17 +476,27 @@ def main(opts):
         #obs_result = permutation_result[1]  # actually observed num mutations
         total_non_silent = sum(o[0] for o in obs_result)
         total_silent = sum(o[1] for o in obs_result)
+        total_nonsense = sum(o[2] for o in obs_result)
+        total_loststop = sum(o[3] for o in obs_result)
+        total_splice_site = sum(o[4] for o in obs_result)
+        total_missense = sum(o[5] for o in obs_result)
         logger.info('There were {0} non-silent SNVs and {1} silent SNVs actually '
                     'observed from the provided mutations.'.format(total_non_silent,
                                                                    total_silent))
+        logger.info('There were {0} missense SNVs, {1} nonsense SNVs, {2} lost stop SNVs, '
+                    'and {3} splice site SNVs'.format(total_missense,
+                                                      total_nonsense,
+                                                      total_loststop,
+                                                      total_splice_site))
 
     #sim_result = [s[0] for s in permutation_result]  # results with permutation
     #sim_result = permutation_result[0]
 
     # convert to dataframe to save to file
+    cols = ['non-silent count', 'silent count', 'nonsense count',
+            'lost stop count', 'splice site count', 'missense count']
     non_silent_ratio_df = pd.DataFrame(sim_result,
-                                       columns=['non-silent count',
-                                                'silent count'])
+                                       columns=cols)
     # save output
     non_silent_ratio_df.to_csv(opts['output'], sep='\t', index=False)
 

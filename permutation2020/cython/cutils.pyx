@@ -4,7 +4,6 @@ from libcpp.string cimport string
 import numpy as np
 cimport numpy as np
 
-
 # define data types for kde function
 DTYPE_INT = np.int
 # define compile time data types
@@ -172,18 +171,32 @@ def calc_deleterious_info(germ_aa, somatic_aa):
 
 def calc_non_silent_info(germ_aa, somatic_aa):
     cdef:
-        int i, num_mutations = 0, num_non_silent = 0, num_silent = 0
+        int i, num_mutations = 0
+        int num_non_silent = 0, num_silent = 0, num_nonsense = 0
+        int num_loststop = 0, num_splice_site = 0, num_missense = 0
 
     num_mutations = len(somatic_aa)
     if len(germ_aa) != num_mutations:
         raise ValueError('There should be equal number of germline and somatic bases')
 
     for i in range(num_mutations):
-        if germ_aa[i] and somatic_aa[i] and \
-           (somatic_aa[i] == 'Splice_Site' or \
-            somatic_aa[i] != germ_aa[i]):
-            num_non_silent += 1
-        else:
-            num_silent += 1
+        if (germ_aa[i] and somatic_aa[i]) or somatic_aa[i] == 'Splice_Site' or germ_aa[i] == 'Splice_Site':
+            # count nonsense
+            if (somatic_aa[i] != germ_aa[i]) and somatic_aa[i] == '*':
+                num_nonsense += 1
+                num_non_silent += 1
+            # count lost stop
+            elif (somatic_aa[i] != germ_aa[i]) and germ_aa[i] == '*':
+                num_loststop += 1
+                num_non_silent += 1
+            elif somatic_aa[i] == 'Splice_Site' or germ_aa[i] == 'Splice_Site':
+                num_splice_site += 1
+                num_non_silent += 1
+            elif somatic_aa[i] != germ_aa[i]:
+                num_missense += 1
+                num_non_silent += 1
+            else:
+                num_silent += 1
 
-    return [num_non_silent, num_silent]
+    return [num_non_silent, num_silent, num_nonsense,
+            num_loststop, num_splice_site, num_missense]
