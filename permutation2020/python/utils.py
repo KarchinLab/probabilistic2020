@@ -442,9 +442,9 @@ def get_aa_mut_info(coding_pos, somatic_base, gene_seq):
     aa_info = {'Reference Codon': ref_codon,
                'Somatic Codon': mut_codon,
                'Codon Pos': codon_pos,
-               'Reference AA': [(codon_table[r] if len(r)==3 else None)
+               'Reference AA': [(codon_table[r] if (r in codon_table) else None)
                                 for r in ref_codon],
-               'Somatic AA': [(codon_table[s] if len(s)==3 else None)
+               'Somatic AA': [(codon_table[s] if (s in codon_table) else None)
                               for s in mut_codon]}
 
     return aa_info
