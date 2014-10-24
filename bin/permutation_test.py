@@ -11,6 +11,7 @@ from permutation2020.python.gene_sequence import GeneSequence
 from permutation2020.python.sequence_context import SequenceContext
 import permutation2020.cython.cutils as cutils
 import permutation2020.python.permutation as pm
+import permutation2020.python.mutation_context as mc
 
 import argparse
 import pysam
@@ -81,9 +82,9 @@ def calc_deleterious_p_value(mut_info,
                                     for name, group in tmp_df.groupby('Context'))
 
         # get deleterious info for actual mutations
-        aa_mut_info = utils.get_aa_mut_info(mut_info['Coding Position'],
-                                            mut_info['Tumor_Allele'].tolist(),
-                                            gs)
+        aa_mut_info = mc.get_aa_mut_info(mut_info['Coding Position'],
+                                         mut_info['Tumor_Allele'].tolist(),
+                                         gs)
         ref_aa = aa_mut_info['Reference AA'] + unmapped_mut_info['Reference AA']
         somatic_aa = aa_mut_info['Somatic AA'] + unmapped_mut_info['Somatic AA']
         num_del = cutils.calc_deleterious_info(ref_aa, somatic_aa)
@@ -144,9 +145,9 @@ def calc_position_p_value(mut_info,
         num_recur_list, pos_entropy_list, delta_pos_entropy_list = permutation_result  # unpack results
 
         # get recurrent info for actual mutations
-        aa_mut_info = utils.get_aa_mut_info(mut_info['Coding Position'],
-                                            mut_info['Tumor_Allele'].tolist(),
-                                            gs)
+        aa_mut_info = mc.get_aa_mut_info(mut_info['Coding Position'],
+                                         mut_info['Tumor_Allele'].tolist(),
+                                         gs)
         codon_pos = aa_mut_info['Codon Pos'] + unmapped_mut_info['Codon Pos']
         ref_aa = aa_mut_info['Reference AA'] + unmapped_mut_info['Reference AA']
         somatic_aa = aa_mut_info['Somatic AA'] + unmapped_mut_info['Somatic AA']
@@ -209,9 +210,9 @@ def calc_effect_p_value(mut_info,
         effect_entropy_list, recur_list, inactivating_list = permutation_result  # unpack results
 
         # get effect info for actual mutations
-        aa_mut_info = utils.get_aa_mut_info(mut_info['Coding Position'],
-                                            mut_info['Tumor_Allele'].tolist(),
-                                            gs)
+        aa_mut_info = mc.get_aa_mut_info(mut_info['Coding Position'],
+                                         mut_info['Tumor_Allele'].tolist(),
+                                         gs)
         codon_pos = aa_mut_info['Codon Pos'] + unmapped_mut_info['Codon Pos']
         ref_aa = aa_mut_info['Reference AA'] + unmapped_mut_info['Reference AA']
         somatic_aa = aa_mut_info['Somatic AA'] + unmapped_mut_info['Somatic AA']
@@ -271,7 +272,7 @@ def singleprocess_permutation(info):
 
         # recover mutations that could not be mapped to the reference transcript
         # for a gene before being dropped (next step)
-        unmapped_mut_info = utils.recover_unmapped_mut_info(mut_info, bed, sc, opts)
+        unmapped_mut_info = mc.recover_unmapped_mut_info(mut_info, bed, sc, opts)
 
         # drop mutations wich do not map to reference tx
         mut_info = mut_info.dropna(subset=['Coding Position'])  # mutations need to map to tx

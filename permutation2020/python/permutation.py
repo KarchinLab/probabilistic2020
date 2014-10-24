@@ -1,6 +1,7 @@
 import numpy as np
 import utils
 from ..cython import cutils
+import mutation_context as mc
 
 
 def deleterious_permutation(context_counts,
@@ -51,9 +52,9 @@ def deleterious_permutation(context_counts,
     del_count_list = []
     for row in tmp_mut_pos:
         # get info about mutations
-        tmp_mut_info = utils.get_aa_mut_info(row,
-                                             somatic_base,
-                                             gene_seq)
+        tmp_mut_info = mc.get_aa_mut_info(row,
+                                          somatic_base,
+                                          gene_seq)
 
         # calc deleterious mutation info
         tmp_del_count = cutils.calc_deleterious_info(tmp_mut_info['Reference AA'],
@@ -113,9 +114,9 @@ def position_permutation(context_counts,
     num_recur_list, entropy_list, delta_entropy_list = [], [], []
     for row in tmp_mut_pos:
         # get info about mutations
-        tmp_mut_info = utils.get_aa_mut_info(row,
-                                             somatic_base,
-                                             gene_seq)
+        tmp_mut_info = mc.get_aa_mut_info(row,
+                                          somatic_base,
+                                          gene_seq)
 
         # calculate position info
         tmp_recur_ct, tmp_entropy, tmp_delta_entropy = cutils.calc_pos_info(tmp_mut_info['Codon Pos'],
@@ -182,9 +183,9 @@ def effect_permutation(context_counts,
     effect_entropy_list, recur_list, inactivating_list = [], [], []
     for row in tmp_mut_pos:
         # get info about mutations
-        tmp_mut_info = utils.get_aa_mut_info(row,
-                                             somatic_base,
-                                             gene_seq)
+        tmp_mut_info = mc.get_aa_mut_info(row,
+                                          somatic_base,
+                                          gene_seq)
 
         # calculate position info
         tmp_entropy, tmp_recur, tmp_inactivating = cutils.calc_effect_info(tmp_mut_info['Codon Pos'],
@@ -241,9 +242,9 @@ def non_silent_ratio_permutation(context_counts,
     non_silent_count_list = []
     for row in tmp_mut_pos:
         # get info about mutations
-        tmp_mut_info = utils.get_aa_mut_info(row,
-                                             somatic_base,
-                                             gene_seq)
+        tmp_mut_info = mc.get_aa_mut_info(row,
+                                          somatic_base,
+                                          gene_seq)
 
         # calc deleterious mutation info
         tmp_non_silent = cutils.calc_non_silent_info(tmp_mut_info['Reference AA'],

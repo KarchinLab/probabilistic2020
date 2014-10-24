@@ -9,8 +9,8 @@ sys.path.append(os.path.join(file_dir, '../'))
 import permutation2020.python.permutation as pm
 import permutation2020.python.utils as utils
 from permutation2020.python.gene_sequence import GeneSequence
-from permutation2020.python.sequence_context import SequenceContext
 import permutation2020.cython.cutils as cutils
+import permutation2020.python.mutation_context as mc
 
 # external imports
 import numpy as np
@@ -157,61 +157,6 @@ def multiprocess_gene_shuffle(info, opts):
     return result_list
 
 
-def compute_mutation_context(bed, gs, df):
-    # prepare info for running permutation test
-    gene_mut = df[df['Gene']==bed.gene_name]
-    cols = ['Chromosome', 'Start_Position', 'Reference_Allele',
-            'Tumor_Allele', 'Variant_Classification', 'Protein_Change']
-    mut_info = gene_mut[cols]
-    gs.set_gene(bed)
-    sc = SequenceContext(gs)
-
-    # count total mutations in gene
-    total_mut = len(mut_info)
-
-    # fix nucleotide letter if gene is on - strand
-    if bed.strand == '-':
-        mut_info['Tumor_Allele'].map(lambda x: utils.rev_comp(x))
-
-    # get coding positions, mutations unmapped to the reference tx will have
-    # NA for a coding position
-    pos_list = []
-    for ix, row in mut_info.iterrows():
-        coding_pos = bed.query_position(bed.strand, row['Chromosome'], row['Start_Position'])
-        pos_list.append(coding_pos)
-    mut_info['Coding Position'] = pos_list
-
-    # recover mutations that could not be mapped to the reference transcript
-    # for a gene before being dropped (next step)
-    unmapped_mut_info = utils.recover_unmapped_mut_info(mut_info, bed, sc, opts)
-
-    # drop mutations wich do not map to reference tx
-    mut_info = mut_info.dropna(subset=['Coding Position'])  # mutations need to map to tx
-    mut_info['Coding Position'] = mut_info['Coding Position'].astype(int)
-    unmapped_muts = total_mut - len(mut_info)
-
-    if len(mut_info) > 0:
-        mut_info['Coding Position'] = mut_info['Coding Position'].astype(int)
-        mut_info['Context'] = mut_info['Coding Position'].apply(lambda x: sc.pos2context[x])
-
-        # group mutations by context
-        cols = ['Context', 'Tumor_Allele', 'Coding Position']
-        unmapped_mut_df = pd.DataFrame(unmapped_mut_info)
-        rename_dict = {'Codon Pos': 'Coding Position'}
-        unmapped_mut_df = unmapped_mut_df.rename(columns=rename_dict)
-        tmp_df = pd.concat([mut_info[cols], unmapped_mut_df[cols]])
-        context_cts = tmp_df['Context'].value_counts()
-        context_to_mutations = dict((name, group['Tumor_Allele'])
-                                    for name, group in tmp_df.groupby('Context'))
-    else:
-        # initialize empty results if there are no mutations
-        context_cts = pd.Series([])
-        context_to_mutations = {}
-        tmp_df = pd.DataFrame()
-
-    return context_cts, context_to_mutations, tmp_df, gs, sc
-
-
 @utils.log_error_decorator
 def singleprocess_gene_shuffle(info):
     #num_permutations = info[0][-1]  # number of permutations is always last column
@@ -255,13 +200,13 @@ def singleprocess_permutation(info):
     result = [[0, 0, 0, 0, 0, 0] for k in range(num_permutations)]
     for bed in bed_list:
         # compute context counts and somatic bases for each context
-        gene_tuple = compute_mutation_context(bed, gs, mut_df)
+        gene_tuple = mc.compute_mutation_context(bed, gs, mut_df)
         context_cts, context_to_mutations, mutations_df, gs, sc = gene_tuple
 
         if context_to_mutations:
             ## get information about observed non-silent counts
             # get info about mutations
-            tmp_mut_info = utils.get_aa_mut_info(mutations_df['Coding Position'],
+            tmp_mut_info = mc.get_aa_mut_info(mutations_df['Coding Position'],
                                                  mutations_df['Tumor_Allele'].tolist(),
                                                  gs)
             # calc deleterious mutation info
@@ -427,7 +372,7 @@ def main(opts):
         gs = GeneSequence(gene_fa, nuc_context=opts['context'])
         logger.info('Computing gene context counts . . .')
         for chrom in bed_dict:
-            bed_dict[chrom] = [list(compute_mutation_context(b, gs, mut_df))
+            bed_dict[chrom] = [list(mc.compute_mutation_context(b, gs, mut_df))
                                for b in bed_dict[chrom]]
         logger.info('Computed all mutational context counts.')
 

@@ -1,5 +1,6 @@
 import numpy as np
 import utils
+import mutation_context as mc
 
 
 class SequenceContext(object):
@@ -76,7 +77,7 @@ class SequenceContext(object):
             for i in range(1, len(gene_seq.exon_seq)-1):
                 nucs = gene_seq.exon_seq[i-1:i+2]
                 if ncontext == 1.5:
-                    context = utils.get_chasm_context(nucs)
+                    context = mc.get_chasm_context(nucs)
                 else:
                     context = nucs
                 self.context2pos.setdefault(context, [])
@@ -90,8 +91,8 @@ class SequenceContext(object):
                 first_pos = 2*i + gene_len
                 second_pos = 2*i + gene_len + 1
                 if ncontext == 1.5:
-                    first_context = utils.get_chasm_context(first_nucs)
-                    second_context = utils.get_chasm_context(second_nucs)
+                    first_context = mc.get_chasm_context(first_nucs)
+                    second_context = mc.get_chasm_context(second_nucs)
                 else:
                     first_context = first_nucs
                     second_context = second_nucs
@@ -108,8 +109,8 @@ class SequenceContext(object):
                 first_pos = 2*i + gene_len + five_ss_len
                 second_pos = 2*i + gene_len + five_ss_len + 1
                 if ncontext == 1.5:
-                    first_context = utils.get_chasm_context(first_nucs)
-                    second_context = utils.get_chasm_context(second_nucs)
+                    first_context = mc.get_chasm_context(first_nucs)
+                    second_context = mc.get_chasm_context(second_nucs)
                 else:
                     first_context = first_nucs
                     second_context = second_nucs
@@ -124,7 +125,7 @@ class SequenceContext(object):
             if gene_seq.exon_seq:
                 first_nuc = gene_seq.exon_seq[0] + gene_seq.exon_seq[:2]
                 if ncontext == 1.5:
-                    first_context = utils.get_chasm_context(first_nuc)
+                    first_context = mc.get_chasm_context(first_nuc)
                 else:
                     first_context = first_nuc
                 self.pos2context[0] = first_context
@@ -132,7 +133,7 @@ class SequenceContext(object):
                 self.context2pos[first_context].append(0)
                 last_nuc = gene_seq.exon_seq[-2:] + gene_seq.exon_seq[-1]
                 if ncontext == 1.5:
-                    last_context = utils.get_chasm_context(last_nuc)
+                    last_context = mc.get_chasm_context(last_nuc)
                 else:
                     last_context = last_nuc
                 last_pos = len(gene_seq.exon_seq) - 1
