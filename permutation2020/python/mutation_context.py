@@ -1,11 +1,28 @@
 import permutation2020.python.utils as utils
+from permutation2020.python.sequence_context import SequenceContext
 from ..cython import cutils
 import pandas as pd
 import pysam
 import itertools as it
 
 
-def compute_mutation_context(bed, gs, df):
+def get_all_context_names(context_num):
+    if context_num == 0:
+        return ['None']
+    elif context_num == 1:
+        return ['A', 'C', 'T', 'G']
+    elif context_num == 1.5:
+        return ['C*pG', 'CpG*', 'TpC*', 'G*pA',
+                'A', 'C', 'T', 'G']
+    elif context_num == 2:
+        dinucs = [''.join(dinuc) for dinuc in it.combinations_with_replacement('ACTG', 2)]
+        return dinucs
+    elif context_num == 3:
+        trinucs = [''.join(trinuc) for trinuc in it.combinations_with_replacement('ACTG', 3)]
+        return trinucs
+
+
+def compute_mutation_context(bed, gs, df, opts):
     # prepare info for running permutation test
     gene_mut = df[df['Gene']==bed.gene_name]
     cols = ['Chromosome', 'Start_Position', 'Reference_Allele',
@@ -38,12 +55,12 @@ def compute_mutation_context(bed, gs, df):
     mut_info['Coding Position'] = mut_info['Coding Position'].astype(int)
     unmapped_muts = total_mut - len(mut_info)
 
+    cols = ['Context', 'Tumor_Allele', 'Coding Position']
     if len(mut_info) > 0:
         mut_info['Coding Position'] = mut_info['Coding Position'].astype(int)
         mut_info['Context'] = mut_info['Coding Position'].apply(lambda x: sc.pos2context[x])
 
         # group mutations by context
-        cols = ['Context', 'Tumor_Allele', 'Coding Position']
         unmapped_mut_df = pd.DataFrame(unmapped_mut_info)
         rename_dict = {'Codon Pos': 'Coding Position'}
         unmapped_mut_df = unmapped_mut_df.rename(columns=rename_dict)
@@ -55,7 +72,7 @@ def compute_mutation_context(bed, gs, df):
         # initialize empty results if there are no mutations
         context_cts = pd.Series([])
         context_to_mutations = {}
-        tmp_df = pd.DataFrame()
+        tmp_df = pd.DataFrame(columns=cols)
 
     return context_cts, context_to_mutations, tmp_df, gs, sc
 

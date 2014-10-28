@@ -200,7 +200,7 @@ def singleprocess_permutation(info):
     result = [[0, 0, 0, 0, 0, 0] for k in range(num_permutations)]
     for bed in bed_list:
         # compute context counts and somatic bases for each context
-        gene_tuple = mc.compute_mutation_context(bed, gs, mut_df)
+        gene_tuple = mc.compute_mutation_context(bed, gs, mut_df, opts)
         context_cts, context_to_mutations, mutations_df, gs, sc = gene_tuple
 
         if context_to_mutations:
@@ -372,7 +372,7 @@ def main(opts):
         gs = GeneSequence(gene_fa, nuc_context=opts['context'])
         logger.info('Computing gene context counts . . .')
         for chrom in bed_dict:
-            bed_dict[chrom] = [list(mc.compute_mutation_context(b, gs, mut_df))
+            bed_dict[chrom] = [list(mc.compute_mutation_context(b, gs, mut_df, opts))
                                for b in bed_dict[chrom]]
         logger.info('Computed all mutational context counts.')
 
