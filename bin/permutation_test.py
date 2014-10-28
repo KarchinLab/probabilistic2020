@@ -563,13 +563,14 @@ def parse_arguments():
     return opts
 
 
-def main(opts):
+def main(opts, mut_df=None):
     # hack to index the FASTA file
     gene_fa = pysam.Fastafile(opts['input'])
     gene_fa.close()
 
     # Get Mutations
-    mut_df = pd.read_csv(opts['mutations'], sep='\t')
+    if mut_df is None:
+        mut_df = pd.read_csv(opts['mutations'], sep='\t')
     orig_num_mut = len(mut_df)
     mut_df = mut_df.dropna(subset=['Tumor_Allele', 'Start_Position', 'Chromosome'])
     logger.info('Kept {0} mutations after droping mutations with missing '

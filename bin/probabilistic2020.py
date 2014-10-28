@@ -198,12 +198,14 @@ def parse_arguments():
     return opts
 
 
-def main(opts):
+def main(opts,
+         mutation_df=None,
+         frameshift_df=None):
     # get output file
     myoutput_path = opts['output']
     opts['output'] = ''
 
-    result_df = pt.main(opts)
+    result_df = pt.main(opts, mutation_df)
 
     # clean up p-values for combined p-value calculation
     if opts['kind'] == 'tsg':
@@ -222,14 +224,15 @@ def main(opts):
     result_df[q_val_col] = result_df[q_val_col].fillna(1)
 
     if opts['kind'] != 'oncogene':
-        frameshift_result = fs.main(opts)
+        frameshift_result = fs.main(opts, fs_cts=frameshift_df)
         result_df = pd.merge(result_df, frameshift_result, how='outer',
                              left_on='gene', right_on='gene')
         result_df['combined p-value'] = result_df[[p_val_col, 'frameshift p-value']].apply(utils.fishers_method, axis=1)
         result_df['combined BH q-value'] = utils.bh_fdr(result_df['combined p-value'])
         result_df = result_df.sort(columns='combined p-value')
 
-    result_df.to_csv(myoutput_path, sep='\t', index=False)
+    if myoutput_path:
+        result_df.to_csv(myoutput_path, sep='\t', index=False)
 
     return result_df
 

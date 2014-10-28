@@ -10,7 +10,7 @@ import logging
 
 logger = logging.getLogger(__name__)  # module logger
 
-def multiprocess_simulate(dfg, bed_dict, non_tested_genes, opts,
+def multiprocess_simulate(dfg, opts,
                           singleprocess_func):
     # handle the number of processes to use, should it even use the
     # multiprocessing module?
@@ -31,7 +31,7 @@ def multiprocess_simulate(dfg, bed_dict, non_tested_genes, opts,
             time.sleep(5)  # wait 5 seconds, might help make sure memory is free
             tmp_num_pred = dfg.num_iter - i if  i + num_processes > dfg.num_iter else num_processes
             # df_generator = dfg.dataframe_generator()
-            info_repeat = it.repeat((dfg, bed_dict, non_tested_genes, opts), tmp_num_pred)
+            info_repeat = it.repeat((dfg, opts), tmp_num_pred)
             #pool = Pool(processes=tmp_num_pred)
             process_results = pool.imap(singleprocess_func, info_repeat)
             process_results.next = utils.keyboard_exit_wrapper(process_results.next)
@@ -46,7 +46,7 @@ def multiprocess_simulate(dfg, bed_dict, non_tested_genes, opts,
             pool.close()
             pool.join()
         else:
-            info = (dfg, bed_dict, non_tested_genes, opts)
+            info = (dfg, opts)
             tmp_result = singleprocess_func(info)
             result_list.append(tmp_result)
     return result_list

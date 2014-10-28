@@ -208,9 +208,11 @@ def parse_arguments():
     return vars(args)
 
 
-def main(opts):
+def main(opts,
+         fs_cts=None):
     # read in gene frameshift counts
-    fs_cts = pd.read_csv(opts['frameshift_counts'], sep='\t', index_col=0)
+    if fs_cts is None:
+        fs_cts = pd.read_csv(opts['frameshift_counts'], sep='\t', index_col=0)
     total_fs = fs_cts.pop('total')
     fs_cts = fs_cts.drop(['unmapped', 'gene length'], axis=1)
     gene_bases_at_risk = fs_cts.pop('bases at risk')
