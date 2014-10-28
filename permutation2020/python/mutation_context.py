@@ -1,5 +1,5 @@
 import permutation2020.python.utils as utils
-from permutation2020.python.sequence_context import SequenceContext
+import permutation2020.python.sequence_context
 from ..cython import cutils
 import pandas as pd
 import pysam
@@ -15,10 +15,12 @@ def get_all_context_names(context_num):
         return ['C*pG', 'CpG*', 'TpC*', 'G*pA',
                 'A', 'C', 'T', 'G']
     elif context_num == 2:
-        dinucs = [''.join(dinuc) for dinuc in it.combinations_with_replacement('ACTG', 2)]
+        dinucs = [''.join(dinuc)
+                  for dinuc in it.combinations_with_replacement('ACTG', 2)]
         return dinucs
     elif context_num == 3:
-        trinucs = [''.join(trinuc) for trinuc in it.combinations_with_replacement('ACTG', 3)]
+        trinucs = [''.join(trinuc)
+                   for trinuc in it.combinations_with_replacement('ACTG', 3)]
         return trinucs
 
 
@@ -29,7 +31,7 @@ def compute_mutation_context(bed, gs, df, opts):
             'Tumor_Allele', 'Variant_Classification', 'Protein_Change']
     mut_info = gene_mut[cols]
     gs.set_gene(bed)
-    sc = SequenceContext(gs)
+    sc = permutation2020.python.sequence_context.SequenceContext(gs)
 
     # count total mutations in gene
     total_mut = len(mut_info)
