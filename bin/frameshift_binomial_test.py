@@ -161,6 +161,21 @@ def parse_arguments():
     info = ('Peform a Binomial test on the frequency of frameshift mutations '
             'compared to the background.')
     parser = argparse.ArgumentParser(description=info)
+
+    # logging arguments
+    parser.add_argument('-ll', '--log-level',
+                        type=str,
+                        action='store',
+                        default='',
+                        help='Write a log file (--log-level=DEBUG for debug mode, '
+                        '--log-level=INFO for info mode)')
+    parser.add_argument('-l', '--log',
+                        type=str,
+                        action='store',
+                        default='',
+                        help='Path to log file. (accepts "stdout")')
+
+    # script arguments
     help_str = 'Frameshift counts from count_frameshifts.py'
     parser.add_argument('-fc', '--frameshift-counts',
                         type=str, required=True,
