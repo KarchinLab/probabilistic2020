@@ -83,10 +83,17 @@ def calc_performance(df, opts):
                                           entropy_num_signif]},
                                 index=['{0} recurrent'.format(opts['kind']),
                                        '{0} entropy'.format(opts['kind'])])
-    else:
+    elif opts['kind'] == 'tsg':
         deleterious_num_signif = len(permutation_df[permutation_df['deleterious BH q-value']<.1])
         results = pd.DataFrame({'count': [deleterious_num_signif]},
                                 index=['{0} deleterious'.format(opts['kind'])])
+    elif opts['kind'] == 'effect':
+        combined_num_signif = len(permutation_df[permutation_df['combined BH q-value']<.1])
+        effect_num_signif = len(permutation_df[permutation_df['entropy-on-effect BH q-value']<.1])
+        results = pd.DataFrame({'count': [effect_num_signif,
+                                          combined_num_signif]},
+                                index=['entropy-on-effect',
+                                       'combined'])
 
     return results
 

@@ -44,3 +44,9 @@ def test_100genes_main():
     tsg_path = 'output/100genes_deleterious_sim_perf_chasm_output.txt'
     opts['text_output'] = os.path.join(file_dir, tsg_path)
     result = sp.main(opts)
+
+    # check effect simulation
+    opts['kind'] = 'effect'
+    effect_path = 'output/100genes_effect_sim_perf_chasm_output.txt'
+    opts['text_output'] = os.path.join(file_dir, effect_path)
+    result = sp.main(opts)
