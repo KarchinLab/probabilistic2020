@@ -58,7 +58,7 @@ def start_logging(log_file='', log_level='INFO'):
 
 def parse_arguments():
     # make a parser
-    info = 'Performs a permutation test on the oncogene and TSG score'
+    info = 'Performs a statistical test for oncogene, TSG, or driver gene'
     parser = argparse.ArgumentParser(description=info)
 
     # logging arguments
@@ -118,7 +118,7 @@ def parse_arguments():
                         help=help_str)
     help_str = 'Frameshift counts from count_frameshifts.py'
     parser.add_argument('-fc', '--frameshift-counts',
-                        type=str, required=True,
+                        type=str,
                         help=help_str)
     help_str = ('Background non-coding rate of INDELs with lengths matching '
                 'frameshifts in --frameshift-counts option. Enter path to file '
@@ -205,6 +205,7 @@ def main(opts,
     myoutput_path = opts['output']
     opts['output'] = ''
 
+    # perform permutation test
     result_df = pt.main(opts, mutation_df)
 
     # clean up p-values for combined p-value calculation
@@ -217,13 +218,15 @@ def main(opts,
     elif opts['kind'] == 'oncogene':
         p_val_col = 'entropy p-value'
         q_val_col = 'entropy BH q-value'
-    smallest_p_val = 1. / (opts['num_permutations'] * 10.)
+    #smallest_p_val = 1. / (opts['num_permutations'] * 10.)
+    smallest_p_val = 1. / (opts['num_permutations'])
     result_df[p_val_col] = result_df[p_val_col].where(result_df[p_val_col]!=0,
                                                       smallest_p_val)
     result_df[p_val_col] = result_df[p_val_col].fillna(1)
     result_df[q_val_col] = result_df[q_val_col].fillna(1)
 
     if opts['kind'] != 'oncogene':
+        # perform frameshift test if not trying to identify oncogenes
         frameshift_result = fs.main(opts, fs_cts=frameshift_df)
         result_df = pd.merge(result_df, frameshift_result, how='outer',
                              left_on='gene', right_on='gene')
@@ -232,6 +235,7 @@ def main(opts,
         result_df = result_df.sort(columns='combined p-value')
 
     if myoutput_path:
+        # write output if specified
         result_df.to_csv(myoutput_path, sep='\t', index=False)
 
     return result_df
