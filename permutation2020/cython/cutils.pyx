@@ -123,14 +123,15 @@ def calc_effect_info(aa_mut_pos,
         pos = aa_mut_pos[i]
         # make sure mutation is missense
         if germ_aa[i] and somatic_aa[i] and germ_aa[i] != '*' and \
-           somatic_aa[i] != '*' and germ_aa[i] != somatic_aa[i]:
+           somatic_aa[i] != '*' and germ_aa[i] != somatic_aa[i] and \
+           pos != 0:
             # should have a position, but if not skip it
             if pos is not None:
                 if pos_ctr.count(pos) == 0:
                     pos_ctr[pos] = 0
                 pos_ctr[pos] += 1
                 tmp_pos_list.append(pos)
-        elif ((germ_aa[i] == '*' or somatic_aa[i] == '*') and \
+        elif ((germ_aa[i] == '*' or somatic_aa[i] == '*' or pos==0) and \
               (germ_aa[i] != somatic_aa[i])) or \
              (germ_aa[i] == 'Splice_Site' or somatic_aa[i] == 'Splice_Site'):
             # case for inactivating mutations
@@ -151,7 +152,7 @@ def calc_effect_info(aa_mut_pos,
     return frac_effect_ent, num_recur, num_inactivating
 
 
-def calc_deleterious_info(germ_aa, somatic_aa):
+def calc_deleterious_info(germ_aa, somatic_aa, codon_pos):
     cdef:
         int i, num_mutations = 0, num_deleterious = 0
 
@@ -161,7 +162,7 @@ def calc_deleterious_info(germ_aa, somatic_aa):
 
     for i in range(num_mutations):
         if germ_aa[i] and somatic_aa[i] and \
-           ((germ_aa[i] == '*' or somatic_aa[i] == '*') and \
+           ((germ_aa[i] == '*' or somatic_aa[i] == '*' or codon_pos[i]==0) and \
             germ_aa[i] != somatic_aa[i]) or \
            somatic_aa[i] == 'Splice_Site':
             num_deleterious += 1
@@ -169,11 +170,12 @@ def calc_deleterious_info(germ_aa, somatic_aa):
     return num_deleterious
 
 
-def calc_non_silent_info(germ_aa, somatic_aa):
+def calc_non_silent_info(germ_aa, somatic_aa, codon_pos):
     cdef:
         int i, num_mutations = 0
         int num_non_silent = 0, num_silent = 0, num_nonsense = 0
         int num_loststop = 0, num_splice_site = 0, num_missense = 0
+        int num_loststart = 0
 
     num_mutations = len(somatic_aa)
     if len(germ_aa) != num_mutations:
@@ -193,10 +195,13 @@ def calc_non_silent_info(germ_aa, somatic_aa):
                 num_splice_site += 1
                 num_non_silent += 1
             elif somatic_aa[i] != germ_aa[i]:
-                num_missense += 1
+                if codon_pos[i] == 0:
+                    num_loststart += 1
+                else:
+                    num_missense += 1
                 num_non_silent += 1
             else:
                 num_silent += 1
 
     return [num_non_silent, num_silent, num_nonsense,
-            num_loststop, num_splice_site, num_missense]
+            num_loststop, num_splice_site, num_loststart, num_missense]

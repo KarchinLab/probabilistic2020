@@ -87,7 +87,8 @@ def calc_deleterious_p_value(mut_info,
                                          gs)
         ref_aa = aa_mut_info['Reference AA'] + unmapped_mut_info['Reference AA']
         somatic_aa = aa_mut_info['Somatic AA'] + unmapped_mut_info['Somatic AA']
-        num_del = cutils.calc_deleterious_info(ref_aa, somatic_aa)
+        codon_pos = aa_mut_info['Codon Pos'] + unmapped_mut_info['Codon Pos']
+        num_del = cutils.calc_deleterious_info(ref_aa, somatic_aa, codon_pos)
 
         # skip permutation test if number of deleterious mutations is not at
         # least meet some user-specified threshold
@@ -380,7 +381,7 @@ def handle_oncogene_results(permutation_result, non_tested_genes):
               'recurrent p-value', 'entropy p-value',
               'delta entropy p-value',
               # 'kde entropy p-value', 'kde bandwidth p-value',
-              'Total Mutations', "Unmapped to Ref Tx"]
+              'Total Mutations', 'Unmapped to Ref Tx']
     permutation_df = pd.DataFrame(sorted(permutation_result, key=lambda x: x[4]),
                                   columns=mycols)
 
@@ -415,7 +416,7 @@ def handle_oncogene_results(permutation_result, non_tested_genes):
 def handle_effect_results(permutation_result):
     mycols = ['gene', 'num recurrent', 'num inactivating', 'entropy-on-effect',
               'entropy-on-effect p-value',
-              'Total Mutations', "Unmapped to Ref Tx"]
+              'Total Mutations', 'Unmapped to Ref Tx']
     permutation_df = pd.DataFrame(sorted(permutation_result, key=lambda x: x[4]),
                                   columns=mycols)
 

@@ -58,7 +58,8 @@ def deleterious_permutation(context_counts,
 
         # calc deleterious mutation info
         tmp_del_count = cutils.calc_deleterious_info(tmp_mut_info['Reference AA'],
-                                                     tmp_mut_info['Somatic AA'])
+                                                     tmp_mut_info['Somatic AA'],
+                                                     tmp_mut_info['Codon Pos'])
         del_count_list.append(tmp_del_count + pseudo_count)
     return del_count_list
 
@@ -248,6 +249,7 @@ def non_silent_ratio_permutation(context_counts,
 
         # calc deleterious mutation info
         tmp_non_silent = cutils.calc_non_silent_info(tmp_mut_info['Reference AA'],
-                                                     tmp_mut_info['Somatic AA'])
+                                                     tmp_mut_info['Somatic AA'],
+                                                     tmp_mut_info['Codon Pos'])
         non_silent_count_list.append(tmp_non_silent)
     return non_silent_count_list
