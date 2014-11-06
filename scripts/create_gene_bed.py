@@ -20,6 +20,10 @@ def parse_arguments():
     parser.add_argument('-g', '--genes',
                         required=True, type=str,
                         help=help_str)
+    help_str = 'Text file containing chromosome names to ignore (e.g. chr6 haplotypes?).'
+    parser.add_argument('-i', '--ignore-chroms',
+                        required=True, type=str,
+                        help=help_str)
     help_str = 'Path to save BED file describing genes rather than transcripts'
     parser.add_argument('-o', '--output',
                         required=True, type=str,
@@ -36,7 +40,12 @@ def main(opts):
     tx_df = pd.read_csv(opts['bed'], sep='\t',
                         header=None, names=bed_cols)
 
-    # drop all rows that are part of duplicate positions (eg tx on chrX and
+    # chromsomes to ignore
+    with open(opts['ignore_chroms']) as handle:
+        ignore_chroms = [c.strip() for c in handle.readlines()]
+    tx_df = tx_df[~tx_df['chrom'].isin(ignore_chroms)]
+
+    # drop all rows that are part of duplicate positions (e.g. tx on chrX and
     # chrY)
     tx_grp = tx_df.groupby('name')
     tx_df = tx_df.set_index('name')  # set tx ids as indices

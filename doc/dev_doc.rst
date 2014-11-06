@@ -35,10 +35,10 @@ The output was saved as output/gene_bed/ucsc_table_browser_output.bed. The outpu
 
 .. code-block:: bash
 
-   $ python scripts/create_gene_bed.py -b output/gene_bed/ucsc_table_browser_output.bed -g output/gene_bed/unique_longest_tx.txt -o data/snvboxGenes.bed
+   $ python scripts/create_gene_bed.py -b output/gene_bed/ucsc_table_browser_output.bed -i output/gene_bed/ignore_chroms.txt -g output/gene_bed/unique_longest_tx.txt -o data/snvboxGenes.bed
 
 NOTE: Any transcripts from the table browser that had multiple positions (eg on chrX 
-and chrY) along with their corresponding gene were not saved in the final output.
+and chrY) along with their corresponding gene were not saved in the final output. To prevent genes from not being used because of duplicate positions but on say non-canonical chromosome names, use the -i option to filter out those issues.
 
 Creating Gene FASTA
 -------------------
