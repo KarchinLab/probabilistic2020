@@ -61,7 +61,7 @@ def start_logging(log_file='', log_level='INFO'):
 
 
 def parse_arguments():
-    info = 'Extracts gene sequences from a genomic FASTA file'
+    info = 'Checks mutations to see what strand they are reported on and for unmapped mutations.'
     parser = argparse.ArgumentParser(description=info)
 
     # logging arguments
