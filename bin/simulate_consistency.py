@@ -84,9 +84,9 @@ def consistency_comparison(df1, df2, opts):
         sort_cols = ['recurrent p-value', 'gene']
         permutation_df1 = permutation_df1.sort(columns=sort_cols)
         permutation_df2 = permutation_df2.sort(columns=sort_cols)
-        recurrent_jaccard = sim.jaccard_index(permutation_df1['recurrent BH q-value'],
+        recurrent_jaccard = sim.overlap(permutation_df1['recurrent BH q-value'],
                                               permutation_df2['recurrent BH q-value'])
-        ji_mean_tuple = sim.weighted_jaccard_index(permutation_df1['recurrent BH q-value'],
+        ji_mean_tuple = sim.weighted_overlap(permutation_df1['recurrent BH q-value'],
                                                    permutation_df2['recurrent BH q-value'],
                                                    max_depth=opts['depth'],
                                                    step_size=opts['step_size'],
@@ -96,9 +96,9 @@ def consistency_comparison(df1, df2, opts):
         sort_cols = ['entropy p-value', 'gene']
         permutation_df1 = permutation_df1.sort(columns=sort_cols)
         permutation_df2 = permutation_df2.sort(columns=sort_cols)
-        entropy_jaccard = sim.jaccard_index(permutation_df1['entropy BH q-value'],
+        entropy_jaccard = sim.overlap(permutation_df1['entropy BH q-value'],
                                             permutation_df2['entropy BH q-value'])
-        ji_mean_tuple = sim.weighted_jaccard_index(permutation_df1['entropy BH q-value'],
+        ji_mean_tuple = sim.weighted_overlap(permutation_df1['entropy BH q-value'],
                                                    permutation_df2['entropy BH q-value'],
                                                    max_depth=opts['depth'],
                                                    step_size=opts['step_size'],
@@ -108,9 +108,9 @@ def consistency_comparison(df1, df2, opts):
         sort_cols = ['delta entropy p-value', 'gene']
         permutation_df1 = permutation_df1.sort(columns=sort_cols)
         permutation_df2 = permutation_df2.sort(columns=sort_cols)
-        delta_entropy_jaccard = sim.jaccard_index(permutation_df1['delta entropy BH q-value'],
+        delta_entropy_jaccard = sim.overlap(permutation_df1['delta entropy BH q-value'],
                                                   permutation_df2['delta entropy BH q-value'])
-        ji_mean_tuple = sim.weighted_jaccard_index(permutation_df1['delta entropy BH q-value'],
+        ji_mean_tuple = sim.weighted_overlap(permutation_df1['delta entropy BH q-value'],
                                                    permutation_df2['delta entropy BH q-value'],
                                                    max_depth=opts['depth'],
                                                    step_size=opts['step_size'],
@@ -143,50 +143,118 @@ def consistency_comparison(df1, df2, opts):
         sort_cols = ['deleterious p-value', 'gene']
         permutation_df1 = permutation_df1.sort(columns=sort_cols)
         permutation_df2 = permutation_df2.sort(columns=sort_cols)
-        deleterious_jaccard = sim.jaccard_index(permutation_df1['deleterious BH q-value'],
+        deleterious_jaccard = sim.overlap(permutation_df1['deleterious BH q-value'],
                                                 permutation_df2['deleterious BH q-value'])
-        ji_mean_tuple = sim.weighted_jaccard_index(permutation_df1['deleterious BH q-value'],
+        ji_mean_tuple = sim.weighted_overlap(permutation_df1['deleterious BH q-value'],
                                                    permutation_df2['deleterious BH q-value'],
                                                    max_depth=opts['depth'],
                                                    step_size=opts['step_size'],
                                                    weight_factor=opts['weight'])
         deleterious_ji, deleterious_mean_ji, deleterious_weighted_mean_ji = ji_mean_tuple
 
-        results = pd.DataFrame({'jaccard index': [deleterious_jaccard],
-                                'mean jaccard index': [deleterious_mean_ji],
-                                'weighted mean jaccard index': [deleterious_weighted_mean_ji],
+        # frameshift p-values
+        sort_cols = ['frameshift p-value', 'gene']
+        permutation_df1 = permutation_df1.sort(columns=sort_cols)
+        permutation_df2 = permutation_df2.sort(columns=sort_cols)
+        fs_jaccard = sim.overlap(permutation_df1['frameshift BH q-value'],
+                                                permutation_df2['frameshift BH q-value'])
+        ji_mean_tuple = sim.weighted_overlap(permutation_df1['frameshift BH q-value'],
+                                                   permutation_df2['frameshift BH q-value'],
+                                                   max_depth=opts['depth'],
+                                                   step_size=opts['step_size'],
+                                                   weight_factor=opts['weight'])
+        fs_ji, fs_mean_ji, fs_weighted_mean_ji = ji_mean_tuple
+
+        # combined p-value
+        sort_cols = ['combined p-value', 'gene']
+        permutation_df1 = permutation_df1.sort(columns=sort_cols)
+        permutation_df2 = permutation_df2.sort(columns=sort_cols)
+        comb_jaccard = sim.overlap(permutation_df1['combined BH q-value'],
+                                                permutation_df2['combined BH q-value'])
+        ji_mean_tuple = sim.weighted_overlap(permutation_df1['combined BH q-value'],
+                                                   permutation_df2['combined BH q-value'],
+                                                   max_depth=opts['depth'],
+                                                   step_size=opts['step_size'],
+                                                   weight_factor=opts['weight'])
+        comb_ji, comb_mean_ji, comb_weighted_mean_ji = ji_mean_tuple
+
+        results = pd.DataFrame({'jaccard index': [deleterious_jaccard,
+                                                  fs_jaccard,
+                                                  comb_jaccard],
+                                'mean jaccard index': [deleterious_mean_ji,
+                                                       fs_mean_ji,
+                                                       comb_mean_ji],
+                                'weighted mean jaccard index': [deleterious_weighted_mean_ji,
+                                                                fs_weighted_mean_ji,
+                                                                comb_weighted_mean_ji],
                                 },
-                                index=['{0} deleterious'.format(opts['kind'])])
+                                index=['{0} deleterious'.format(opts['kind']),
+                                       'frameshift', 'combined'])
 
         # record jaccard index at intervals
         ji_intervals = range(opts['step_size'], opts['depth']+1, opts['step_size'])
-        ji_df = pd.DataFrame({'deleterious ji': deleterious_ji},
+        ji_df = pd.DataFrame({'deleterious ji': deleterious_ji,
+                              'frameshift ji': fs_ji,
+                              'combined ji': comb_ji},
                              index=ji_intervals)
     else:
         # calculate jaccard similarity
         sort_cols = ['entropy-on-effect p-value', 'gene']
         permutation_df1 = permutation_df1.sort(columns=sort_cols)
         permutation_df2 = permutation_df2.sort(columns=sort_cols)
-        on_effect_jaccard = sim.jaccard_index(permutation_df1['entropy-on-effect BH q-value'],
+        on_effect_jaccard = sim.overlap(permutation_df1['entropy-on-effect BH q-value'],
                                               permutation_df2['entropy-on-effect BH q-value'])
-        ji_mean_tuple = sim.weighted_jaccard_index(permutation_df1['entropy-on-effect BH q-value'],
+        ji_mean_tuple = sim.weighted_overlap(permutation_df1['entropy-on-effect BH q-value'],
                                                    permutation_df2['entropy-on-effect BH q-value'],
                                                    max_depth=opts['depth'],
                                                    step_size=opts['step_size'],
                                                    weight_factor=opts['weight'])
         on_effect_ji, on_effect_mean_ji, on_effect_weighted_mean_ji = ji_mean_tuple
 
-        results = pd.DataFrame({'jaccard index': [on_effect_jaccard],
-                                'mean jaccard index': [on_effect_mean_ji],
-                                'weighted mean jaccard index': [on_effect_weighted_mean_ji],
+        # calc frameshift
+        sort_cols = ['frameshift p-value', 'gene']
+        permutation_df1 = permutation_df1.sort(columns=sort_cols)
+        permutation_df2 = permutation_df2.sort(columns=sort_cols)
+        fs_jaccard = sim.overlap(permutation_df1['frameshift BH q-value'],
+                                              permutation_df2['frameshift BH q-value'])
+        ji_mean_tuple = sim.weighted_overlap(permutation_df1['frameshift BH q-value'],
+                                                   permutation_df2['frameshift BH q-value'],
+                                                   max_depth=opts['depth'],
+                                                   step_size=opts['step_size'],
+                                                   weight_factor=opts['weight'])
+        fs_ji, fs_mean_ji, fs_weighted_mean_ji = ji_mean_tuple
+
+        # calc combined
+        sort_cols = ['combined p-value', 'gene']
+        permutation_df1 = permutation_df1.sort(columns=sort_cols)
+        permutation_df2 = permutation_df2.sort(columns=sort_cols)
+        comb_jaccard = sim.overlap(permutation_df1['combined BH q-value'],
+                                              permutation_df2['combined BH q-value'])
+        ji_mean_tuple = sim.weighted_overlap(permutation_df1['combined BH q-value'],
+                                                   permutation_df2['combined BH q-value'],
+                                                   max_depth=opts['depth'],
+                                                   step_size=opts['step_size'],
+                                                   weight_factor=opts['weight'])
+        comb_ji, comb_mean_ji, comb_weighted_mean_ji = ji_mean_tuple
+
+        results = pd.DataFrame({'jaccard index': [on_effect_jaccard,
+                                                  fs_jaccard,
+                                                  comb_jaccard],
+                                'mean jaccard index': [on_effect_mean_ji,
+                                                       fs_mean_ji,
+                                                       comb_mean_ji],
+                                'weighted mean jaccard index': [on_effect_weighted_mean_ji,
+                                                                fs_weighted_mean_ji,
+                                                                comb_weighted_mean_ji],
                                 },
-                                index=['entropy-on-effect'])
+                                index=['entropy-on-effect', 'frameshift', 'combined'])
 
         # record jaccard index at intervals
         ji_intervals = range(opts['step_size'], opts['depth']+1, opts['step_size'])
-        ji_df = pd.DataFrame({'entropy-on-effect ji': on_effect_ji},
+        ji_df = pd.DataFrame({'entropy-on-effect ji': on_effect_ji,
+                              'frameshift ji': fs_ji,
+                              'combined ji': comb_ji},
                              index=ji_intervals)
-
     return results, ji_df
 
 
@@ -272,7 +340,7 @@ def parse_arguments():
                         help=help_str)
     help_str = 'Number of sequenced samples'
     parser.add_argument('-sn', '--sample-number',
-                        type=int, required=True,
+                        type=int,
                         help=help_str)
     help_str = ('Number of processes to use. 0 indicates using a single '
                 'process without using a multiprocessing pool '
@@ -379,6 +447,12 @@ def main(opts):
     # read in mutations
     mut_df = pd.read_csv(opts['mutations'], sep='\t')
 
+    # pre-filter out high TSG score genes if using oncogene method
+    if opts['kind'] == 'oncogene':
+        non_tested_genes = utils._get_high_tsg_score(mut_df, opts['tsg_score'])
+        mut_df = mut_df[~mut_df['Gene'].isin(non_tested_genes)]
+        opts['tsg_score'] = 1.0
+
     # object that generates features from randomly choosen sample names while
     # still respecting the stratification of tumor types
     if not opts['with_replacement']:
@@ -392,6 +466,10 @@ def main(opts):
                           sub_sample=sample_rate,
                           num_iter=opts['iterations'],
                           with_replacement=True)
+
+    # correct sample numbers for down sampling
+    if opts['sample_number']:
+        opts['sample_number'] = int(sample_rate * opts['sample_number'])
 
     # perform simulation
     multiproces_output = sim.multiprocess_simulate(dfg, opts.copy(),
