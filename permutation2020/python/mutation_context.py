@@ -1,6 +1,7 @@
 import permutation2020.python.utils as utils
 import permutation2020.python.sequence_context
 from ..cython import cutils
+import numpy as np
 import pandas as pd
 import pysam
 import itertools as it
