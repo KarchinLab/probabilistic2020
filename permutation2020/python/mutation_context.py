@@ -1,5 +1,6 @@
 import permutation2020.python.utils as utils
 import permutation2020.python.sequence_context
+from amino_acid import AminoAcid
 from ..cython import cutils
 import numpy as np
 import pandas as pd

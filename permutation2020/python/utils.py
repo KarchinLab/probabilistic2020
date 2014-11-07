@@ -5,11 +5,8 @@ import scipy.stats as stats
 import pandas as pd
 import csv
 import itertools as it
-from ..cython import cutils
-from amino_acid import AminoAcid
 from functools import wraps
 import logging
-import pysam
 
 logger = logging.getLogger(__name__)  # module logger
 
