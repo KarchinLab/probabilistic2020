@@ -301,7 +301,7 @@ def weighted_jaccard_index(fdr1, fdr2,
             ji[i] = ji_tmp
             ji_all[i] = ji_tmp
         else:
-            ji_all[i] = jaccard_index(fdr1.iloc[:depth].copy(), fdr2, depth=max_depth)
+            ji_all[i] = jaccard_index(fdr1.iloc[:max_depth].copy(), fdr2, depth=depth)
 
     # calculate the weighting for jaccard index
     p = weight_factor ** (1./(num_depths-1))
