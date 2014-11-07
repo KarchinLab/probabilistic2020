@@ -38,4 +38,5 @@ def test_100genes_main():
     opts['deleterious'] = 1
     opts['kind'] = 'tsg'
     opts['output'] = os.path.join(file_dir, 'output/100genes_deleterious_sim_consis_chasm_output.txt')
+    opts['jaccard_curve'] = os.path.join(file_dir, 'output/100genes_deleterious_sim_consis_chasm_jaccard_curve_output.txt')
     result = sc.main(opts)
