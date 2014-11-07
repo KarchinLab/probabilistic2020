@@ -219,7 +219,7 @@ def main(opts,
         p_val_col = 'entropy p-value'
         q_val_col = 'entropy BH q-value'
     #smallest_p_val = 1. / (opts['num_permutations'] * 10.)
-    smallest_p_val = 1. / (opts['num_permutations'])
+    smallest_p_val = 1. / (opts['num_permutations']*1.001)
     result_df[p_val_col] = result_df[p_val_col].where(result_df[p_val_col]!=0,
                                                       smallest_p_val)
     result_df[p_val_col] = result_df[p_val_col].fillna(1)
@@ -230,13 +230,27 @@ def main(opts,
         frameshift_result = fs.main(opts, fs_cts=frameshift_df)
         result_df = pd.merge(result_df, frameshift_result, how='outer',
                              left_on='gene', right_on='gene')
+
+        # drop genes that never occur
+        if opts['kind'] == 'tsg' or opts['kind'] == 'effect':
+            no_ssvs = (result_df['Total Mutations']==0) & (result_df['total frameshifts']==0)
+            result_df = result_df[~no_ssvs]
+
+        # calculate combined results
         result_df['combined p-value'] = result_df[[p_val_col, 'frameshift p-value']].apply(utils.fishers_method, axis=1)
         result_df['combined BH q-value'] = utils.bh_fdr(result_df['combined p-value'])
         result_df = result_df.sort(columns='combined p-value')
+    elif opts['kind'] == 'oncogene':
+        result_df = result_df[result_df['Total Mutations']>0]
+        result_df['entropy BH q-value'] = utils.bh_fdr(result_df['entropy p-value'])
+        result_df['delta entropy BH q-value'] = utils.bh_fdr(result_df['delta entropy p-value'])
+        result_df['recurrent BH q-value'] = utils.bh_fdr(result_df['recurrent p-value'])
 
     if myoutput_path:
         # write output if specified
         result_df.to_csv(myoutput_path, sep='\t', index=False)
+
+    result_df = result_df.set_index('gene', drop=False)
 
     return result_df
 
