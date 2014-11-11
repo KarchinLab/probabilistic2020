@@ -318,7 +318,7 @@ def multiprocess_permutation(bed_dict, mut_df, opts):
     """Handles parallelization of permutations by splitting work
     by chromosome.
     """
-    chroms = sorted(bed_dict.keys())
+    chroms = sorted(bed_dict.keys(), key=lambda x: len(bed_dict[x]), reverse=True)
     multiprocess_flag = opts['processes']>0
     if multiprocess_flag:
         num_processes = opts['processes']
