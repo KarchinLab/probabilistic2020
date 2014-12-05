@@ -69,6 +69,29 @@ def calc_deleterious_p_value(mut_info,
                              num_permutations,
                              del_threshold,
                              pseudo_count):
+    """Calculates the p-value for the number of inactivating SNV mutations.
+
+    Calculates p-value based on how many permutations exceed the observed value.
+
+    Parameters
+    ----------
+    mut_info : dict
+        contains codon and amino acid residue information for mutations mappable
+        to provided reference tx.
+    unmapped_mut_info : dict
+        contains codon/amino acid residue info for mutations that are NOT mappable
+        to provided reference tx.
+    sc : SequenceContext
+        object contains the nucleotide contexts for a gene such that new random
+        positions can be obtained while respecting nucleotide context.
+    gs : GeneSequence
+        contains gene sequence
+    bed : BedLine
+        just used to return gene name
+    num_permutations : int
+        number of permutations to perform to estimate p-value. more permutations
+        means more precision on the p-value.
+    """
     if len(mut_info) > 0:
         mut_info['Coding Position'] = mut_info['Coding Position'].astype(int)
         mut_info['Context'] = mut_info['Coding Position'].apply(lambda x: sc.pos2context[x])
