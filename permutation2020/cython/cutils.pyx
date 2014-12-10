@@ -1,8 +1,10 @@
 cimport cython
 from libcpp.map cimport map
+from libcpp.vector cimport vector
 from libcpp.string cimport string
 import numpy as np
 cimport numpy as np
+from ..python import utils
 
 # define data types for kde function
 DTYPE_INT = np.int
@@ -205,3 +207,15 @@ def calc_non_silent_info(germ_aa, somatic_aa, codon_pos):
 
     return [num_non_silent, num_silent, num_nonsense,
             num_loststop, num_splice_site, num_loststart, num_missense]
+
+
+def calc_summary_info(germ_aa, somatic_aa, codon_pos):
+    """Returns information from both missense position metrics and number of
+    mutation types.
+
+    Mostly a wrapper around calc_non_silent_info and calc_pos_info.
+    """
+    mut_type_info = calc_non_silent_info(germ_aa, somatic_aa, codon_pos)
+    num_recur, pos_ent, delta_ent = calc_pos_info(codon_pos, germ_aa,
+                                                  somatic_aa, is_obs=0)
+    return mut_type_info + [num_recur, pos_ent]

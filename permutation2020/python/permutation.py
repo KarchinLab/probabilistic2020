@@ -253,3 +253,124 @@ def non_silent_ratio_permutation(context_counts,
                                                      tmp_mut_info['Codon Pos'])
         non_silent_count_list.append(tmp_non_silent)
     return non_silent_count_list
+
+
+def summary_permutation(context_counts,
+                        context_to_mut,
+                        seq_context,
+                        gene_seq,
+                        num_permutations=10000):
+    """Performs null-permutations and summarizes the results as features over
+    the gene.
+
+    Parameters
+    ----------
+    context_counts : pd.Series
+        number of mutations for each context
+    context_to_mut : dict
+        dictionary mapping nucleotide context to a list of observed
+        somatic base changes.
+    seq_context : SequenceContext
+        Sequence context for the entire gene sequence (regardless
+        of where mutations occur). The nucleotide contexts are
+        identified at positions along the gene.
+    gene_seq : GeneSequence
+        Sequence of gene of interest
+    num_permutations : int, default: 10000
+        number of permutations to create for null
+
+    Returns
+    -------
+    summary_info_list : list of lists
+        list of non-silent and silent mutation counts under the null along
+        with information on recurrent missense counts and missense positional
+        entropy.
+    """
+    mycontexts = context_counts.index.tolist()
+    somatic_base = [base
+                    for one_context in mycontexts
+                    for base in context_to_mut[one_context]]
+
+    # get random positions determined by sequence context
+    tmp_contxt_pos = seq_context.random_pos(context_counts.iteritems(),
+                                            num_permutations)
+    tmp_mut_pos = np.hstack(pos_array for base, pos_array in tmp_contxt_pos)
+
+    # determine result of random positions
+    gene_name = gene_seq.bed.gene_name
+    summary_info_list = []
+    for i, row in enumerate(tmp_mut_pos):
+        # get info about mutations
+        tmp_mut_info = mc.get_aa_mut_info(row,
+                                          somatic_base,
+                                          gene_seq)
+
+        # Get all metrics summarizing each gene
+        tmp_summary = cutils.calc_summary_info(tmp_mut_info['Reference AA'],
+                                               tmp_mut_info['Somatic AA'],
+                                               tmp_mut_info['Codon Pos'])
+
+        # limit the precision of floats
+        pos_ent = tmp_summary[-1]
+        tmp_summary[-1] = '{0:.3f}'.format(pos_ent)
+
+        summary_info_list.append([gene_name, i+1]+tmp_summary)
+    return summary_info_list
+
+
+def maf_permutation(context_counts,
+                    context_to_mut,
+                    seq_context,
+                    gene_seq,
+                    num_permutations=10000):
+    """Performs null-permutations across all genes and records the results in
+    a format like a MAF file. This could be useful for examining the null
+    permutations because the alternative approaches always summarize the results.
+    With the simulated null-permutations, novel metrics can be applied to create
+    an empirical null-distribution.
+
+    Parameters
+    ----------
+    context_counts : pd.Series
+        number of mutations for each context
+    context_to_mut : dict
+        dictionary mapping nucleotide context to a list of observed
+        somatic base changes.
+    seq_context : SequenceContext
+        Sequence context for the entire gene sequence (regardless
+        of where mutations occur). The nucleotide contexts are
+        identified at positions along the gene.
+    gene_seq : GeneSequence
+        Sequence of gene of interest
+    num_permutations : int, default: 10000
+        number of permutations to create for null
+
+    Returns
+    -------
+    maf_list : list of tuples
+        list of null mutations with mutation info in a MAF like format
+    """
+    mycontexts = context_counts.index.tolist()
+    somatic_base = [base
+                    for one_context in mycontexts
+                    for base in context_to_mut[one_context]]
+
+    # get random positions determined by sequence context
+    tmp_contxt_pos = seq_context.random_pos(context_counts.iteritems(),
+                                            num_permutations)
+    tmp_mut_pos = np.hstack(pos_array for base, pos_array in tmp_contxt_pos)
+
+    # determine result of random positions
+    non_silent_count_list = []
+    for row in tmp_mut_pos:
+        # get info about mutations
+        tmp_mut_info = mc.get_aa_mut_info(row,
+                                          somatic_base,
+                                          gene_seq)
+
+        # calc deleterious mutation info
+        tmp_non_silent = cutils.calc_non_silent_info(tmp_mut_info['Reference AA'],
+                                                     tmp_mut_info['Somatic AA'],
+                                                     tmp_mut_info['Codon Pos'])
+        non_silent_count_list.append(tmp_non_silent)
+    return non_silent_count_list
