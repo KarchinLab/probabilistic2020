@@ -133,11 +133,22 @@ def singleprocess_permutation(info):
                                                       tmp_mut_info['Somatic AA'],
                                                       tmp_mut_info['Codon Pos'])
             ## Do permutations
-            tmp_result = pm.summary_permutation(context_cts,
+            if opts['maf']:
+                # if user specified MAF format then output all mutations in
+                # MAF format
+                tmp_result = pm.maf_permutation(context_cts,
                                                 context_to_mutations,
-                                                sc,  # sequence context obj
-                                                gs,  # gene sequence obj
+                                                sc,
+                                                gs,
                                                 num_permutations)
+            else:
+                # Summarized results for feature for each simulation for each
+                # gene
+                tmp_result = pm.summary_permutation(context_cts,
+                                                    context_to_mutations,
+                                                    sc,  # sequence context obj
+                                                    gs,  # gene sequence obj
+                                                    num_permutations)
             result += tmp_result
 
     gene_fa.close()
@@ -147,7 +158,7 @@ def singleprocess_permutation(info):
 
 def parse_arguments():
     # make a parser
-    info = 'Simulates the non-silent mutation ratio by randomly permuting mutations'
+    info = 'Simulates by randomly permuting mutation positions. Saves results to file'
     parser = argparse.ArgumentParser(description=info)
 
     # logging arguments
@@ -197,6 +208,17 @@ def parse_arguments():
     parser.add_argument('-c', '--context',
                         type=float, default=1.5,
                         help=help_str)
+    parser_grouper = parser.add_mutually_exclusive_group()
+    parser_grouper.add_argument('--summary',
+                                action='store_true',
+                                default=True,
+                                help='Flag for saving results as summarized '
+                                'features (Default: True).')
+    parser_grouper.add_argument('--maf',
+                                action='store_true',
+                                default=False,
+                                help='Flag for saving results in MAF format '
+                                '(Default: False).')
     help_str = ('Use mutations that are not mapped to the the single reference '
                 'transcript for a gene specified in the bed file indicated by '
                 'the -b option.')
