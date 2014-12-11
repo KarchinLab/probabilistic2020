@@ -40,7 +40,7 @@ def compute_mutation_context(bed, gs, df, opts):
 
     # fix nucleotide letter if gene is on - strand
     if bed.strand == '-':
-        mut_info['Tumor_Allele'].map(lambda x: utils.rev_comp(x))
+        mut_info['Tumor_Allele'] = mut_info['Tumor_Allele'].map(lambda x: utils.rev_comp(x))
 
     # get coding positions, mutations unmapped to the reference tx will have
     # NA for a coding position
@@ -179,9 +179,9 @@ def get_aa_mut_info(coding_pos, somatic_base, gene_seq):
     """
     # get codon information into three lists
     gene_seq_str = gene_seq.exon_seq
-    ref_codon, codon_pos, pos_in_codon = it.izip(*[cutils.pos_to_codon(gene_seq_str, p)
-                                                   for p in coding_pos])
-    ref_codon, codon_pos, pos_in_codon = list(ref_codon), list(codon_pos), list(pos_in_codon)
+    ref_codon, codon_pos, pos_in_codon, ref_nuc = it.izip(*[cutils.pos_to_codon(gene_seq_str, p)
+                                                            for p in coding_pos])
+    ref_codon, codon_pos, pos_in_codon, ref_nuc = list(ref_codon), list(codon_pos), list(pos_in_codon), list(ref_nuc)
 
     # construct codons for mutations
     mut_codon = [(list(x) if x != 'Splice_Site' else []) for x in ref_codon]
@@ -197,6 +197,7 @@ def get_aa_mut_info(coding_pos, somatic_base, gene_seq):
     aa_info = {'Reference Codon': ref_codon,
                'Somatic Codon': mut_codon,
                'Codon Pos': codon_pos,
+               'Reference Nuc': ref_nuc,
                'Reference AA': [(utils.codon_table[r] if (r in utils.codon_table) else None)
                                 for r in ref_codon],
                'Somatic AA': [(utils.codon_table[s] if (s in utils.codon_table) else None)
