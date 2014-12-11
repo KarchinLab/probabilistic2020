@@ -351,9 +351,9 @@ def maf_permutation(context_counts,
         list of null mutations with mutation info in a MAF like format
     """
     mycontexts = context_counts.index.tolist()
-    somatic_base = [base
-                    for one_context in mycontexts
-                    for base in context_to_mut[one_context]]
+    somatic_base, base_context = zip(*[(base, one_context)
+                                       for one_context in mycontexts
+                                       for base in context_to_mut[one_context]])
 
     # get random positions determined by sequence context
     tmp_contxt_pos = seq_context.random_pos(context_counts.iteritems(),
@@ -396,8 +396,9 @@ def maf_permutation(context_counts,
                 mysomatic_base = utils.rev_comp(mysomatic_base)
 
             # append results
-            maf_line = [gene_name, strand, chrom, genome_coord[k], ref_nuc,
-                        mysomatic_base, dna_change, protein_change]
+            maf_line = [gene_name, strand, chrom, genome_coord[k], genome_coord[k],
+                        ref_nuc, mysomatic_base, base_context[k], dna_change,
+                        protein_change]
             maf_list.append(maf_line)
 
     return maf_list
