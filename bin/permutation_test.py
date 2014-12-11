@@ -284,7 +284,7 @@ def singleprocess_permutation(info):
 
         # fix nucleotide letter if gene is on - strand
         if bed.strand == '-':
-            mut_info['Tumor_Allele'].map(lambda x: utils.rev_comp(x))
+            mut_info['Tumor_Allele'] = mut_info['Tumor_Allele'].map(lambda x: utils.rev_comp(x))
 
         # get coding positions, mutations unmapped to the reference tx will have
         # NA for a coding position
