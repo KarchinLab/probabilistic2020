@@ -125,6 +125,7 @@ class BedLine(object):
         self.num_exons = len(self.exons)
         self.cds_len = sum(self.exon_lens)
         self.five_ss_len = 2*(self.num_exons-1)
+        self.three_ss_len = 2*(self.num_exons-1)
 
     def get_exons(self):
         """Returns the list of exons that have UTR regions filtered out."""
@@ -133,6 +134,48 @@ class BedLine(object):
     def get_num_exons(self):
         """Returns the number of exons (not including UTR exons)."""
         return self.num_exons
+
+    def init_genome_coordinates(self) :
+        """Creates the self.seqpos2genome dictionary that converts positions
+        relative to the sequence to genome coordinates."""
+        self.seqpos2genome = {}
+
+        # record genome positions for each sequence position
+        seq_pos = 0
+        for estart, eend in self.exons:
+            for genome_pos in range(estart, eend):
+                if self.strand == '+':
+                    self.seqpos2genome[seq_pos] = genome_pos
+                elif self.strand == '-':
+                    tmp = self.cds_len - seq_pos - 1
+                    self.seqpos2genome[tmp] = genome_pos
+                seq_pos += 1
+
+        # recode 5' splice site locations
+        for i in range(0, self.five_ss_len):
+            seq_pos = self.cds_len + i
+            ss_ix = i // 2  # the ss_ix'th 5'ss starting from upstream tx
+            pos_in_ss = i % 2  # whether first/second nuc in splice site
+
+            # determine genome coordinates for 5' splice site
+            if self.strand == '+':
+                self.seqpos2genome[seq_pos] = self.exons[ss_ix][1] + pos_in_ss
+            else:
+                exon_pos = -1 - ss_ix
+                self.seqpos2genome[seq_pos] = self.exons[exon_pos][0] - pos_in_ss - 1
+
+        # recode 3' splice site locations
+        for i in range(0, self.three_ss_len):
+            seq_pos = self.cds_len + self.five_ss_len + i
+            ss_ix = i // 2  # the ss_ix'th 3'ss starting from upstream tx
+            pos_in_ss = i % 2  # whether first/second nuc in splice site
+
+            # determine genome coordinates for 3' splice site
+            if self.strand == '+':
+                self.seqpos2genome[seq_pos] = self.exons[ss_ix+1][0] - 2 + pos_in_ss
+            else:
+                exon_pos = -1 - ss_ix
+                self.seqpos2genome[seq_pos] = self.exons[exon_pos-1][1] + 1 - pos_in_ss
 
     def query_position(self, strand, chr, genome_coord):
         """Provides the relative position on the coding sequence for a given
@@ -171,8 +214,13 @@ class BedLine(object):
         for i, (estart, eend) in enumerate(self.exons):
             # in coding region
             if estart <= genome_coord < eend:
-                prev_lens = sum(self.exon_lens[:i])  # previous exon lengths
-                pos = prev_lens + (genome_coord - estart)
+                if strand == '+':
+                    prev_lens = sum(self.exon_lens[:i])  # previous exon lengths
+                    pos = prev_lens + (genome_coord - estart)
+                elif strand == '-':
+                    prev_lens = sum(self.exon_lens[:i])  # previous exon lengths
+                    pos = prev_lens + (genome_coord - estart)
+                    pos = self.cds_len - pos - 1  # flip coords because neg strand
                 return pos
             # in splice site
             elif (eend <= genome_coord < eend + 2) and i != self.num_exons-1:
