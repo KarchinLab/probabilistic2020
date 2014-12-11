@@ -360,17 +360,44 @@ def maf_permutation(context_counts,
                                             num_permutations)
     tmp_mut_pos = np.hstack(pos_array for base, pos_array in tmp_contxt_pos)
 
+    # info about gene
+    gene_name = gene_seq.bed.gene_name
+    strand = gene_seq.bed.strand
+    chrom = gene_seq.bed.chrom
+    gene_seq.bed.init_genome_coordinates()  # map seq pos to genome
+
     # determine result of random positions
-    non_silent_count_list = []
+    maf_list = []
     for row in tmp_mut_pos:
+        # get genome coordinate
+        pos2genome = np.vectorize(lambda x: gene_seq.bed.seqpos2genome[x]+1)
+        genome_coord = pos2genome(row)
+
         # get info about mutations
         tmp_mut_info = mc.get_aa_mut_info(row,
                                           somatic_base,
                                           gene_seq)
+        # prepare output
+        for k, mysomatic_base in enumerate(somatic_base):
+            # format DNA change
+            ref_nuc = tmp_mut_info['Reference Nuc'][k]
+            nuc_pos = row[k]
+            dna_change = 'c.{0}{1}>{2}'.format(ref_nuc, nuc_pos, mysomatic_base)
 
-        # calc deleterious mutation info
-        tmp_non_silent = cutils.calc_non_silent_info(tmp_mut_info['Reference AA'],
-                                                     tmp_mut_info['Somatic AA'],
-                                                     tmp_mut_info['Codon Pos'])
-        non_silent_count_list.append(tmp_non_silent)
-    return non_silent_count_list
+            # format protein change
+            ref_aa = tmp_mut_info['Reference AA'][k]
+            somatic_aa = tmp_mut_info['Somatic AA'][k]
+            codon_pos = tmp_mut_info['Codon Pos'][k]
+            protein_change = 'p.{0}{1}{2}'.format(ref_aa, codon_pos, somatic_aa)
+
+            # reverse complement if on negative strand
+            if strand == '-':
+                ref_nuc = utils.rev_comp(ref_nuc)
+                mysomatic_base = utils.rev_comp(mysomatic_base)
+
+            # append results
+            maf_line = [gene_name, strand, chrom, genome_coord[k], ref_nuc,
+                        mysomatic_base, dna_change, protein_change]
+            maf_list.append(maf_line)
+
+    return maf_list
