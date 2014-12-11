@@ -48,16 +48,17 @@ def pos_to_codon(seq, int pos):
     cdef int codon_pos, codon_start, pos_in_codon, seq_len = len(seq)
     if pos < seq_len:
         # valid mutation in coding region
-        codon_pos = pos / 3
+        codon_pos = pos // 3
         codon_start = codon_pos * 3
         pos_in_codon = pos % 3
-        return seq[codon_start:codon_start+3], codon_pos, pos_in_codon
+        ref = seq[pos]
+        return seq[codon_start:codon_start+3], codon_pos, pos_in_codon, ref
     else:
         # by assumption, "positions" of splice sites are greater than the
         # length of the coding region to distinguish splice site mutations
         # from coding region mutations. To indicate the mutation is at a
         # splice site, I return None for positions.
-        return 'Splice_Site', None, None
+        return 'Splice_Site', None, None, None
 
 
 def calc_pos_info(aa_mut_pos,
