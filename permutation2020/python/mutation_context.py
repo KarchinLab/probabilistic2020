@@ -127,8 +127,10 @@ def get_context(chr, pos_list, strand, fa, context_type):
             nucs = fa.fetch(reference=chr,
                             start=pos-index_context,
                             end=pos+1).upper()
-            if strand == '-':
-                nucs = utils.rev_comp(nucs)
+            #commented out always using positive strand
+            #to use positive strand context uncomment the following
+            #if strand == '-':
+                #nucs = utils.rev_comp(nucs)
             if 'N' not in nucs:
                 nuc_contexts.append(nucs)
             else:
@@ -141,8 +143,10 @@ def get_context(chr, pos_list, strand, fa, context_type):
             nucs = fa.fetch(reference=chr,
                             start=pos-1,
                             end=pos+2).upper()
-            if strand == '-':
-                nucs = utils.rev_comp(nucs)
+            #commented out always using positive strand
+            #to use positive strand context uncomment the following
+            #if strand == '-':
+                #nucs = utils.rev_comp(nucs)
             if context_type == 1.5 and nucs:
                 nucs = get_chasm_context(nucs)
 
