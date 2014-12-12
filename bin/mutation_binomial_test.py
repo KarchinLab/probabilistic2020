@@ -10,7 +10,6 @@ import numpy as np
 from scipy.stats import binom
 import permutation2020.python.utils as utils
 import argparse
-import IPython
 
 # logging
 import logging
