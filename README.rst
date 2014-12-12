@@ -82,3 +82,29 @@ Next you will need to build the 20/20 permutation test source files. This is can
     $ make build
 
 Once finished building you can then use the scripts in the `permutation2020/bin` directory.
+
+Identifying Non-coding Indels
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Retreive gene annotations where each line in a list is an exon in BED format.
+
+Next, combine merge gene annotations with simple repeats.
+
+$ cat data/knownGene.bed data/ensembl.bed data/low_complexity_repeats.bed | sort -k1,1 -k2,2n | ~/software/bedtools/bin/mergeBed -i stdin > data/non_coding_black_list.bed
+
+BEDTOOLs mergeBed seems to provide equivalent merging within a single file as bedops:
+
+$ /projects/clonal-evolution/Mouse/src/bedops_suite/bedops --merge data/non_coding_black_list.bed > data/non_coding_black_list.merged.bed  # same "wc -l" length 
+
+Next, gzip the black list file so that it can be indexed by Tabix in pysam
+
+$ gzip data/non_coding_black_list.bed
+
+Then filter out INDELs which occur in the black list
+
+$ python scripts/non_coding_indel.py -i data/lawrence_indels.txt -b data/non_coding_black_list.bed.gz -o data/non_coding_indels.txt
+
+Calculate non-coding indel background rate:
+
+$ python scripts/calc_non_coding_frameshift_rate.py -b data/non_coding_black_list.merged.bed -g ~/software/bedtools/genomes/human.hg19.genome -i data/non_coding_indels.txt -t 10 -bins 10 -o data/non_coding_fs.background.txt 
+
