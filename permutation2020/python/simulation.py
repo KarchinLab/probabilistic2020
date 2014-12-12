@@ -168,7 +168,8 @@ def rank_genes(p1, p2,
 
 def overlap(fdr1, fdr2,
             thresh=.1,
-            depth=None):
+            depth=None,
+            keep_same=False):
     """Calculates the fraction overlap for statistically significant genes.
 
     The thresh parameter determines statistical significance for each list.
@@ -186,6 +187,10 @@ def overlap(fdr1, fdr2,
         FDR threshold for statistical signficance
     depth : int
         Number of top genes to evaluate the jaccard index for
+    keep_same : bools
+        Whether an FDR thrshold or depth limit should NOT be
+        applied. If true, this ignores the user input for
+        parameters thresh and depth.
 
     Returns
     -------
@@ -193,12 +198,16 @@ def overlap(fdr1, fdr2,
         overlap measuring simularity of statistically significant
         genes in both tests
     """
-    if not depth:
-        s1_genes = set(fdr1[fdr1<thresh].index)
-        s2_genes = set(fdr2[fdr2<thresh].index)
+    if not keep_same:
+        if not depth:
+            s1_genes = set(fdr1[fdr1<thresh].index)
+            s2_genes = set(fdr2[fdr2<thresh].index)
+        else:
+            s1_genes = set(fdr1[:depth].index)
+            s2_genes = set(fdr2[:depth].index)
     else:
-        s1_genes = set(fdr1[:depth].index)
-        s2_genes = set(fdr2[:depth].index)
+        s1_genes = set(fdr1.index)
+        s2_genes = set(fdr2.index)
 
     num_intersect = len(s1_genes & s2_genes)
     num_total = len(s1_genes)
@@ -217,16 +226,18 @@ def weighted_overlap(fdr1, fdr2,
                      weight_factor):
     # calculate jaccard index at specified intervals
     num_depths = (max_depth) // step_size
-    num_depths_total = (len(fdr2)) // step_size
+    num_depths_total = len(fdr2) // step_size
     ov = np.zeros(num_depths)
     ov_all = np.zeros(num_depths_total)
     for i, depth in enumerate(range(step_size, num_depths_total+1, step_size)):
         if depth <= max_depth:
-            ov_tmp = overlap(fdr1.iloc[:depth].copy(), fdr2, depth=max_depth)
+            ov_tmp = overlap(fdr1.iloc[:depth].copy(), fdr2.iloc[:depth+100].copy(),
+                             keep_same=True, depth=max_depth)
             ov[i] = ov_tmp
             ov_all[i] = ov_tmp
         else:
-            ov_all[i] = overlap(fdr1.iloc[:max_depth].copy(), fdr2, depth=depth)
+            # ov_all[i] = overlap(fdr1.iloc[:max_depth].copy(), fdr2, depth=depth)
+            ov_all[i] = overlap(fdr1.iloc[:max_depth].copy(), fdr2.iloc[:depth+100].copy())
 
     # calculate the weighting for jaccard index
     p = weight_factor ** (1./(num_depths-1))
