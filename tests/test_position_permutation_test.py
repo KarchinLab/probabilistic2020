@@ -7,6 +7,7 @@ sys.path.append(os.path.join(file_dir, '..'))
 
 import permutation_test as pt
 import permutation2020.python.utils as utils
+import permutation2020.python.mutation_context as mc
 import numpy as np
 
 
@@ -61,7 +62,7 @@ def test_ctnnb1_get_aa_mut_info():
     somatic_base = ['C']
 
     # check mutation info
-    aa_info = utils.get_aa_mut_info(coding_pos, somatic_base, gs)
+    aa_info = mc.get_aa_mut_info(coding_pos, somatic_base, gs)
     ref_codon_msg =  'First codon should be start codon ({0})'.format(aa_info['Reference Codon'][0])
     assert aa_info['Reference Codon'][0] == 'ATG', ref_codon_msg
     assert aa_info['Somatic Codon'][0] == 'CTG', 'First "A" should be replaced with a "C"'
