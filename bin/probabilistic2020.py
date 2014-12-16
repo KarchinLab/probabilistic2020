@@ -9,6 +9,7 @@ sys.path.append(os.path.join(file_dir, '../'))
 import permutation2020.python.utils as utils
 import permutation_test as pt
 import frameshift_binomial_test as fs
+import count_frameshifts as cf
 
 import argparse
 import pandas as pd
@@ -119,6 +120,7 @@ def parse_arguments():
     help_str = 'Frameshift counts from count_frameshifts.py'
     parser.add_argument('-fc', '--frameshift-counts',
                         type=str,
+                        default=None,
                         help=help_str)
     help_str = ('Background non-coding rate of INDELs with lengths matching '
                 'frameshifts in --frameshift-counts option. Enter path to file '
@@ -168,6 +170,12 @@ def parse_arguments():
                 'statistics. (Default: 0)')
     parser.add_argument('-rp', '--recurrent-pseudo-count',
                         type=int, default=0,
+                        help=help_str)
+    help_str = ('Number of bins to categorize framshift lengths by. Only needed'
+                ' if path to frameshift counts (--frameshift-counts) is not '
+                'specified for predicting tumor suppressor genes. (Default: 3)')
+    parser.add_argument('-bins', '--bins',
+                        type=int, default=3,
                         help=help_str)
     help_str = 'Output of probabilistic 20/20 results'
     parser.add_argument('-o', '--output',
@@ -226,6 +234,15 @@ def main(opts,
     result_df[q_val_col] = result_df[q_val_col].fillna(1)
 
     if opts['kind'] != 'oncogene':
+        # count frameshifts for user if they did not specify a file
+        # that was output from count_frameshifts.py script.
+        if frameshift_df is None and opts['frameshift_counts'] is None:
+            if mutation_df is None:
+                mutation_df = pd.read_csv(opts['mutations'], sep='\t')
+            samp_num = len(mutation_df['Tumor_Sample'].unique())
+            frameshift_df = cf.count_frameshifts(mutation_df, opts['bed'], opts['bins'],
+                                                 samp_num, opts['use_unmapped'])
+
         # perform frameshift test if not trying to identify oncogenes
         frameshift_result = fs.main(opts, fs_cts=frameshift_df)
         result_df = pd.merge(result_df, frameshift_result, how='outer',
