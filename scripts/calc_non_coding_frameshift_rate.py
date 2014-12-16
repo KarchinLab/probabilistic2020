@@ -56,6 +56,13 @@ def parse_arguments():
     parser.add_argument('-g', '--genome-file',
                         type=str, required=True,
                         help=help_str)
+    help_str = ('Expected average coverage for genome sequencing. This should'
+               'be sufficient coverage to make calls for indels. Thus the '
+               'number of bases with >30x may be reasonable with adjustments '
+                'for sample purity. (Default: 1.0)')
+    parser.add_argument('-c', '--coverage',
+                        type=float, default=1.0,
+                        help=help_str)
     help_str = 'Tab-delimited Mutations file containing non-coding indels'
     parser.add_argument('-i', '--indels',
                         type=str, required=True,
@@ -86,6 +93,7 @@ def main(opts):
     genome_len = get_genome_length(opts['genome_file'])
     black_list_len = get_black_list_length(opts['black_list'])
     non_coding_len = genome_len - black_list_len
+    non_coding_len = int(opts['coverage'] * non_coding_len)  # adjust for coverage
 
     # read in indel mutations file and keep only samples that likely have
     # genuine non-coding indels (to prevent skewing of background rate)
