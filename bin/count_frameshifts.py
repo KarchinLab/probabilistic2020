@@ -6,33 +6,9 @@ file_dir = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(file_dir, '../'))
 
 import permutation2020.python.utils as utils
+import permutation2020.python.indel as indel
 import pandas as pd
 import argparse
-
-
-def keep_frameshifts(mut_df):
-    # calculate length
-    mut_df['indel len'] = mut_df['End_Position'] - mut_df['Start_Position']
-
-    # filter out non-indels
-    mut_df = mut_df[(mut_df['Reference_Allele']=='-') | (mut_df['Tumor_Allele']=='-')]
-
-    # filter out non-frameshift indels
-    mut_df = mut_df[(mut_df['indel len']%3)>0]
-
-    return mut_df
-
-
-def get_frameshift_lengths(num_bins):
-    fs_len = []
-    i = 1
-    tmp_bins = 0
-    while(tmp_bins<num_bins):
-        if i%3:
-            fs_len.append(i)
-            tmp_bins += 1
-        i += 1
-    return fs_len
 
 
 def count_frameshifts(mut_df,
@@ -41,8 +17,8 @@ def count_frameshifts(mut_df,
                       num_samples,
                       use_unmapped=False):
     fs_cts = {}  # frameshift count information for each gene
-    fs_df = keep_frameshifts(mut_df)
-    fs_lens = get_frameshift_lengths(num_bins)
+    fs_df = indel.keep_frameshifts(mut_df)
+    fs_lens = indel.get_frameshift_lengths(num_bins)
 
     for bed in utils.bed_generator(bed_path):
         gene_df = fs_df[fs_df['Gene']==bed.gene_name]
