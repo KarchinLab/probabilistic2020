@@ -45,7 +45,7 @@ std::map<std::string, double> calc_position_statistics(std::map<int, int> pos_ct
 
     // set definition of recurrent count number based either on the minimum or 
     // on some percentage of the total missense mutations (specified by min_frac)
-    min_frac_thresh = (int) (mysum*min_frac + .5);  // recurrent pos definition using min_frac defiintion
+    min_frac_thresh = (int) (mysum*min_frac + .99);  // recurrent pos definition using min_frac definition
     min_recurrent = ((min_recurrent>min_frac_thresh) ?  min_recurrent:min_frac_thresh);
 
     // calculate entropy 
@@ -127,7 +127,7 @@ std::map<std::string, double> calc_effect_statistics(std::map<int, int> pos_ctr,
 
     // set definition of recurrent count number based either on the minimum or 
     // on some percentage of the total missense mutations (specified by min_frac)
-    min_frac_thresh = (int) (mysum*min_frac + .5);  // recurrent pos definition using min_frac defiintion
+    min_frac_thresh = (int) (mysum*min_frac + .99);  // recurrent pos definition using min_frac defiintion
     min_recurrent = ((min_recurrent>min_frac_thresh) ?  min_recurrent:min_frac_thresh);
 
     // calculate entropy 
