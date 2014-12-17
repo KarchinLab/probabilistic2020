@@ -77,8 +77,10 @@ def calc_performance(df, opts):
     permutation_df = prob.main(opts, mutation_df=df, frameshift_df=fs_df)
 
     if opts['kind'] == 'oncogene':
-        recurrent_num_signif = len(permutation_df[permutation_df['recurrent BH q-value']<.1])
-        entropy_num_signif = len(permutation_df[permutation_df['entropy BH q-value']<.1])
+        recur_sig_genes = permutation_df[permutation_df['recurrent BH q-value']<.1]['gene']
+        ent_sig_genes = permutation_df[permutation_df['entropy BH q-value']<.1]['gene']
+        recurrent_num_signif = len(recur_sig_genes)
+        entropy_num_signif = len(ent_sig_genes)
         results = pd.DataFrame({'count': [recurrent_num_signif,
                                           entropy_num_signif]},
                                 index=['{0} recurrent'.format(opts['kind']),
@@ -255,6 +257,12 @@ def parse_arguments():
                 'statistics. (Default: 0)')
     parser.add_argument('-rp', '--recurrent-pseudo-count',
                         type=int, default=0,
+                        help=help_str)
+    help_str = ('Specify the seed for the pseudo random number generator. '
+                'By default, the seed is randomly chosen based. The seed will '
+                'be used for the permutation test monte carlo simulations.')
+    parser.add_argument('-seed', '--seed',
+                        type=int, default=None,
                         help=help_str)
     help_str = 'Tab-delimited output path for performance simulation'
     parser.add_argument('-to', '--text-output',
