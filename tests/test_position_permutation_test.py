@@ -24,6 +24,7 @@ def test_ctnnb1_main():
             'processes': 0,
             'num_permutations': 10000,
             'recurrent_pseudo_count': 0,
+            'seed': None,
             'kind': 'oncogene'}
     # single nucleotide context
     result = pt.main(opts)
@@ -82,6 +83,7 @@ def test_100genes_main():
             'processes': 0,
             'num_permutations': 1000,
             'recurrent_pseudo_count': 0,
+            'seed': None,
             'kind': 'oncogene'}
     # single nucleotide context
     result = pt.main(opts)

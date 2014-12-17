@@ -277,7 +277,7 @@ def singleprocess_permutation(info):
                 'Tumor_Allele', 'Variant_Classification', 'Protein_Change']
         mut_info = gene_mut[cols]
         gs.set_gene(bed)
-        sc = SequenceContext(gs)
+        sc = SequenceContext(gs, seed=opts['seed'])
 
         # count total mutations in gene
         total_mut = len(mut_info)
@@ -557,6 +557,12 @@ def parse_arguments():
                 'statistics. (Default: 0)')
     parser.add_argument('-rp', '--recurrent-pseudo-count',
                         type=int, default=0,
+                        help=help_str)
+    help_str = ('Specify the seed for the pseudo random number generator. '
+                'By default, the seed is randomly chosen based. The seed will '
+                'be used for the permutation test monte carlo simulations.')
+    parser.add_argument('-seed', '--seed',
+                        type=int, default=None,
                         help=help_str)
     help_str = 'Output of probabilistic 20/20 results'
     parser.add_argument('-o', '--output',

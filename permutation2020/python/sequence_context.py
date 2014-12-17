@@ -8,8 +8,9 @@ class SequenceContext(object):
     and for randomly permuting mutation positions while respecting sequence context.
     """
 
-    def __init__(self, gene_seq):
+    def __init__(self, gene_seq, seed=None):
         self._init_context(gene_seq)
+        self.seed = seed  # seed for random number generator
 
     def _init_context(self, gene_seq):
         """Initializes attributes defining mutation contexts and their position.
@@ -195,7 +196,7 @@ class SequenceContext(object):
 
         # randomly select from available positions that fit the specified context
         available_pos = self.context2pos[context]
-        prng = np.random.RandomState()
+        prng = np.random.RandomState(seed=self.seed)
         random_pos = prng.choice(available_pos, (num_permutations, num))
         return random_pos
 

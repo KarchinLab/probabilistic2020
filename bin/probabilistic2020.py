@@ -177,6 +177,12 @@ def parse_arguments():
     parser.add_argument('-bins', '--bins',
                         type=int, default=3,
                         help=help_str)
+    help_str = ('Specify the seed for the pseudo random number generator. '
+                'By default, the seed is randomly chosen based. The seed will '
+                'be used for the permutation test monte carlo simulations.')
+    parser.add_argument('-seed', '--seed',
+                        type=int, default=None,
+                        help=help_str)
     help_str = 'Output of probabilistic 20/20 results'
     parser.add_argument('-o', '--output',
                         type=str, required=True,

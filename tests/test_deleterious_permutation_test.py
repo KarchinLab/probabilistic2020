@@ -19,6 +19,7 @@ def test_tp53_main():
             'processes': 0,
             'num_permutations': 10000,
             'deleterious_pseudo_count': 0,
+            'seed': None,
             'kind': 'tsg'}
     # single nucleotide context
     result = pt.main(opts)
@@ -46,6 +47,7 @@ def test_100genes_main():
             'processes': 0,
             'num_permutations': 1000,
             'deleterious_pseudo_count': 0,
+            'seed': None,
             'kind': 'tsg'}
     # single nucleotide context
     result = pt.main(opts)
