@@ -75,9 +75,14 @@ def multiprocess_permutation(bed_dict, mut_df, opts):
         num_processes = 1
     file_handle = open(opts['output'], 'w')
     mywriter = csv.writer(file_handle, delimiter='\t', lineterminator='\n')
-    header = ['gene', 'ID', 'non-silent', 'silent', 'nonsense', 'lost stop',
-              'splice site', 'lost start', 'missense', 'recurrent missense',
-              'normalized missense position entropy']
+    if opts['maf']:
+        header = ['gene', 'strand', 'Chromosome', 'Start_Position',
+                  'End_Position', 'Reference_Allele', 'Tumor_Allele',
+                  'Context', 'DNA_Change', 'Protein_Change']
+    else:
+        header = ['gene', 'ID', 'non-silent', 'silent', 'nonsense', 'lost stop',
+                  'splice site', 'lost start', 'missense', 'recurrent missense',
+                  'normalized missense position entropy']
     mywriter.writerow(header)
     num_permutations = opts['num_permutations']
     obs_result = []
