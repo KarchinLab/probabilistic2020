@@ -234,9 +234,10 @@ def get_variant_classification(germ_aa_list, somatic_aa_list, codon_pos):
         list of strings classifying variant type
     """
     cdef:
+        string na = ''
         vector[string] var_class
-        vector[string] germ_aa = germ_aa_list
-        vector[string] somatic_aa = somatic_aa_list
+        vector[string] germ_aa = [(g if g else na) for g in germ_aa_list]
+        vector[string] somatic_aa = [(s if s else na) for s in somatic_aa_list]
         int num_muts = len(somatic_aa)
         string missense = 'Missense_Mutation'
         string nonsense = 'Nonsense_Mutation'
@@ -244,7 +245,6 @@ def get_variant_classification(germ_aa_list, somatic_aa_list, codon_pos):
         string splice_site = 'Splice_Site'
         string silent = 'Silent'
         string lost_start = 'Loststart_Mutation'
-        string na = ''
         string stop_codon = '*'
 
     for i in range(num_muts):
