@@ -199,9 +199,9 @@ def parse_arguments():
                         type=int, default=0,
                         help=help_str)
     help_str = ('Number of permutations for null model. p-value precision '
-                'increases with more permutations (Default: 10000).')
+                'increases with more permutations (Default: 1).')
     parser.add_argument('-n', '--num-permutations',
-                        type=int, default=10000,
+                        type=int, default=1,
                         help=help_str)
     help_str = ('Number of DNA bases to use as context. 0 indicates no context. '
                 '1 indicates only use the mutated base.  1.5 indicates using '
