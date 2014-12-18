@@ -182,8 +182,7 @@ def get_aa_mut_info(coding_pos, somatic_base, gene_seq):
         information about the somatic mutation effect on AA's
     """
     # get codon information into three lists
-    gene_seq_str = gene_seq.exon_seq
-    ref_codon, codon_pos, pos_in_codon, ref_nuc = it.izip(*[cutils.pos_to_codon(gene_seq_str, p)
+    ref_codon, codon_pos, pos_in_codon, ref_nuc = it.izip(*[cutils.pos_to_codon(gene_seq, p)
                                                             for p in coding_pos])
     ref_codon, codon_pos, pos_in_codon, ref_nuc = list(ref_codon), list(codon_pos), list(pos_in_codon), list(ref_nuc)
 

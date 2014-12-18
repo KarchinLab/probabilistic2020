@@ -25,7 +25,7 @@ cdef extern from "permutation.hpp":
 
 
 @cython.cdivision(True)
-def pos_to_codon(seq, int pos):
+def pos_to_codon(gene_seq, int pos):
     """Retrieves information about the codon a nucleotide position is in.
 
     Parameters
@@ -45,20 +45,26 @@ def pos_to_codon(seq, int pos):
         0-based position within a codon (e.g. 1 is the second
         position out of three)
     """
-    cdef int codon_pos, codon_start, pos_in_codon, seq_len = len(seq)
+    cdef int codon_pos, codon_start, pos_in_codon, seq_len = gene_seq.bed.cds_len
     if pos < seq_len:
         # valid mutation in coding region
         codon_pos = pos // 3
         codon_start = codon_pos * 3
         pos_in_codon = pos % 3
-        ref = seq[pos]
-        return seq[codon_start:codon_start+3], codon_pos, pos_in_codon, ref
+        ref = gene_seq.exon_seq[pos]
+        return gene_seq.exon_seq[codon_start:codon_start+3], codon_pos, pos_in_codon, ref
     else:
         # by assumption, "positions" of splice sites are greater than the
         # length of the coding region to distinguish splice site mutations
         # from coding region mutations. To indicate the mutation is at a
         # splice site, I return None for positions.
-        return 'Splice_Site', None, None, None
+        ss_pos = gene_seq.bed.pos2ss[pos]
+        if ss_pos[0] == "5'":
+            ref = gene_seq.five_prime_seq[ss_pos[1]][ss_pos[2]]
+        else:
+            ref = gene_seq.three_prime_seq[ss_pos[1]][ss_pos[2]]
+
+        return 'Splice_Site', None, None, ref
 
 
 def calc_pos_info(aa_mut_pos,

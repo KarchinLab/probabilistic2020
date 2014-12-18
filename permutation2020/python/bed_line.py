@@ -126,6 +126,25 @@ class BedLine(object):
         self.cds_len = sum(self.exon_lens)
         self.five_ss_len = 2*(self.num_exons-1)
         self.three_ss_len = 2*(self.num_exons-1)
+        self._init_splice_site_pos()
+
+    def _init_splice_site_pos(self):
+        # dictionary mapping internal position format to position
+        # in list of 5'/3' splice sites
+        self.pos2ss = {}
+        tmp_pos = self.cds_len
+
+        # init 5' splice site positions
+        for i in range(self.num_exons-1):
+            self.pos2ss[tmp_pos] = ("5'", i, 1)
+            self.pos2ss[tmp_pos+1] = ("5'", i, 2)
+            tmp_pos+=2
+
+        # init 3' splice site positions
+        for i in range(self.num_exons-1):
+            self.pos2ss[tmp_pos] = ("3'", i, 1)
+            self.pos2ss[tmp_pos+1] = ("3'", i, 2)
+            tmp_pos+=2
 
     def get_exons(self):
         """Returns the list of exons that have UTR regions filtered out."""
