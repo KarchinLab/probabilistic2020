@@ -216,6 +216,60 @@ def calc_non_silent_info(germ_aa, somatic_aa, codon_pos):
             num_loststop, num_splice_site, num_loststart, num_missense]
 
 
+def get_variant_classification(germ_aa_list, somatic_aa_list, codon_pos):
+    """Return the proper variant classification for a substiution mutation.
+
+    Parameters
+    ----------
+    germ_aa : list of str
+        reference amino acid residue
+    somatic_aa : list of str
+        new mutated residues
+    codon_pos : list of int
+        codon position in sequence
+
+    Returns
+    -------
+    var_class : list of str
+        list of strings classifying variant type
+    """
+    cdef:
+        vector[string] var_class
+        vector[string] germ_aa = germ_aa_list
+        vector[string] somatic_aa = somatic_aa_list
+        int num_muts = len(somatic_aa)
+        string missense = 'Missense_Mutation'
+        string nonsense = 'Nonsense_Mutation'
+        string loststop = 'Nonstop_Mutation'
+        string splice_site = 'Splice_Site'
+        string silent = 'Silent'
+        string lost_start = 'Loststart_Mutation'
+        string na = ''
+        string stop_codon = '*'
+
+    for i in range(num_muts):
+        if (germ_aa[i].length() and somatic_aa[i].length()) or somatic_aa[i] == splice_site or germ_aa[i] == splice_site:
+            # count nonsense
+            if (somatic_aa[i] != germ_aa[i]) and somatic_aa[i] == stop_codon:
+                var_class.push_back(nonsense)
+            # count lost stop
+            elif (somatic_aa[i] != germ_aa[i]) and germ_aa[i] == stop_codon:
+                var_class.push_back(loststop)
+            elif somatic_aa[i] == splice_site or germ_aa[i] == splice_site:
+                var_class.push_back(splice_site)
+            elif somatic_aa[i] != germ_aa[i]:
+                if codon_pos[i] == 0:
+                    var_class.push_back(lost_start)
+                else:
+                    var_class.push_back(missense)
+            else:
+                var_class.push_back(silent)
+        else:
+            var_class.push_back(na)
+
+    return var_class
+
+
 def calc_summary_info(germ_aa, somatic_aa, codon_pos):
     """Returns information from both missense position metrics and number of
     mutation types.

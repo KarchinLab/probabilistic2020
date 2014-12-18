@@ -78,7 +78,7 @@ def multiprocess_permutation(bed_dict, mut_df, opts):
     if opts['maf']:
         header = ['gene', 'strand', 'Chromosome', 'Start_Position',
                   'End_Position', 'Reference_Allele', 'Tumor_Allele',
-                  'Context', 'DNA_Change', 'Protein_Change']
+                  'Context', 'DNA_Change', 'Protein_Change', 'Variant_Classification']
     else:
         header = ['gene', 'ID', 'non-silent', 'silent', 'nonsense', 'lost stop',
                   'splice site', 'lost start', 'missense', 'recurrent missense',
