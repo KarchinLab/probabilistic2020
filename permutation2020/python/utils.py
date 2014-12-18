@@ -197,7 +197,8 @@ def _fix_mutation_df(mutation_df):
     """
     # only keep allowed mutation types
     orig_len = len(mutation_df)  # number of mutations before filtering
-    allowed_types = ['Missense_Mutation', 'Silent', 'Nonsense_Mutation', 'Splice_Site']
+    allowed_types = ['Missense_Mutation', 'Silent', 'Nonsense_Mutation',
+                     'Splice_Site', 'Nonstop_Mutation']
     mutation_df = mutation_df[mutation_df.Variant_Classification.isin(allowed_types)]  # only keep SNV
     type_len = len(mutation_df)  # number of mutations after filtering based on mut type
 
