@@ -11,6 +11,7 @@ import permutation2020.python.utils as utils
 from permutation2020.python.gene_sequence import GeneSequence
 import permutation2020.cython.cutils as cutils
 import permutation2020.python.mutation_context as mc
+import permutation2020.python.indel as indel
 
 # external imports
 import numpy as np
@@ -273,6 +274,8 @@ def main(opts):
     # Get Mutations
     mut_df = pd.read_csv(opts['mutations'], sep='\t')
     orig_num_mut = len(mut_df)
+    indel_df = indel.keep_indels(mut_df)  # return indels only
+    logger.info('There were {0} indels identified.'.format(len(indel_df)))
     mut_df = mut_df.dropna(subset=['Tumor_Allele', 'Start_Position', 'Chromosome'])
     logger.info('Kept {0} mutations after droping mutations with missing '
                 'information (Droped: {1})'.format(len(mut_df), orig_num_mut - len(mut_df)))
