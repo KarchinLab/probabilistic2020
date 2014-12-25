@@ -1,0 +1,25 @@
+Gene	Tumor_Sample	Tumor_Type	Chromosome	Start_Position	End_Position	Variant_Classification	Reference_Allele	Tumor_Allele	Protein_Change	DNA_Change
+IVL	BR-0001	Breast Adenocarcinoma	chr1	152883016	152883016	Missense_Mutation	A	G	p.Q248R	c.?
+ZBTB37	BR-0001	Breast Adenocarcinoma	chr1	173837392	173837392	Splice_Site	AGGCA	-	p.?	c.?
+CHIT1	BR-0001	Breast Adenocarcinoma	chr1	203191404	203191404	Missense_Mutation	C	T	p.E219K	c.?
+DRD5	BR-0001	Breast Adenocarcinoma	chr4	9784617	9784617	Missense_Mutation	T	C	p.C322R	c.?
+GRM4	BR-0001	Breast Adenocarcinoma	chr6	34100851	34100851	Frame_Shift_Indel	-	G	p.K141fs*	c.?
+TCHH	BR-0002	Breast Adenocarcinoma	chr1	152081726	152081726	Missense_Mutation	C	T	p.E1323K	c.?
+IVL	BR-0002	Breast Adenocarcinoma	chr1	152883009	152883009	Missense_Mutation	T	C	p.S246P	c.?
+SPEN	BR-0002	Breast Adenocarcinoma	chr1	16255140	16255140	Missense_Mutation	T	G	p.V802G	c.?
+SPEN	BR-0002	Breast Adenocarcinoma	chr1	16255142	16255142	Missense_Mutation	G	C	p.E803Q	c.?
+ILDR2	BR-0002	Breast Adenocarcinoma	chr1	166927145	166927145	Silent	G	A	p.L80L	c.?
+VAMP4	BR-0002	Breast Adenocarcinoma	chr1	171678834	171678834	Nonsense_Mutation	G	A	p.R106*	c.?
+TNN	BR-0002	Breast Adenocarcinoma	chr1	175097269	175097269	Silent	G	A	p.R1049R	c.?
+HMCN1	BR-0002	Breast Adenocarcinoma	chr1	186031088	186031088	Nonsense_Mutation	C	A	p.S2473*	c.?
+NFASC	BR-0002	Breast Adenocarcinoma	chr1	204924024	204924024	Silent	C	A	p.L160L	c.?
+EIF4G3	BR-0002	Breast Adenocarcinoma	chr1	21268004	21268004	Nonsense_Mutation	G	C	p.S491*	c.?
+TARBP1	BR-0002	Breast Adenocarcinoma	chr1	234553884	234553884	Silent	C	T	p.L1217L	c.?
+TARBP1	BR-0002	Breast Adenocarcinoma	chr1	234553935	234553935	Silent	G	A	p.F1200F	c.?
+GTPBP4	BR-0002	Breast Adenocarcinoma	chr10	1058471	1058471	Missense_Mutation	G	C	p.E471Q	c.?
+ANUBL1	BR-0002	Breast Adenocarcinoma	chr10	46143950	46143950	Missense_Mutation	C	T	p.E121K	c.?
+RGR	BR-0002	Breast Adenocarcinoma	chr10	86012643	86012643	Missense_Mutation	C	T	p.S134F	c.?
+QSER1	BR-0002	Breast Adenocarcinoma	chr11	32954075	32954075	Missense_Mutation	C	T	p.P295L	c.?
+OSBP	BR-0002	Breast Adenocarcinoma	chr11	59376180	59376180	Nonsense_Mutation	G	C	p.S200*	c.?
+SF3B2	BR-0002	Breast Adenocarcinoma	chr11	65835787	65835787	Missense_Mutation	C	T	p.H867Y	c.?
+PACS1	BR-0002	Breast Adenocarcinoma	chr11	65977843	65977843	Missense_Mutation	G	A	p.R152K	c.?
