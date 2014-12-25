@@ -5,38 +5,21 @@ input.
 """
 import numpy as np
 
-
-def reassign_indels(indel_lens, indel_counts, gene_length):
-    """Reassign indel counts to different genes based on each gene's length.
-
-    Parameters
-    ----------
-    indel_lens : np.array or iterable
-        length of indels to be considered
-    indel_counts : np.array or iterable
-        number of indels corresponding to indel_lens
-    gene_length : pd.Series
-        gene lengths with each gene name as an index for the pandas series
-
-    Returns
-    -------
-    gene_indels : dict
-        indel counts reassigned to different genes
-    """
-    gene_indels = {}
-    prng = np.random.RandomState()
-    gene_prob = gene_length / gene_length.sum()
-    for i in range(len(indel_lens)):
-        # randomly reassign indels based only on gene length
-        gene_cts = prng.multinomial(indel_counts[i], gene_prob, size=1)
-        gene_ix = np.nonzero(gene_cts)
-
-        # record counts for indels in gene_indels dictionary
-        for g in gene_ix:
-            gene_name = gene_length.index[g]
-            gene_indels.setdefault(gene_name, {})
-            gene_indels[gene_name][indel_lens[i]] = gene_cts[g]
-    return gene_indels
+def counts2maf(num_indels, myindel_lens, gene_bed, seed=None):
+    maf_list = []
+    prng = np.random.RandomState(seed=seed)
+    pos = prng.randint(low=0, high=gene_bed.cds_len, size=num_indels)
+    genome_pos = [gene_bed.seqpos2genome[p] for p in pos]
+    is_frame_shift = myindel_lens%3
+    for i, gpos in enumerate(genome_pos):
+        var_class = 'Frame_Shift_Ins' if is_frame_shift[i] else 'In_Frame_Ins'
+        dna_change = 'c.{0}_{1}ins'.format(pos[i], pos[i])
+        prot_change = 'p.?'
+        tmp = [gene_bed.gene_name, gene_bed.strand, gene_bed.chrom,
+               gpos, gpos, '-', 'N'*myindel_lens[i], '-', dna_change,
+               prot_change, var_class]
+        maf_list.append(tmp)
+    return maf_list
 
 
 def keep_indels(mut_df,
@@ -144,7 +127,7 @@ def is_indel(mut_df):
     is_indel = (mut_df['Reference_Allele']=='-') | (mut_df['Tumor_Allele']=='-')
 
     # make sure indel has a length
-    is_indel[indel_len<1] = False
+    # is_indel[indel_len<1] = False
     return is_indel
 
 

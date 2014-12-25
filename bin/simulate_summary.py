@@ -23,6 +23,7 @@ import argparse
 import datetime
 import logging
 import copy
+import IPython
 
 logger = logging.getLogger(__name__)  # module logger
 
@@ -147,6 +148,7 @@ def singleprocess_permutation(info):
                                                 sc,
                                                 gs,
                                                 num_permutations)
+
             else:
                 # Summarized results for feature for each simulation for each
                 # gene
@@ -275,6 +277,8 @@ def main(opts):
     mut_df = pd.read_csv(opts['mutations'], sep='\t')
     orig_num_mut = len(mut_df)
     indel_df = indel.keep_indels(mut_df)  # return indels only
+    indel_df['Start_Position'] = indel_df['Start_Position'] - 1  # convert to 0-based
+    indel_df['indel len'] += 1
     logger.info('There were {0} indels identified.'.format(len(indel_df)))
     mut_df = mut_df.dropna(subset=['Tumor_Allele', 'Start_Position', 'Chromosome'])
     logger.info('Kept {0} mutations after droping mutations with missing '
@@ -288,6 +292,44 @@ def main(opts):
 
     # perform permutation
     multiprocess_permutation(bed_dict, mut_df, opts)
+
+    # count indels
+    bed_genes = [mybed
+                 for chrom in bed_dict
+                 for mybed in bed_dict[chrom]]
+    tmp = []
+    for b in bed_genes:
+        b.init_genome_coordinates()
+        tmp.append(b)
+    bed_genes = tmp
+    gene_lengths = pd.Series([b.cds_len for b in bed_genes],
+                             index=[b.gene_name for b in bed_genes])
+
+    # generate random indel assignments
+    gene_prob = gene_lengths.astype(float) / gene_lengths.sum()
+    indel_lens = indel_df['indel len'].copy().values
+    prng = np.random.RandomState(seed=None)
+    with open(opts['output'], 'a') as handle:
+        mywriter = csv.writer(handle, delimiter='\t')
+        for i in range(opts['num_permutations']):
+            # randomly reassign indels
+            mygene_cts = prng.multinomial(len(indel_lens), gene_prob)
+            nonzero_ix = np.nonzero(mygene_cts)[0]
+
+            # randomly shuffle indel lengths
+            prng.shuffle(indel_lens)
+
+            # iterate over each gene
+            indel_ix = 0
+            for j in range(len(nonzero_ix)):
+                prev_indel_ix = indel_ix
+                num_gene_indels = mygene_cts[nonzero_ix[j]]
+                indel_ix += num_gene_indels
+                if opts['maf']:
+                    maf_lines = indel.counts2maf(num_gene_indels,
+                                                 indel_lens[prev_indel_ix:indel_ix],
+                                                 bed_genes[nonzero_ix[j]])
+                    mywriter.writerows(maf_lines)
 
 
 if __name__ == "__main__":
