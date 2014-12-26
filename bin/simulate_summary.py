@@ -308,6 +308,8 @@ def main(opts):
     # generate random indel assignments
     gene_prob = gene_lengths.astype(float) / gene_lengths.sum()
     indel_lens = indel_df['indel len'].copy().values
+    indel_types = indel_df['indel type'].copy().values
+    indel_ixs = np.arange(len(indel_lens))
     prng = np.random.RandomState(seed=None)
     with open(opts['output'], 'a') as handle:
         mywriter = csv.writer(handle, delimiter='\t')
@@ -317,7 +319,9 @@ def main(opts):
             nonzero_ix = np.nonzero(mygene_cts)[0]
 
             # randomly shuffle indel lengths
-            prng.shuffle(indel_lens)
+            prng.shuffle(indel_ixs)
+            indel_lens = indel_lens[indel_ixs]
+            indel_types = indel_types[indel_ixs]
 
             # iterate over each gene
             indel_ix = 0
@@ -328,6 +332,7 @@ def main(opts):
                 if opts['maf']:
                     maf_lines = indel.counts2maf(num_gene_indels,
                                                  indel_lens[prev_indel_ix:indel_ix],
+                                                 indel_types[prev_indel_ix:indel_ix],
                                                  bed_genes[nonzero_ix[j]])
                     mywriter.writerows(maf_lines)
 
