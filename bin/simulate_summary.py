@@ -293,43 +293,43 @@ def main(opts):
     # perform permutation
     multiprocess_permutation(bed_dict, mut_df, opts)
 
-    # count indels
-    bed_genes = [mybed
-                 for chrom in bed_dict
-                 for mybed in bed_dict[chrom]]
-    tmp = []
-    for b in bed_genes:
-        b.init_genome_coordinates()
-        tmp.append(b)
-    bed_genes = tmp
-    gene_lengths = pd.Series([b.cds_len for b in bed_genes],
-                             index=[b.gene_name for b in bed_genes])
+    if opts['maf']:
+        # count indels
+        bed_genes = [mybed
+                    for chrom in bed_dict
+                    for mybed in bed_dict[chrom]]
+        tmp = []
+        for b in bed_genes:
+            b.init_genome_coordinates()
+            tmp.append(b)
+        bed_genes = tmp
+        gene_lengths = pd.Series([b.cds_len for b in bed_genes],
+                                 index=[b.gene_name for b in bed_genes])
 
-    # generate random indel assignments
-    gene_prob = gene_lengths.astype(float) / gene_lengths.sum()
-    indel_lens = indel_df['indel len'].copy().values
-    indel_types = indel_df['indel type'].copy().values
-    indel_ixs = np.arange(len(indel_lens))
-    prng = np.random.RandomState(seed=None)
-    with open(opts['output'], 'a') as handle:
-        mywriter = csv.writer(handle, delimiter='\t')
-        for i in range(opts['num_permutations']):
-            # randomly reassign indels
-            mygene_cts = prng.multinomial(len(indel_lens), gene_prob)
-            nonzero_ix = np.nonzero(mygene_cts)[0]
+        # generate random indel assignments
+        gene_prob = gene_lengths.astype(float) / gene_lengths.sum()
+        indel_lens = indel_df['indel len'].copy().values
+        indel_types = indel_df['indel type'].copy().values
+        indel_ixs = np.arange(len(indel_lens))
+        prng = np.random.RandomState(seed=None)
+        with open(opts['output'], 'a') as handle:
+            mywriter = csv.writer(handle, delimiter='\t')
+            for i in range(opts['num_permutations']):
+                # randomly reassign indels
+                mygene_cts = prng.multinomial(len(indel_lens), gene_prob)
+                nonzero_ix = np.nonzero(mygene_cts)[0]
 
-            # randomly shuffle indel lengths
-            prng.shuffle(indel_ixs)
-            indel_lens = indel_lens[indel_ixs]
-            indel_types = indel_types[indel_ixs]
+                # randomly shuffle indel lengths
+                prng.shuffle(indel_ixs)
+                indel_lens = indel_lens[indel_ixs]
+                indel_types = indel_types[indel_ixs]
 
-            # iterate over each gene
-            indel_ix = 0
-            for j in range(len(nonzero_ix)):
-                prev_indel_ix = indel_ix
-                num_gene_indels = mygene_cts[nonzero_ix[j]]
-                indel_ix += num_gene_indels
-                if opts['maf']:
+                # iterate over each gene
+                indel_ix = 0
+                for j in range(len(nonzero_ix)):
+                    prev_indel_ix = indel_ix
+                    num_gene_indels = mygene_cts[nonzero_ix[j]]
+                    indel_ix += num_gene_indels
                     maf_lines = indel.counts2maf(num_gene_indels,
                                                  indel_lens[prev_indel_ix:indel_ix],
                                                  indel_types[prev_indel_ix:indel_ix],
