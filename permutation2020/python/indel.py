@@ -25,7 +25,7 @@ def counts2maf(num_indels, myindel_lens, myindel_types, gene_bed, seed=None):
             dna_change = 'c.{0}_{1}ins'.format(pos[i], pos[i]+myindel_lens[i])
             prot_change = 'p.?'
             tmp = [gene_bed.gene_name, gene_bed.strand, gene_bed.chrom,
-                   gpos, gpos+myindel_lens[i]-1, 'N'*myindel_lens[i], '-', '-', dna_change,
+                   gpos+1, gpos+myindel_lens[i], 'N'*myindel_lens[i], '-', '-', dna_change,
                    prot_change, var_class]
             maf_list.append(tmp)
 
