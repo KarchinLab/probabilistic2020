@@ -17,10 +17,15 @@ def test_sim_summary():
             'maf': True,
             'use_unmapped': False,
             'genome': '',
-            'output': os.path.join(file_dir, 'output/sim_summary.txt')
+            'output': os.path.join(file_dir, 'output/sim_summary_maf.txt')
             }
-
     sm.main(opts)
+
+    opts['maf'] = False
+    opts['summary'] = True
+    opts['output'] = os.path.join(file_dir, 'output/sim_summary.txt')
+    sm.main(opts)
+
 
 if __name__ == '__main__':
     test_sim_summary()
