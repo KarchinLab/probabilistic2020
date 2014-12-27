@@ -82,7 +82,7 @@ def multiprocess_permutation(bed_dict, mut_df, opts, indel_df=None):
                   'End_Position', 'Reference_Allele', 'Tumor_Allele',
                   'Context', 'DNA_Change', 'Protein_Change', 'Variant_Classification']
     else:
-        header = ['gene', 'ID', 'non-silent snv', 'silent snv', 'nonsense', 'lost stop',
+        header = ['Gene', 'ID', 'non-silent snv', 'silent snv', 'nonsense', 'lost stop',
                   'splice site', 'lost start', 'missense', 'recurrent missense',
                   'normalized missense position entropy', 'frameshift indel',
                   'inframe indel']
