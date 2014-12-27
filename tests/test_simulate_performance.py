@@ -33,6 +33,7 @@ def test_100genes_main():
             'random_samples': True,
             'random_tumor_types': False,
             'bootstrap': False,
+            'seed': None,
             'start_sample_rate': .1,
             'end_sample_rate': 1.0,
             'num_sample_rate': 3}

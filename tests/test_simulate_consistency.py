@@ -31,6 +31,7 @@ def test_100genes_main():
             'use_unmapped': False,
             'processes': 0,
             'num_permutations': 100,
+            'seed': None,
             'kind': 'oncogene'}
     result = sc.main(opts)
 
