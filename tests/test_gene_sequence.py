@@ -37,7 +37,7 @@ def test_pos_to_codon():
     pos_list = [1, 12, 17]
     results = []
     for pos in pos_list:
-        codon_info = cutils.pos_to_codon(gs.exon_seq, pos)
+        codon_info = cutils.pos_to_codon(gs, pos)
         results.append(codon_info)
     true_results = [('ACA', 0, 1, 'C'), ('GAT', 4, 0, 'G'), ('CCG', 5, 2, 'G')]
     assert results == true_results, 'Codon information is incorrect'
