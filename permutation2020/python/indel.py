@@ -4,6 +4,91 @@ Indels and frameshifts are detected from the allele columns of the mutation
 input.
 """
 import numpy as np
+import pandas as pd
+
+def simulate_indel_counts(indel_df, bed_dict, num_permutations=1):
+    # count indels
+    bed_genes = [mybed
+                 for chrom in bed_dict
+                 for mybed in bed_dict[chrom]]
+    tmp = []
+    for b in bed_genes:
+        b.init_genome_coordinates()
+        tmp.append(b)
+    bed_genes = tmp
+    gene_lengths = pd.Series([b.cds_len for b in bed_genes],
+                              index=[b.gene_name for b in bed_genes])
+
+    # generate random indel assignments
+    gene_prob = gene_lengths.astype(float) / gene_lengths.sum()
+    indel_lens = indel_df['indel len'].copy().values
+    is_fs = (indel_lens % 3) > 0
+    indel_ixs = np.arange(len(indel_lens))
+    prng = np.random.RandomState(seed=None)
+
+    # randomly reassign indels
+    mygene_cts = prng.multinomial(len(indel_lens), gene_prob, size=num_permutations)
+    inframe_cts = mygene_cts.copy()
+    for row in range(mygene_cts.shape[0]):
+        nonzero_ix = np.nonzero(mygene_cts[row,:])[0]
+
+        # randomly shuffle indel lengths
+        prng.shuffle(indel_ixs)
+        is_fs = is_fs[indel_ixs]
+
+        # iterate over each gene
+        indel_ix = 0
+        for j in range(len(nonzero_ix)):
+            prev_indel_ix = indel_ix
+            num_gene_indels = mygene_cts[row, nonzero_ix[j]]
+            indel_ix += num_gene_indels
+            inframe_cts[row, nonzero_ix[j]] = num_gene_indels - np.sum(is_fs[prev_indel_ix:indel_ix])
+    mygene_cts -= inframe_cts
+    return mygene_cts, inframe_cts, gene_lengths.index
+
+
+def simulate_indel_maf(indel_df, bed_dict, num_permutations=1):
+    # count indels
+    bed_genes = [mybed
+                for chrom in bed_dict
+                for mybed in bed_dict[chrom]]
+    tmp = []
+    for b in bed_genes:
+        b.init_genome_coordinates()
+        tmp.append(b)
+    bed_genes = tmp
+    gene_lengths = pd.Series([b.cds_len for b in bed_genes],
+                                index=[b.gene_name for b in bed_genes])
+
+    # generate random indel assignments
+    gene_prob = gene_lengths.astype(float) / gene_lengths.sum()
+    indel_lens = indel_df['indel len'].copy().values
+    indel_types = indel_df['indel type'].copy().values
+    indel_ixs = np.arange(len(indel_lens))
+    prng = np.random.RandomState(seed=None)
+
+    for i in range(num_permutations):
+        # randomly reassign indels
+        mygene_cts = prng.multinomial(len(indel_lens), gene_prob)
+        nonzero_ix = np.nonzero(mygene_cts)[0]
+
+        # randomly shuffle indel lengths
+        prng.shuffle(indel_ixs)
+        indel_lens = indel_lens[indel_ixs]
+        indel_types = indel_types[indel_ixs]
+
+        # iterate over each gene
+        indel_ix = 0
+        for j in range(len(nonzero_ix)):
+            prev_indel_ix = indel_ix
+            num_gene_indels = mygene_cts[nonzero_ix[j]]
+            indel_ix += num_gene_indels
+            maf_lines = counts2maf(num_gene_indels,
+                                   indel_lens[prev_indel_ix:indel_ix],
+                                   indel_types[prev_indel_ix:indel_ix],
+                                   bed_genes[nonzero_ix[j]])
+            yield maf_lines
+
 
 def counts2maf(num_indels, myindel_lens, myindel_types, gene_bed, seed=None):
     maf_list = []

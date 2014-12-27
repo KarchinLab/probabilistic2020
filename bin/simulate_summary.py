@@ -23,6 +23,7 @@ import argparse
 import datetime
 import logging
 import copy
+import itertools as it
 import IPython
 
 logger = logging.getLogger(__name__)  # module logger
@@ -65,7 +66,7 @@ def start_logging(log_file='', log_level='INFO'):
         root.propagate = True
 
 
-def multiprocess_permutation(bed_dict, mut_df, opts):
+def multiprocess_permutation(bed_dict, mut_df, opts, indel_df=None):
     """Handles parallelization of permutations by splitting work
     by chromosome.
     """
@@ -82,11 +83,21 @@ def multiprocess_permutation(bed_dict, mut_df, opts):
                   'End_Position', 'Reference_Allele', 'Tumor_Allele',
                   'Context', 'DNA_Change', 'Protein_Change', 'Variant_Classification']
     else:
-        header = ['gene', 'ID', 'non-silent', 'silent', 'nonsense', 'lost stop',
+        header = ['gene', 'ID', 'non-silent snv', 'silent snv', 'nonsense', 'lost stop',
                   'splice site', 'lost start', 'missense', 'recurrent missense',
-                  'normalized missense position entropy']
+                  'normalized missense position entropy', 'frameshift indel',
+                  'inframe indel']
     mywriter.writerow(header)
     num_permutations = opts['num_permutations']
+
+    # simulate indel counts
+    if not opts['maf']:
+        fs_cts, inframe_cts, gene_names = indel.simulate_indel_counts(indel_df,
+                                                                      bed_dict,
+                                                                      num_permutations)
+        name2ix = {gene_names[z]: z for z in range(len(gene_names))}
+
+    # simulate snvs
     obs_result = []
     for i in range(0, len(chroms), num_processes):
         if multiprocess_flag:
@@ -97,7 +108,20 @@ def multiprocess_permutation(bed_dict, mut_df, opts):
             process_results = pool.imap(singleprocess_permutation, info_repeat)
             process_results.next = utils.keyboard_exit_wrapper(process_results.next)
             try:
+                # iterate through each chromosome result
                 for chrom_result in process_results:
+                    # add columns for indels
+                    if not opts['maf']:
+                        tmp_chrom_result = []
+                        for gname, grp in it.groupby(chrom_result, lambda x: x[0]):
+                            for l, row in enumerate(grp):
+                                gene_ix = name2ix[gname]
+                                fs_count = fs_cts[l, gene_ix]
+                                inframe_count = inframe_cts[l, gene_ix]
+                                tmp_chrom_result.append(row+[fs_count, inframe_count])
+                        chrom_result = tmp_chrom_result
+
+                    # write output to file
                     mywriter.writerows(chrom_result)
             except KeyboardInterrupt:
                 pool.close()
@@ -107,8 +131,22 @@ def multiprocess_permutation(bed_dict, mut_df, opts):
             pool.close()
             pool.join()
         else:
+            # perform simulation
             info = (bed_dict[chroms[i]], mut_df, opts)
             chrom_results = singleprocess_permutation(info)
+
+            # add indel columns
+            if not opts['maf']:
+                tmp_chrom_result = []
+                for gname, grp in it.groupby(chrom_results, lambda x: x[0]):
+                    for l, row in enumerate(grp):
+                        gene_ix = name2ix[gname]
+                        fs_count = fs_cts[l, gene_ix]
+                        inframe_count = inframe_cts[l, gene_ix]
+                        tmp_chrom_result.append(row+[fs_count, inframe_count])
+                chrom_results = tmp_chrom_result
+
+            # write to file
             mywriter.writerows(chrom_results)
     file_handle.close()
 
@@ -291,50 +329,15 @@ def main(opts):
     bed_dict = utils.read_bed(opts['bed'], [])
 
     # perform permutation
-    multiprocess_permutation(bed_dict, mut_df, opts)
+    multiprocess_permutation(bed_dict, mut_df, opts, indel_df)
 
+    # save indels
     if opts['maf']:
-        # count indels
-        bed_genes = [mybed
-                    for chrom in bed_dict
-                    for mybed in bed_dict[chrom]]
-        tmp = []
-        for b in bed_genes:
-            b.init_genome_coordinates()
-            tmp.append(b)
-        bed_genes = tmp
-        gene_lengths = pd.Series([b.cds_len for b in bed_genes],
-                                 index=[b.gene_name for b in bed_genes])
-
-        # generate random indel assignments
-        gene_prob = gene_lengths.astype(float) / gene_lengths.sum()
-        indel_lens = indel_df['indel len'].copy().values
-        indel_types = indel_df['indel type'].copy().values
-        indel_ixs = np.arange(len(indel_lens))
-        prng = np.random.RandomState(seed=None)
         with open(opts['output'], 'a') as handle:
             mywriter = csv.writer(handle, delimiter='\t')
-            for i in range(opts['num_permutations']):
-                # randomly reassign indels
-                mygene_cts = prng.multinomial(len(indel_lens), gene_prob)
-                nonzero_ix = np.nonzero(mygene_cts)[0]
-
-                # randomly shuffle indel lengths
-                prng.shuffle(indel_ixs)
-                indel_lens = indel_lens[indel_ixs]
-                indel_types = indel_types[indel_ixs]
-
-                # iterate over each gene
-                indel_ix = 0
-                for j in range(len(nonzero_ix)):
-                    prev_indel_ix = indel_ix
-                    num_gene_indels = mygene_cts[nonzero_ix[j]]
-                    indel_ix += num_gene_indels
-                    maf_lines = indel.counts2maf(num_gene_indels,
-                                                 indel_lens[prev_indel_ix:indel_ix],
-                                                 indel_types[prev_indel_ix:indel_ix],
-                                                 bed_genes[nonzero_ix[j]])
-                    mywriter.writerows(maf_lines)
+            for maf_lines in indel.simulate_indel_maf(indel_df, bed_dict,
+                                                      opts['num_permutations']):
+                mywriter.writerows(maf_lines)
 
 
 if __name__ == "__main__":
