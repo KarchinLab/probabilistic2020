@@ -5,6 +5,7 @@ import scipy.stats as stats
 import pandas as pd
 import csv
 import itertools as it
+from collections import OrderedDict
 from functools import wraps
 import logging
 
@@ -169,11 +170,13 @@ def read_bed(file_path, filtered_genes):
         dictionary mapping chromosome keys to a list of BED lines
     """
     # read in entire bed file into a dict with keys as chromsomes
-    bed_dict = {}
+    bed_dict = OrderedDict()
     for bed_row in bed_generator(file_path):
         if bed_row.gene_name not in filtered_genes:
             bed_dict.setdefault(bed_row.chrom, [])
             bed_dict[bed_row.chrom].append(bed_row)
+    sort_chroms = sorted(bed_dict.keys(), key=lambda x: len(bed_dict[x]), reverse=True)
+    bed_dict = OrderedDict((chrom, bed_dict[chrom]) for chrom in sort_chroms)
     return bed_dict
 
 
