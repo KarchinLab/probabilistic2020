@@ -618,6 +618,10 @@ def main(opts, mut_df=None):
     # select valid single nucleotide variants only
     mut_df = utils._fix_mutation_df(mut_df)
 
+    # log random number seed choice if provided
+    if opts['seed'] is not None:
+        logger.info('Pseudo Random Number Generator Seed: {0}'.format(opts['seed']))
+
     # perform permutation test
     bed_dict = utils.read_bed(opts['bed'], non_tested_genes)
     permutation_result = multiprocess_permutation(bed_dict, mut_df, opts)
