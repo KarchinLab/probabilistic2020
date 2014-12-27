@@ -280,7 +280,7 @@ def recover_unmapped_mut_info(mut_info, bed, sc, opts):
     # retreive info based on annotated protein effects and genomic coordinates
     has_unmapped_opts = ('use_unmapped' in opts) and ('genome' in opts)
     use_unmapped = opts['use_unmapped'] and opts['genome']
-    if has_unmapped and use_unmapped:
+    if has_unmapped_opts and use_unmapped:
         genome_fa = pysam.Fastafile(opts['genome'])
         # try to still use mutations that are not on the reference transcript
         tmp_mut_info = mut_info[mut_info['Coding Position'].isnull()]
