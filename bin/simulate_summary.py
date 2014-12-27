@@ -277,6 +277,12 @@ def parse_arguments():
     parser.add_argument('-g', '--genome',
                         type=str, default='',
                         help=help_str)
+    help_str = ('Specify the seed for the pseudo random number generator. '
+                'By default, the seed is randomly chosen based. The seed will '
+                'be used for the monte carlo simulations.')
+    parser.add_argument('-seed', '--seed',
+                        type=int, default=None,
+                        help=help_str)
     help_str = 'Output text file of results'
     parser.add_argument('-o', '--output',
                         type=str, required=True,
