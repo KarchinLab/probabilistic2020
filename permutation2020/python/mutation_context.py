@@ -33,7 +33,12 @@ def compute_mutation_context(bed, gs, df, opts):
             'Tumor_Allele', 'Variant_Classification', 'Protein_Change']
     mut_info = gene_mut[cols]
     gs.set_gene(bed)
-    sc = permutation2020.python.sequence_context.SequenceContext(gs)
+
+    # get sequence context
+    if 'seed' in opts:
+        sc = permutation2020.python.sequence_context.SequenceContext(gs, seed=opts['seed'])
+    else:
+        sc = permutation2020.python.sequence_context.SequenceContext(gs)
 
     # count total mutations in gene
     total_mut = len(mut_info)
@@ -273,7 +278,9 @@ def get_unmapped_aa_mut_info(mut_info, genome_fa, strand, chr, context_type):
 
 def recover_unmapped_mut_info(mut_info, bed, sc, opts):
     # retreive info based on annotated protein effects and genomic coordinates
-    if opts['use_unmapped'] and opts['genome']:
+    has_unmapped_opts = ('use_unmapped' in opts) and ('genome' in opts)
+    use_unmapped = opts['use_unmapped'] and opts['genome']
+    if has_unmapped and use_unmapped:
         genome_fa = pysam.Fastafile(opts['genome'])
         # try to still use mutations that are not on the reference transcript
         tmp_mut_info = mut_info[mut_info['Coding Position'].isnull()]
