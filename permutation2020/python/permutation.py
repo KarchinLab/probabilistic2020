@@ -298,6 +298,7 @@ def summary_permutation(context_counts,
 
     # determine result of random positions
     gene_name = gene_seq.bed.gene_name
+    gene_len = gene_seq.bed.cds_len
     summary_info_list = []
     for i, row in enumerate(tmp_mut_pos):
         # get info about mutations
@@ -313,6 +314,9 @@ def summary_permutation(context_counts,
         # limit the precision of floats
         pos_ent = tmp_summary[-1]
         tmp_summary[-1] = '{0:.3f}'.format(pos_ent)
+
+        # add gene length to output
+        tmp_summary.insert(2, gene_len)
 
         summary_info_list.append([gene_name, i+1]+tmp_summary)
     return summary_info_list

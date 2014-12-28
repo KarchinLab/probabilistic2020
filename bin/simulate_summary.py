@@ -82,7 +82,7 @@ def multiprocess_permutation(bed_dict, mut_df, opts, indel_df=None):
                   'End_Position', 'Reference_Allele', 'Tumor_Allele',
                   'Context', 'DNA_Change', 'Protein_Change', 'Variant_Classification']
     else:
-        header = ['Gene', 'ID', 'non-silent snv', 'silent snv', 'nonsense', 'lost stop',
+        header = ['Gene', 'ID', 'gene length', 'non-silent snv', 'silent snv', 'nonsense', 'lost stop',
                   'splice site', 'lost start', 'missense', 'recurrent missense',
                   'normalized missense position entropy', 'frameshift indel',
                   'inframe indel']
@@ -197,7 +197,7 @@ def singleprocess_permutation(info):
                 tmp_result = cutils.calc_summary_info(tmp_mut_info['Reference AA'],
                                                       tmp_mut_info['Somatic AA'],
                                                       tmp_mut_info['Codon Pos'])
-                tmp_result = [[bed.gene_name, 'NA'] + tmp_result]
+                tmp_result = [[bed.gene_name, 'NA', bed.cds_len] + tmp_result]
             ## Do permutations
             elif opts['maf']:
                 # if user specified MAF format then output all mutations in
