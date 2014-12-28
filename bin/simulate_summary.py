@@ -90,11 +90,32 @@ def multiprocess_permutation(bed_dict, mut_df, opts, indel_df=None):
     num_permutations = opts['num_permutations']
 
     # simulate indel counts
-    if not opts['maf']:
+    if not opts['maf'] and num_permutations:
         fs_cts, inframe_cts, gene_names = indel.simulate_indel_counts(indel_df,
                                                                       bed_dict,
                                                                       num_permutations)
         name2ix = {gene_names[z]: z for z in range(len(gene_names))}
+    # just count observed indels
+    elif not opts['maf']:
+        # get gene names
+        gene_names = [mybed.gene_name
+                      for chrom in bed_dict
+                      for mybed in bed_dict[chrom]]
+        name2ix = {gene_names[z]: z for z in range(len(gene_names))}
+
+        # initiate count vectors
+        inframe_cts = np.zeros((1, len(gene_names)))
+        fs_cts = np.zeros((1, len(gene_names)))
+
+        # populate observed counts
+        indel_cts_dict = indel_df['Gene'].value_counts().to_dict()
+        fs_cts_dict = indel_df[indel.is_frameshift(indel_df)]['Gene'].value_counts().to_dict()
+        for mygene in indel_cts_dict:
+            if mygene in name2ix:
+                # gene should be found in BED file annotation
+                ix = name2ix[mygene]
+                fs_cts[0, ix] = 0 if mygene not in fs_cts_dict else fs_cts_dict[mygene]
+                inframe_cts[0, ix] = indel_cts_dict[mygene] - fs_cts[0, ix]
 
     # simulate snvs
     obs_result = []
@@ -168,16 +189,17 @@ def singleprocess_permutation(info):
 
         if context_to_mutations:
             ## get information about observed non-silent counts
-            # get info about mutations
-            tmp_mut_info = mc.get_aa_mut_info(mutations_df['Coding Position'],
-                                              mutations_df['Tumor_Allele'].tolist(),
-                                              gs)
-            # calc mutation info summarizing observed mutations
-            tmp_non_silent = cutils.calc_summary_info(tmp_mut_info['Reference AA'],
+            if opts['summary'] and not num_permutations:
+                tmp_mut_info = mc.get_aa_mut_info(mutations_df['Coding Position'],
+                                                  mutations_df['Tumor_Allele'].tolist(),
+                                                  gs)
+                # calc mutation info summarizing observed mutations
+                tmp_result = cutils.calc_summary_info(tmp_mut_info['Reference AA'],
                                                       tmp_mut_info['Somatic AA'],
                                                       tmp_mut_info['Codon Pos'])
+                tmp_result = [[bed.gene_name, 'NA'] + tmp_result]
             ## Do permutations
-            if opts['maf']:
+            elif opts['maf']:
                 # if user specified MAF format then output all mutations in
                 # MAF format
                 tmp_result = pm.maf_permutation(context_cts,
@@ -238,8 +260,9 @@ def parse_arguments():
     parser.add_argument('-p', '--processes',
                         type=int, default=0,
                         help=help_str)
-    help_str = ('Number of permutations for null model. p-value precision '
-                'increases with more permutations (Default: 1).')
+    help_str = ('Number of permutations for null model simulations. If zero is '
+                'specified then output represents actually observed summary, '
+                'otherwise a simmulation summary. (Default: 1).')
     parser.add_argument('-n', '--num-permutations',
                         type=int, default=1,
                         help=help_str)
