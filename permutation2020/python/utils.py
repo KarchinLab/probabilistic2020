@@ -153,7 +153,7 @@ def bed_generator(bed_path):
             yield BedLine(line)
 
 
-def read_bed(file_path, filtered_genes):
+def read_bed(file_path, filtered_genes=[]):
     """Reads BED file and populates a dictionary separating genes
     by chromosome.
 
