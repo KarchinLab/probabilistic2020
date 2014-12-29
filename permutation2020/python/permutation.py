@@ -313,12 +313,9 @@ def summary_permutation(context_counts,
 
         # limit the precision of floats
         pos_ent = tmp_summary[-1]
-        tmp_summary[-1] = '{0:.3f}'.format(pos_ent)
+        tmp_summary[-1] = '{0:.5f}'.format(pos_ent)
 
-        # add gene length to output
-        tmp_summary.insert(2, gene_len)
-
-        summary_info_list.append([gene_name, i+1]+tmp_summary)
+        summary_info_list.append([gene_name, i+1, gene_len]+tmp_summary)
     return summary_info_list
 
 
