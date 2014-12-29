@@ -36,6 +36,7 @@ Contents:
    tutorial
    user_doc
    dev_doc
+      api
    faq
 
 
