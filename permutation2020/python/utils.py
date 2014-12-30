@@ -207,8 +207,8 @@ def _fix_mutation_df(mutation_df):
 
     # log the number of dropped mutations
     log_msg = ('Dropped {num_dropped} mutations after only keeping '
-               '{mut_types}'.format(num_dropped=orig_len-type_len,
-                                    mut_types=', '.join(allowed_types)))
+               '{mut_types}. Indels are processed separately.'.format(num_dropped=orig_len-type_len,
+                                                                      mut_types=', '.join(allowed_types)))
     logger.info(log_msg)
 
     # check if mutations are valid SNVs
