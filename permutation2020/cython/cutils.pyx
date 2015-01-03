@@ -244,7 +244,7 @@ def get_variant_classification(germ_aa_list, somatic_aa_list, codon_pos):
         string loststop = 'Nonstop_Mutation'
         string splice_site = 'Splice_Site'
         string silent = 'Silent'
-        string lost_start = 'Loststart_Mutation'
+        string lost_start = 'Translation_Start_Site'
         string stop_codon = '*'
 
     for i in range(num_muts):
