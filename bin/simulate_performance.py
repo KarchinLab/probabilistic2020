@@ -12,6 +12,7 @@ from permutation2020.python.random_sample_names import RandomSampleNames
 from permutation2020.python.random_tumor_types import RandomTumorTypes
 import permutation2020.python.simulation_plots as plot_data
 import permutation2020.python.simulation as sim
+import permutation2020.python.mutation_context as mc
 
 import permutation_test as pt
 import probabilistic2020 as prob
@@ -76,26 +77,60 @@ def calc_performance(df, opts):
     # get statistical results
     permutation_df = prob.main(opts, mutation_df=df, frameshift_df=fs_df)
 
+    # drop duplicates for counting average number of "driver" genes mutated
+    df = df[df['is_nonsilent']==1]  # keep nonsilent mutations
+    df = df.drop_duplicates(cols=['Tumor_Sample', 'Gene'])
+
     if opts['kind'] == 'oncogene':
+        # count number of significant genes
         recur_sig_genes = permutation_df[permutation_df['recurrent BH q-value']<.1]['gene']
         ent_sig_genes = permutation_df[permutation_df['entropy BH q-value']<.1]['gene']
         recurrent_num_signif = len(recur_sig_genes)
         entropy_num_signif = len(ent_sig_genes)
+
+        # count number of driver genes with non-silent mutations
+        df_recur = df[df['Gene'].isin(recur_sig_genes)]
+        df_ent = df[df['Gene'].isin(ent_sig_genes)]
+        num_drivers_recur = df_recur.groupby('Tumor_Sample')['is_nonsilent'].sum()
+        num_drivers_ent = df_ent.groupby('Tumor_Sample')['is_nonsilent'].sum()
+
         results = pd.DataFrame({'count': [recurrent_num_signif,
-                                          entropy_num_signif]},
-                                index=['{0} recurrent'.format(opts['kind']),
-                                       '{0} entropy'.format(opts['kind'])])
+                                          entropy_num_signif],
+                                'average num drivers': [np.mean(num_drivers_recur),
+                                                        np.mean(num_drivers_ent)]},
+                               index=['{0} recurrent'.format(opts['kind']),
+                                      '{0} entropy'.format(opts['kind'])])
     elif opts['kind'] == 'tsg':
-        deleterious_num_signif = len(permutation_df[permutation_df['deleterious BH q-value']<.1])
-        results = pd.DataFrame({'count': [deleterious_num_signif]},
-                                index=['{0} deleterious'.format(opts['kind'])])
+        # count number of significant genes
+        deleterious_sig_genes = permutation_df[permutation_df['deleterious BH q-value']<.1]['gene']
+        deleterious_num_signif = len(deleterious_sig_genes)
+
+        # count number of driver genes with non-silent mutations
+        df_del = df[df['Gene'].isin(deleterious_sig_genes)]
+        num_drivers_del = df_del.groupby('Tumor_Sample')['is_nonsilent'].sum()
+
+        results = pd.DataFrame({'count': [deleterious_num_signif],
+                                'average num drivers': [np.mean(num_drivers_del)]},
+                               index=['{0} deleterious'.format(opts['kind'])])
     elif opts['kind'] == 'effect':
-        combined_num_signif = len(permutation_df[permutation_df['combined BH q-value']<.1])
-        effect_num_signif = len(permutation_df[permutation_df['entropy-on-effect BH q-value']<.1])
+        # count number of significant genes
+        combined_sig_genes = permutation_df[permutation_df['combined BH q-value']<.1]['gene']
+        effect_sig_genes = permutation_df[permutation_df['entropy-on-effect BH q-value']<.1]['gene']
+        combined_num_signif = len(combined_sig_genes)
+        effect_num_signif = len(effect_sig_genes)
+
+        # count number of driver genes with non-silent mutations
+        df_combined = df[df['Gene'].isin(combined_sig_genes)]
+        df_eff = df[df['Gene'].isin(effect_sig_genes)]
+        num_drivers_combined = df_combined.groupby('Tumor_Sample')['is_nonsilent'].sum()
+        num_drivers_eff = df_eff.groupby('Tumor_Sample')['is_nonsilent'].sum()
+
         results = pd.DataFrame({'count': [effect_num_signif,
-                                          combined_num_signif]},
-                                index=['entropy-on-effect',
-                                       'combined'])
+                                          combined_num_signif],
+                                'average num drivers': [np.mean(num_drivers_combined),
+                                                        np.mean(num_drivers_eff)]},
+                               index=['entropy-on-effect',
+                                      'combined'])
 
     return results
 
@@ -305,6 +340,11 @@ def main(opts):
     # Get Mutations
     mut_df = pd.read_csv(opts['mutations'], sep='\t')
 
+    # add column indicating non-silent mutations
+    mut_df['is_nonsilent'] = mc.is_nonsilent(mut_df,
+                                             utils.read_bed(opts['bed']),
+                                             opts)
+
     # iterate through each sampling rate
     result = {}
     for sample_rate in np.linspace(opts['start_sample_rate'],
@@ -353,6 +393,13 @@ def main(opts):
                                  title='Number of significant genes vs. relative size',
                                  xlabel='Sample rate',
                                  ylabel='Number of significant genes')
+        tmp_save_path = os.path.join(opts['plot_output'], plot_type + '_avg_drivers.png')
+        plot_data.count_errorbar(plot_results,
+                                 gene_type=plot_type,
+                                 save_path=tmp_save_path,
+                                 title='Num predicted driver genes with non-silent mutations',
+                                 xlabel='Sample rate',
+                                 ylabel='Number of drivers per sample')
 
 
 if __name__ == "__main__":
