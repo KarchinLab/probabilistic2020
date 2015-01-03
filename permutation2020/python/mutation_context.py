@@ -1,5 +1,7 @@
 import permutation2020.python.utils as utils
 import permutation2020.python.sequence_context
+import permutation2020.python.indel as indel
+from permutation2020.python.gene_sequence import GeneSequence
 from amino_acid import AminoAcid
 from ..cython import cutils
 import numpy as np
@@ -302,3 +304,55 @@ def recover_unmapped_mut_info(mut_info, bed, sc, opts):
         unmapped_mut_info = {'Context': [], 'Reference AA': [], 'Codon Pos': [],
                              'Somatic AA': [], 'Tumor_Allele': []}
     return unmapped_mut_info
+
+
+def is_nonsilent(mut_df, bed_dict, opts):
+    # convert dictionary to list for bed objects
+    gene_beds = [b
+                 for chrom in bed_dict
+                 for b in bed_dict[chrom]]
+
+    # initiate gene sequences
+    gene_fa = pysam.Fastafile(opts['input'])
+    gs = GeneSequence(gene_fa, nuc_context=opts['context'])
+
+    # non-silent SNV classes
+    non_silent_snv = ['Nonsense_Mutation', 'Nonstop_Mutation', 'Splice_Site',
+                      'Translation_Start_Site', 'Missense_Mutation']
+
+    # record indels and get only snvs
+    mut_df['is_nonsilent'] = 0
+    indel_flag = indel.is_indel(mut_df)
+    mut_df['is_nonsilent'][indel_flag] = 1
+    snv_df = mut_df[~indel_flag]
+
+    # iterate over each gene
+    for bed in gene_beds:
+        # initiate for this gene
+        tmp_df = snv_df[snv_df['Gene']==bed.gene_name]
+        gs.set_gene(bed)
+
+        # compute context counts and somatic bases for each context
+        gene_tuple = compute_mutation_context(bed, gs, tmp_df, opts)
+        context_cts, context_to_mutations, mutations_df, gs, sc = gene_tuple
+
+        if len(mutations_df):
+            # get snv information
+            tmp_mut_info = get_aa_mut_info(mutations_df['Coding Position'],
+                                        mutations_df['Tumor_Allele'].tolist(),
+                                        gs)
+
+            # get string describing variant
+            var_class = cutils.get_variant_classification(tmp_mut_info['Reference AA'],
+                                                        tmp_mut_info['Somatic AA'],
+                                                        tmp_mut_info['Codon Pos'])
+
+            # detect if non-silent snv
+            is_nonsilent_snv = [1 if (x in non_silent_snv) else 0
+                                for x in var_class]
+            mut_df['is_nonsilent'][tmp_df.index] = is_nonsilent_snv
+
+    # return a pandas series indicating nonsilent status
+    is_nonsilent_series = mut_df['is_nonsilent'].copy()
+    del mut_df['is_nonsilent']
+    return is_nonsilent_series
