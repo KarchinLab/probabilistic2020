@@ -1,14 +1,14 @@
 import plot as myplt
 
 
-def count_errorbar(panel_dict, gene_type, save_path,
+def count_errorbar(panel_dict, gene_type, save_path, col_name='count',
                    title='', xlabel='', ylabel=''):
     path_holder = ''
     counter, dict_len,  = 0, len(panel_dict)
     for label, wp in panel_dict.iteritems():
         samprates = wp.items
-        mean_prec = wp.ix[:, gene_type, 'count mean']
-        sem_prec = wp.ix[:, gene_type, 'count sem']
+        mean_prec = wp.ix[:, gene_type, '{0} mean'.format(col_name)]
+        sem_prec = wp.ix[:, gene_type, '{0} sem'.format(col_name)]
         ci_prec = 1.96 * sem_prec  # confidence interval
 
         # figure out whether to save yet
