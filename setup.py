@@ -47,8 +47,8 @@ else:
     version = permutation2020.__version__
     AUTHOR = 'Collin Tokheim'
     EMAIL = 'fake@gmail.com'
-    URL = 'https://github.com/ctokheim/2020permutation'
-    DESCRIPTION = '20/20 Permutation Test'
+    URL = 'https://github.com/ctokheim/probabilistic2020'
+    DESCRIPTION = 'Probabilistic 20/20'
     PACKAGES = [SRC_DIR, SRC_DIR + '.python', SRC_DIR + '.cython', SRC_DIR + '.cpp']
     setup(name='permutation2020',
           version=version,
@@ -60,7 +60,10 @@ else:
           install_requires=['numpy', 'scipy', 'pandas==0.12.0', 'pysam'],
           scripts=['bin/permutation_test.py', 'bin/extract_gene_seq.py',
                    'bin/simulate_consistency.py', 'bin/simulate_performance.py',
-                   'bin/check_mutations.py'],
+                   'bin/check_mutations.py', 'bin/probabilistic2020.py',
+                   'bin/simulate_non_silent_ratio.py', 'bin/frameshift_binomial_test.py',
+                   'bin/count_frameshifts.py', 'bin/count_mutations.py',
+                   'bin/simulate_summary.py', 'bin/mutation_binomial_test.py'],
           long_description=open('README.rst').read(),
           classifiers=['Topic :: Scientific/Engineering :: Bio-Informatics',
                        'Environment :: Console',
