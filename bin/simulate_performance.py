@@ -390,6 +390,7 @@ def main(opts):
         plot_data.count_errorbar(plot_results,
                                  gene_type=plot_type,
                                  save_path=tmp_save_path,
+                                 col_name='count',
                                  title='Number of significant genes vs. relative size',
                                  xlabel='Sample rate',
                                  ylabel='Number of significant genes')
@@ -397,6 +398,7 @@ def main(opts):
         plot_data.count_errorbar(plot_results,
                                  gene_type=plot_type,
                                  save_path=tmp_save_path,
+                                 col_name='average num drivers',
                                  title='Num predicted driver genes with non-silent mutations',
                                  xlabel='Sample rate',
                                  ylabel='Number of drivers per sample')
