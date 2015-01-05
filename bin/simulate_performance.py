@@ -23,6 +23,7 @@ import pysam
 import datetime
 import argparse
 import logging
+import IPython
 
 logger = logging.getLogger(__name__)  # module logger
 
@@ -78,6 +79,7 @@ def calc_performance(df, opts):
     permutation_df = prob.main(opts, mutation_df=df, frameshift_df=fs_df)
 
     # drop duplicates for counting average number of "driver" genes mutated
+    all_samples = df['Tumor_Sample'].unique()
     df = df[df['is_nonsilent']==1]  # keep nonsilent mutations
     df = df.drop_duplicates(cols=['Tumor_Sample', 'Gene'])
 
@@ -94,6 +96,17 @@ def calc_performance(df, opts):
         num_drivers_recur = df_recur.groupby('Tumor_Sample')['is_nonsilent'].sum()
         num_drivers_ent = df_ent.groupby('Tumor_Sample')['is_nonsilent'].sum()
 
+        # handle cases with samples with no driver genes mutated
+        # by padding those samples with zeros
+        no_drivers_recur = list(set(all_samples) - set(num_drivers_recur.index))
+        no_drivers_ent = list(set(all_samples) - set(num_drivers_ent.index))
+        no_drivers_recur_series = pd.Series(np.zeros(len(no_drivers_recur)),
+                                            index=no_drivers_recur)
+        no_drivers_ent_series = pd.Series(np.zeros(len(no_drivers_ent)),
+                                            index=no_drivers_ent)
+        num_drivers_recur = pd.concat([num_drivers_recur, no_drivers_recur_series])
+        num_drivers_ent = pd.concat([num_drivers_ent, no_drivers_ent_series])
+
         results = pd.DataFrame({'count': [recurrent_num_signif,
                                           entropy_num_signif],
                                 'average num drivers': [np.mean(num_drivers_recur),
@@ -102,12 +115,18 @@ def calc_performance(df, opts):
                                       '{0} entropy'.format(opts['kind'])])
     elif opts['kind'] == 'tsg':
         # count number of significant genes
-        deleterious_sig_genes = permutation_df[permutation_df['deleterious BH q-value']<.1]['gene']
+        deleterious_sig_genes = permutation_df[permutation_df['deleterious BH q-value']<.8]['gene']
         deleterious_num_signif = len(deleterious_sig_genes)
 
         # count number of driver genes with non-silent mutations
         df_del = df[df['Gene'].isin(deleterious_sig_genes)]
         num_drivers_del = df_del.groupby('Tumor_Sample')['is_nonsilent'].sum()
+
+        # handle cases with samples with no driver genes mutated
+        no_drivers = list(set(all_samples) - set(num_drivers_del.index))
+        no_drivers_series = pd.Series(np.zeros(len(no_drivers)),
+                                      index=no_drivers)
+        num_drivers_del = pd.concat([num_drivers_del, no_drivers_series])
 
         results = pd.DataFrame({'count': [deleterious_num_signif],
                                 'average num drivers': [np.mean(num_drivers_del)]},
@@ -124,6 +143,17 @@ def calc_performance(df, opts):
         df_eff = df[df['Gene'].isin(effect_sig_genes)]
         num_drivers_combined = df_combined.groupby('Tumor_Sample')['is_nonsilent'].sum()
         num_drivers_eff = df_eff.groupby('Tumor_Sample')['is_nonsilent'].sum()
+
+        # handle cases with samples with no driver genes mutated
+        # by padding those samples with zeros
+        no_drivers_combined = list(set(all_samples) - set(num_drivers_combined.index))
+        no_drivers_eff = list(set(all_samples) - set(num_drivers_eff.index))
+        no_drivers_combined_series = pd.Series(np.zeros(len(no_drivers_combined)),
+                                               index=no_drivers_combined)
+        no_drivers_eff_series = pd.Series(np.zeros(len(no_drivers_eff)),
+                                          index=no_drivers_eff)
+        num_drivers_combined = pd.concat([num_drivers_combined, no_drivers_combined_series])
+        num_drivers_eff = pd.concat([num_drivers_eff, no_drivers_eff_series])
 
         results = pd.DataFrame({'count': [effect_num_signif,
                                           combined_num_signif],
