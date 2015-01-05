@@ -23,7 +23,6 @@ import pysam
 import datetime
 import argparse
 import logging
-import IPython
 
 logger = logging.getLogger(__name__)  # module logger
 
@@ -103,7 +102,7 @@ def calc_performance(df, opts):
         no_drivers_recur_series = pd.Series(np.zeros(len(no_drivers_recur)),
                                             index=no_drivers_recur)
         no_drivers_ent_series = pd.Series(np.zeros(len(no_drivers_ent)),
-                                            index=no_drivers_ent)
+                                          index=no_drivers_ent)
         num_drivers_recur = pd.concat([num_drivers_recur, no_drivers_recur_series])
         num_drivers_ent = pd.concat([num_drivers_ent, no_drivers_ent_series])
 
@@ -115,7 +114,7 @@ def calc_performance(df, opts):
                                       '{0} entropy'.format(opts['kind'])])
     elif opts['kind'] == 'tsg':
         # count number of significant genes
-        deleterious_sig_genes = permutation_df[permutation_df['deleterious BH q-value']<.8]['gene']
+        deleterious_sig_genes = permutation_df[permutation_df['deleterious BH q-value']<.1]['gene']
         deleterious_num_signif = len(deleterious_sig_genes)
 
         # count number of driver genes with non-silent mutations
