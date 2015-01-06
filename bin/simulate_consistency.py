@@ -399,9 +399,10 @@ def parse_arguments():
                         type=int, default=2,
                         help=help_str)
     help_str = ('Maximum TSG score to allow gene to be tested for oncogene '
-                'permutation test. (Default: .10)')
+                'permutation test. Values greater than one indicate all '
+                'genes will be tested (Default: 1.01).')
     parser.add_argument('-t', '--tsg-score',
-                        type=float, default=.10,
+                        type=float, default=1.01,
                         help=help_str)
     help_str = ('Deleterious mutation pseudo-count for null distribution '
                 'statistics. (Default: 0)')
