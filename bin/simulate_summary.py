@@ -78,7 +78,7 @@ def multiprocess_permutation(bed_dict, mut_df, opts, indel_df=None):
     file_handle = open(opts['output'], 'w')
     mywriter = csv.writer(file_handle, delimiter='\t', lineterminator='\n')
     if opts['maf']:
-        header = ['gene', 'strand', 'Chromosome', 'Start_Position',
+        header = ['Gene', 'strand', 'Chromosome', 'Start_Position',
                   'End_Position', 'Reference_Allele', 'Tumor_Allele',
                   'Context', 'DNA_Change', 'Protein_Change', 'Variant_Classification']
     else:
