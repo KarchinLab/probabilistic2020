@@ -77,7 +77,8 @@ def calculate_sem(wp):
 
 
 def calculate_stats(result_dict,
-                    metrics=['precision', 'recall', 'ROC AUC', 'PR AUC', 'count']):
+                    metrics=['precision', 'recall', 'ROC AUC',
+                             'PR AUC', 'count', 'average num drivers']):
     """Computes mean and sem of classification performance metrics.
 
     Parameters

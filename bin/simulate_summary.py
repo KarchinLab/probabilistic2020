@@ -198,6 +198,10 @@ def singleprocess_permutation(info):
                                                       tmp_mut_info['Somatic AA'],
                                                       tmp_mut_info['Codon Pos'])
                 tmp_result = [[bed.gene_name, 'NA', bed.cds_len] + tmp_result]
+            ## Just record protein changes in MAF
+            elif opts['maf'] and not num_permutations:
+                # input code for just annotating genes mutations
+                pass
             ## Do permutations
             elif opts['maf']:
                 # if user specified MAF format then output all mutations in
@@ -207,7 +211,6 @@ def singleprocess_permutation(info):
                                                 sc,
                                                 gs,
                                                 num_permutations)
-
             else:
                 # Summarized results for feature for each simulation for each
                 # gene
