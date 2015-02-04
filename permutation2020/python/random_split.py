@@ -54,8 +54,36 @@ class RandomSplit(object):
                 left_samples += tmp_left
                 right_samples += tmp_right
 
-            left_df = self.df[self.df['Tumor_Sample'].isin(left_samples)].copy()
-            right_df = self.df[self.df['Tumor_Sample'].isin(right_samples)].copy()
+            # get data frame split
+            if not self.with_replacement:
+                # simple sample without replacment case
+                left_df = self.df[self.df[self.COLUMN_NAME].isin(left_samples)].copy()
+                right_df = self.df[self.df[self.COLUMN_NAME].isin(right_samples)].copy()
+            else:
+                # sample with replacement case
+                # count occurrences of samples
+                left_cts = Counter(left_samples)
+                right_cts = Counter(right_samples)
+
+                # identify data frame indices for samples
+                left_ixs, right_ixs = [], []
+                left_names, right_names = [], []
+                for cname in left_cts:
+                    for k in range(left_cts[cname]):
+                        left_names += [cname + '.{0}'.format(k)
+                                       for _ in range(len(self.colname2ix[cname]))]
+                        left_ixs += self.colname2ix[cname]
+                for cname in right_cts:
+                    for k in range(right_cts[cname]):
+                        right_names += [cname + '.{0}'.format(k)
+                                        for _ in range(len(self.colname2ix[cname]))]
+                        right_ixs += self.colname2ix[cname]
+
+                # get samples from original data frame
+                left_df = self.df.ix[left_ixs,:].copy()
+                right_df = self.df.ix[right_ixs,:].copy()
+                left_df[self.COLUMN_NAME] = left_names
+                right_df[self.COLUMN_NAME] = right_names
 
             logger.info('Finished feature generation: Sub-sample rate={0}, Iteration={1}'.format(self.sub_sample, i))
             yield left_df, right_df
