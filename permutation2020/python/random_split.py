@@ -21,6 +21,7 @@ class RandomSplit(object):
         drop_dups = self.df.copy()[['Tumor_Sample', 'Tumor_Type']].drop_duplicates()
         self.sample_names = drop_dups.set_index('Tumor_Sample').groupby('Tumor_Type').groups
         self.num_sample_names = len(self.sample_names)
+        self.colname2ix = self.df.groupby(self.COLUMN_NAME).groups
 
     def dataframe_generator(self):
         """Generate subsampled data frames according to the sub_sample
