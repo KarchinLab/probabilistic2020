@@ -339,13 +339,13 @@ def is_nonsilent(mut_df, bed_dict, opts):
         if len(mutations_df):
             # get snv information
             tmp_mut_info = get_aa_mut_info(mutations_df['Coding Position'],
-                                        mutations_df['Tumor_Allele'].tolist(),
-                                        gs)
+                                           mutations_df['Tumor_Allele'].tolist(),
+                                           gs)
 
             # get string describing variant
             var_class = cutils.get_variant_classification(tmp_mut_info['Reference AA'],
-                                                        tmp_mut_info['Somatic AA'],
-                                                        tmp_mut_info['Codon Pos'])
+                                                          tmp_mut_info['Somatic AA'],
+                                                          tmp_mut_info['Codon Pos'])
 
             # detect if non-silent snv
             is_nonsilent_snv = [1 if (x in non_silent_snv) else 0
