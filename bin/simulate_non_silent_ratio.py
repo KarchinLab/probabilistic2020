@@ -323,7 +323,11 @@ def parse_arguments():
     parser.add_argument('-g', '--genome',
                         type=str, default='',
                         help=help_str)
-    help_str = 'Output text file of results'
+    help_str = 'Output text file of observed results (optional).'
+    parser.add_argument('-oo', '--observed-output',
+                        type=str, default=None,
+                        help=help_str)
+    help_str = 'Output text file of simulation results'
     parser.add_argument('-o', '--output',
                         type=str, required=True,
                         help=help_str)
@@ -437,10 +441,10 @@ def main(opts):
                                                                    total_silent))
         logger.info('There were {0} missense SNVs, {1} nonsense SNVs, {2} lost stop SNVs, '
                     ', {3} lost start, and {4} splice site SNVs'.format(total_missense,
-                                                      total_nonsense,
-                                                      total_loststop,
-                                                      total_loststart,
-                                                      total_splice_site))
+                                                                        total_nonsense,
+                                                                        total_loststop,
+                                                                        total_loststart,
+                                                                        total_splice_site))
 
     #sim_result = [s[0] for s in permutation_result]  # results with permutation
     #sim_result = permutation_result[0]
@@ -451,8 +455,16 @@ def main(opts):
             'missense count']
     non_silent_ratio_df = pd.DataFrame(sim_result,
                                        columns=cols)
-    # save output
+    # save simulation output
     non_silent_ratio_df.to_csv(opts['output'], sep='\t', index=False)
+
+    # save observed values if file provided
+    if opts['observed_output']:
+        obs_result = [total_non_silent, total_silent, total_nonsense,
+                      total_loststop, total_splice_site, total_loststart,
+                      total_missense]
+        obs_non_silent_df = pd.DataFrame([obs_result], columns=cols)
+        obs_non_silent_df.to_csv(opts['observed_output'], sep='\t', index=False)
 
     return non_silent_ratio_df
 
