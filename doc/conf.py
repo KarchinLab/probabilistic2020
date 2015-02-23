@@ -39,7 +39,11 @@ extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.doctest',
               'sphinx.ext.mathjax',
               'sphinx.ext.viewcode',
-              'numpydoc']
+              'numpydoc',
+              'IPython.sphinxext.ipython_console_highlighting',
+              'IPython.sphinxext.ipython_directive',
+              'matplotlib.sphinxext.plot_directive'
+              ]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -54,8 +58,8 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'20/20 Permutation Test'
-copyright = u'2014, Collin Tokheim'
+project = u'Probabilistic 20/20'
+copyright = u'2014-15, Collin Tokheim'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -179,7 +183,7 @@ html_static_path = ['_static']
 #html_file_suffix = None
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = '2020PermutationTestdoc'
+htmlhelp_basename = 'Probabilistic2020doc'
 
 
 # -- Options for LaTeX output --------------------------------------------------
@@ -198,7 +202,7 @@ latex_elements = {
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('index', '2020PermutationTest.tex', u'20/20 Permutation Test Documentation',
+  ('index', 'Probabilistic2020.tex', u'Probabilistic 20/20 Documentation',
    u'Collin Tokheim', 'manual'),
 ]
 
@@ -228,7 +232,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', '2020permutationtest', u'20/20 Permutation Test Documentation',
+    ('index', 'Probabilistic 20/20 Documentation', u'Probabilistic 20/20 Documentation',
      [u'Collin Tokheim'], 1)
 ]
 
@@ -242,8 +246,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  ('index', '2020PermutationTest', u'20/20 Permutation Test Documentation',
-   u'Collin Tokheim', '2020PermutationTest', 'One line description of project.',
+  ('index', 'Probabilistic2020', u'Probabilistic 20/20 Documentation',
+   u'Collin Tokheim', 'Probabilistic2020', 'One line description of project.',
    'Miscellaneous'),
 ]
 
