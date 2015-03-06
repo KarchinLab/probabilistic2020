@@ -15,7 +15,6 @@ import argparse
 import pandas as pd
 import numpy as np
 import logging
-import datetime
 
 logger = logging.getLogger(__name__)  # module logger
 
@@ -36,6 +35,10 @@ def parse_arguments():
                         action='store',
                         default='',
                         help='Path to log file. (accepts "stdout")')
+    parser.add_argument('-v', '--verbose',
+                        action='store_true',
+                        default=False,
+                        help='Flag for more verbose log output')
 
     # program arguments
     help_str = 'gene FASTA file from extract_gene_seq.py script'
@@ -168,7 +171,8 @@ def parse_arguments():
         log_file = os.devnull
     log_level = args.log_level
     utils.start_logging(log_file=log_file,
-                        log_level=log_level)  # start logging
+                        log_level=log_level,
+                        verbose=args.verbose)  # start logging
 
     opts = vars(args)
     if opts['use_unmapped'] and not opts['genome']:
