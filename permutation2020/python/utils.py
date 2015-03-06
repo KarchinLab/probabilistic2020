@@ -7,7 +7,12 @@ import csv
 import itertools as it
 from collections import OrderedDict
 from functools import wraps
+
+# logging import
 import logging
+import datetime
+import os
+import sys
 
 logger = logging.getLogger(__name__)  # module logger
 
@@ -43,7 +48,7 @@ base_pairing = {'A': 'T',
                 'n': 'n',
                 'N': 'N'}
 
-def start_logging(log_file='', log_level='INFO'):
+def start_logging(log_file='', log_level='INFO', verbose=False):
     """Start logging information into the log directory.
 
     If os.devnull is specified as the log_file then the log file will
@@ -60,7 +65,12 @@ def start_logging(log_file='', log_level='INFO'):
 
     # logger options
     lvl = logging.DEBUG if log_level.upper() == 'DEBUG' else logging.INFO
-    myformat = '%(asctime)s - %(name)s - %(levelname)s \n>>>  %(message)s'
+
+    # define logging format
+    if verbose:
+        myformat = '%(asctime)s - %(name)s - %(levelname)s \n>>>  %(message)s'
+    else:
+        myformat = '%(message)s'
 
     # create logger
     if not log_file == 'stdout':
