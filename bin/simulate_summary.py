@@ -20,7 +20,6 @@ import pysam
 import csv
 from multiprocessing import Pool
 import argparse
-import datetime
 import logging
 import copy
 import itertools as it

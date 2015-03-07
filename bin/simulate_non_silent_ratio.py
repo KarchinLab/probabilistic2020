@@ -18,7 +18,6 @@ import pandas as pd
 import pysam
 from multiprocessing import Pool
 import argparse
-import datetime
 import logging
 import copy
 
