@@ -133,6 +133,11 @@ def parse_arguments():
     parser.add_argument('-t', '--tsg-score',
                         type=float, default=1.01,
                         help=help_str)
+    help_str = 'Flag indicating using overdispersed model'
+    parser.add_argument('--overdispersion',
+                        action='store_true',
+                        default=False,
+                        help=help_str)
     help_str = ('Deleterious mutation pseudo-count for null distribution '
                 'statistics. (Default: 0)')
     parser.add_argument('-dp', '--deleterious-pseudo-count',
