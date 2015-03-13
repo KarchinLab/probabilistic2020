@@ -155,8 +155,8 @@ def parse_arguments():
                         type=int, default=3,
                         help=help_str)
     help_str = ('Specify the seed for the pseudo random number generator. '
-                'By default, the seed is randomly chosen based. The seed will '
-                'be used for the permutation test monte carlo simulations.')
+                'By default, the seed is randomly chosen. The seed will '
+                'be used for the monte carlo simulations.')
     parser.add_argument('-seed', '--seed',
                         type=int, default=None,
                         help=help_str)
