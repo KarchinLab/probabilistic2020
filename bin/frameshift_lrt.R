@@ -72,6 +72,10 @@ frameshift.lrt <- function(bg, fs.counts){
   # estimate relative rate
   count.df <- read.delim(fs.counts, sep="\t", row.names=1)
   count.df <- count.df[count.df["total"]>0,]
+  # check if there is data
+  if (nrow(count.df)==0){
+      return(NULL)
+  }
   count.df["ratio.moment"] <- count.df["total"] / (count.df["bases.at.risk"]*sum(prob.mle))
   mycols <- c(indel.cols, "bases.at.risk", "ratio.moment")
   mycount.df <- count.df[,mycols]
@@ -127,11 +131,15 @@ if (length(opt)==4){
   output.path <- opt$output
   
   # re-order column output
-  output$gene.name <- rownames(output)
-  rownames(output) <- NULL
-  colName <- colnames(output)
-  output <- output[c(colName[ncol(output)], colName[1:(ncol(output)-1)])]
-  
-  # write output
-  write.table(output, output.path, sep='\t', quote=F, row.names=F)
+  if (!is.null(output)){
+    output$gene.name <- rownames(output)
+    rownames(output) <- NULL
+    colName <- colnames(output)
+    output <- output[c(colName[ncol(output)], colName[1:(ncol(output)-1)])]
+    
+    # write output
+    write.table(output, output.path, sep='\t', quote=F, row.names=F)
+  } else {
+    print('There were no frameshifts observed.')
+  }
 }
