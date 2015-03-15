@@ -10,52 +10,15 @@ import numpy as np
 from scipy.stats import binom
 import permutation2020.python.utils as utils
 import argparse
+import IPython
 
 # logging
 import logging
-import datetime
 logger = logging.getLogger(__name__)  # module logger
 
 
-def start_logging(log_file='', log_level='INFO'):
-    """Start logging information into the log directory.
-
-    If os.devnull is specified as the log_file then the log file will
-    not actually be written to a file.
-    """
-    if not log_file:
-        # create log directory if it doesn't exist
-        log_dir = os.path.abspath('log') + '/'
-        if not os.path.isdir(log_dir):
-            os.mkdir(log_dir)
-
-        # path to new log file
-        log_file = log_dir + 'log.run.' + str(datetime.datetime.now()).replace(':', '.') + '.txt'
-
-    # logger options
-    lvl = logging.DEBUG if log_level.upper() == 'DEBUG' else logging.INFO
-    myformat = '%(asctime)s - %(name)s - %(levelname)s \n>>>  %(message)s'
-
-    # create logger
-    if not log_file == 'stdout':
-        # normal logging to a regular file
-        logging.basicConfig(level=lvl,
-                            format=myformat,
-                            filename=log_file,
-                            filemode='w')
-    else:
-        # logging to stdout
-        root = logging.getLogger()
-        root.setLevel(lvl)
-        stdout_stream = logging.StreamHandler(sys.stdout)
-        stdout_stream.setLevel(lvl)
-        formatter = logging.Formatter(myformat)
-        stdout_stream.setFormatter(formatter)
-        root.addHandler(stdout_stream)
-        root.propagate = True
-
-
-def frameshift_test(fs, bases_at_risk, noncoding_bg):
+def frameshift_test(fs, bases_at_risk, noncoding_bg,
+                    overdisperion=False):
     """Perform a binomial test on the frequency of frameshifts while accounting
     for differing rates depending on frameshift length.
 
@@ -70,46 +33,118 @@ def frameshift_test(fs, bases_at_risk, noncoding_bg):
         If using non-coding background for frameshifts provide a table from
         the read_noncoding_background_rate function. If using a gene based
         background, then pass in the python object None.
+    overdisperion : bool
+        flag indicating if should use overdispersion model
 
     Returns
     -------
     fs_result : pd.DataFrame
         p-value/q-value for each gene for binomial frameshift test
     """
-    # initialize p-values
-    p_values = pd.Series(np.zeros(len(fs)),
-                         index=fs.index)
-
     # use specific background type
     if noncoding_bg:
         logger.info('Reading non-coding frameshift background rate . . .')
         bg = noncoding_bg.ix['non-coding frameshift', :]
+        expected_rate = bg.sum()
+        #cv = np.mean(noncoding_bg.ix['cv']) # np.mean(noncoding_bg.ix['bootstrap std']/noncoding_bg.ix['non-coding frameshift'])
+        cv = noncoding_bg.ix['cv']
+        logger.info('The coefficient of variation is {0}'.format(cv.tolist()))
     else:
         coding_fs_cts = fs.sum()
         bg = coding_fs_cts.astype(float) / bases_at_risk.sum()
 
+    if overdisperion:
+        import rpy2.robjects as ro
+        import rpy2.robjects.numpy2ri
+        # Code for R's VGAM package using rpy2
+        ro.r("suppressPackageStartupMessages(library(VGAM))")  # load randomForest library
+        ro.r('''betabinom.test <- function(n, N, alpha, beta){
+            return(1 - pbetabinom.ab(n, N, alpha, beta))
+        }''')
+        ro.r('''betabinom.lrt <- function(n, N, alpha.null, beta.null, alpha.alt, beta.alt){
+            N.vec <- rep(N, by=length(n))
+            loglik.alt <- sum(dbetabinom.ab(n, N.vec, alpha.alt, beta.alt, log=T))
+            loglik.null <- sum(dbetabinom.ab(n, N.vec, alpha.null, beta.null, log=T))
+            lrtStatistic <- -2 * (loglik.alt - loglik.null)
+            result <- c(1 - pchisq(lrtStatistic, 1), lrtStatistic)
+            return(result)
+        }''')
+        betabinom_test = ro.r['betabinom.test']
+        betabinom_lrt = ro.r['betabinom.lrt']
+
     # iterate through each gene to calculate p-value
+    # initialize p-values
+    p_values = pd.Series(np.zeros(len(fs)),
+                         index=fs.index)
+    lrt_stats = pd.Series(np.zeros(len(fs)),
+                          index=fs.index)
+    effect_size = pd.Series(np.zeros(len(fs)),
+                            index=fs.index)
     logger.info('Calculating binomial test p-values . . .')
     for k in range(len(fs)):
         g_obs = fs.iloc[k,:].sum()
-        w = fs.iloc[k,:].astype(float) / g_obs
+        if g_obs == 0:
+            p_values[k] = 1.0
+            continue
+
+        # get the relative ratio of observed frameshift rate to expected
+        obs_rate = g_obs.astype(float) / bases_at_risk[k]
+        relRate = obs_rate / expected_rate
 
         # get weighting factor
+        w = fs.iloc[k,:].astype(float) / g_obs
         Pg = 0
         for i in range(len(fs.columns)):
             Pg += w[i] * bg[i]
 
-        p_val = binomial_test(g_obs, bases_at_risk[k], Pg)
-        p_values[k] = p_val
+
+        if overdisperion:
+            # just redine the background rates as Pg
+            Pg = bg
+
+            # calc shape params
+            ab_null = Pg * (1-Pg) / (cv*Pg)**2 - 1
+            alpha_null = (Pg * ab_null)
+            beta_null = ((1-Pg) * ab_null)
+            Pg = relRate*Pg
+            ab_alt = Pg * (1-Pg) / (cv*Pg)**2 - 1
+            alpha_alt = (Pg * ab_alt)
+            beta_alt = ((1-Pg) * ab_alt)
+            #p_val = betabinom_test(g_obs, bases_at_risk[k], alpha, beta)  # returns a float vector
+            obs_fs = ro.IntVector(fs.iloc[k,:])
+            alpha_null_vec = ro.FloatVector(alpha_null)
+            beta_null_vec = ro.FloatVector(beta_null)
+            alpha_alt_vec = ro.FloatVector(alpha_alt)
+            beta_alt_vec = ro.FloatVector(beta_alt)
+            p_val = betabinom_lrt(obs_fs, bases_at_risk[k],
+                                  alpha_null_vec, beta_null_vec,
+                                  alpha_alt_vec, beta_alt_vec)  # returns a float vector
+            p_values[k] = p_val[0]
+            lrt_stats[k] = p_val[1]
+            effect_size[k] = relRate
+        else:
+            p_val = binomial_test(g_obs, bases_at_risk[k], Pg)
+            p_values[k] = p_val
     logger.info('Finished calculating binomial test p-values.')
 
     # format results
     qval = utils.bh_fdr(p_values)
-    cols = ['gene', 'frameshift p-value', 'frameshift BH q-value']
-    fs_result = pd.DataFrame({cols[0]: fs.index,
-                              cols[1]: p_values,
-                              cols[2]: qval},
-                             index=fs.index)[cols]  # make sure cols in right order
+
+    if not overdisperion:
+        cols = ['gene', 'frameshift p-value', 'frameshift BH q-value']
+        fs_result = pd.DataFrame({cols[0]: fs.index,
+                                  cols[1]: p_values,
+                                  cols[2]: qval},
+                                  index=fs.index)[cols]  # make sure cols in right order
+    else:
+        cols = ['gene', 'LRT statistic', 'Effect Size', 'frameshift p-value', 'frameshift BH q-value']
+        fs_result = pd.DataFrame({cols[0]: fs.index,
+                                  cols[1]: lrt_stats,
+                                  cols[2]: effect_size,
+                                  cols[3]: p_values,
+                                  cols[4]: qval},
+                                 index=fs.index)[cols]  # make sure cols in right order
+
     fs_result = fs_result.sort(columns='frameshift p-value', ascending=True)
     return fs_result
 
@@ -153,8 +188,8 @@ def read_noncoding_background_rate(path):
                  'Non-coding Length', 'Number of Samples']
     background_df = background_df.drop(drop_list, axis=1)
     bases_at_risk = background_df.pop('Bases at Risk').iloc[0]
-    f = background_df.astype(float) / bases_at_risk
-    return f
+    background_df.ix['non-coding frameshift'] = background_df.ix['non-coding frameshift'].astype(float) / bases_at_risk
+    return background_df
 
 
 def parse_arguments():
@@ -174,6 +209,10 @@ def parse_arguments():
                         action='store',
                         default='',
                         help='Path to log file. (accepts "stdout")')
+    parser.add_argument('-v', '--verbose',
+                        action='store_true',
+                        default=False,
+                        help='Flag for more verbose log output')
 
     # script arguments
     help_str = 'Frameshift counts from count_frameshifts.py'
@@ -185,6 +224,11 @@ def parse_arguments():
                 'generated by calc_non_coding_frameshift_rate.py.')
     parser.add_argument('-non-coding', '--non-coding-background',
                         type=str,
+                        help=help_str)
+    help_str = 'Flag indicating using overdispersed model'
+    parser.add_argument('--overdispersion',
+                        action='store_true',
+                        default=False,
                         help=help_str)
     help_str = 'Output file'
     parser.add_argument('-o', '--output',
@@ -201,8 +245,9 @@ def parse_arguments():
     else:
         log_file = os.devnull
     log_level = args.log_level
-    start_logging(log_file=log_file,
-                  log_level=log_level)  # start logging
+    utils.start_logging(log_file=log_file,
+                        log_level=log_level,
+                        verbose=args.verbose)  # start logging
     logger.info('Command: {0}'.format(' '.join(sys.argv)))
 
     return vars(args)
@@ -224,7 +269,7 @@ def main(opts,
         f = None
 
     # perform binomial test
-    result = frameshift_test(fs_cts, gene_bases_at_risk, f)
+    result = frameshift_test(fs_cts, gene_bases_at_risk, f, overdisperion=opts['overdispersion'])
     result['total frameshifts'] = total_fs
 
     # save results

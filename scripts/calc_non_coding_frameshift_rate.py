@@ -1,9 +1,26 @@
 import argparse
 import csv
 import pandas as pd
+import numpy as np
 
 
 def get_frameshift_info(fs_df, bins):
+    """Counts frameshifts stratified by a given length.
+
+    Parameters
+    ----------
+    fs_df : pd.DataFrame
+        indel mutations from non-coding portion
+    bins : int
+        number of different length categories for frameshifts
+
+    Returns
+    -------
+    indel_len : list
+        length of specific frameshift length category
+    num_indels : list
+        number of frameshifts matchin indel_len
+    """
     fs_df['indel len'] = fs_df['End_Position'] - fs_df['Start_Position']
 
     # count the number INDELs with length non-dividable by 3
@@ -80,7 +97,12 @@ def parse_arguments():
     parser.add_argument('-bins', '--bins',
                         type=int, default=7,
                         help=help_str)
-    help_str = 'Output file containing non-coding frameshift lengths'
+    help_str = ('Output file containing counts for non-coding frameshift lengths '
+                'stratified by samples which they occured in.')
+    parser.add_argument('-so', '--sample-output',
+                        type=str, required=True,
+                        help=help_str)
+    help_str = 'Output file containing counts for non-coding frameshift lengths'
     parser.add_argument('-o', '--output',
                         type=str, required=True,
                         help=help_str)
@@ -102,14 +124,45 @@ def main(opts):
     non_coding_samples = sample_indel_cts[sample_indel_cts>=opts['threshold']]
     fs_df = fs_df[fs_df['Tumor_Sample'].isin(non_coding_samples.index)]
 
-    # get count information for frameshift lengths
-    fs_len, fs_count = get_frameshift_info(fs_df, bins=opts['bins'])
-
     # count number of distinct samples
     num_samples = len(fs_df['Tumor_Sample'].unique())
 
     # calculate total "bases at risk"
     bases_at_risk = non_coding_len * num_samples
+
+    # get counts for individual sample id's
+    grp = fs_df.groupby('Tumor_Sample')
+    frameshift_counts = []
+    sample_ids = []
+    for samp_id, tmp_df in grp:
+        tmp_len, tmp_count = get_frameshift_info(tmp_df, opts['bins'])
+        frameshift_counts.append(tmp_count)
+        sample_ids.append(samp_id)
+    sample_ct_df = pd.DataFrame(frameshift_counts,
+                                columns=map(str, tmp_len),
+                                index=sample_ids)
+
+    # save file containing non-coding frameshift counts per sample
+    sample_ct_df['N'] = non_coding_len
+    sample_ct_df.to_csv(opts['sample_output'], sep='\t')
+    del sample_ct_df['N']
+
+    # get coefficient of variation
+    count_cv = sample_ct_df.std() / sample_ct_df.mean()
+    count_cv_info = count_cv.tolist() + [None]*5
+
+    # bootstrap to estimate variance of background estimate
+    num_samp_ids = len(sample_ct_df)
+    num_iter = 100
+    bootstrap_cts = np.zeros((num_iter, opts['bins']))
+    for i in range(num_iter):
+        rand_samp = np.random.choice(sample_ct_df.index, num_samp_ids)
+        bootstrap_cts[i,:] = sample_ct_df.ix[rand_samp].sum()
+    bootstrap_stdev = np.std(bootstrap_cts, axis=0)
+    bootstrap_std_info = list(bootstrap_stdev) + [None, None, None, None, None]
+
+    # get count information for frameshift lengths
+    fs_len, fs_count = get_frameshift_info(fs_df, bins=opts['bins'])
 
     # format information
     tmp_info = [genome_len, black_list_len, non_coding_len,
@@ -123,9 +176,11 @@ def main(opts):
     out_header = tmp_count_header + tmp_header
 
     # write to file
-    out_df = pd.DataFrame([out_info],
+    #out_df = pd.DataFrame([out_info, bootstrap_std_info],
+    out_df = pd.DataFrame([out_info, count_cv_info],
                           columns=out_header,
-                          index=['non-coding frameshift'])
+                          index=['non-coding frameshift',
+                                 'cv'])
     out_df.to_csv(opts['output'], sep='\t')
 
 
