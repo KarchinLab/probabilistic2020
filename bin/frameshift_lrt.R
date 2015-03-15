@@ -95,13 +95,14 @@ frameshift.lrt <- function(bg, fs.counts){
                           value.name='num.indels')
     
     # get MLE
-    alt <- mle2(num.indels~dbetabinom(prob=ratio*prob.mle, size=bases.at.risk, theta=1/theta.mle),
-                parameters=list(ratio~1),
-                data=gene.indel.df,
-                start=list(ratio=gene.indel.df[1,"ratio.moment"]),
-                method="L-BFGS-B",
-                control=list(parscale=unlist(list(ratio=gene.indel.df[1,"ratio.moment"]))),
-                lower=c(ratio=3e-16))
+    tryCatch(alt <- mle2(num.indels~dbetabinom(prob=ratio*prob.mle, size=bases.at.risk, theta=1/theta.mle),
+                         parameters=list(ratio~1),
+                         data=gene.indel.df,
+                         start=list(ratio=gene.indel.df[1,"ratio.moment"]),
+                         method="L-BFGS-B",
+                         control=list(parscale=unlist(list(ratio=gene.indel.df[1,"ratio.moment"]))),
+                         lower=c(ratio=3e-16)), 
+             error=function(e) print(paste('ERROR:', row.names(tmp.df))))
     
     # get log likelihood ratio test statistic
     converge.status <- slot(alt, "details")$converge
