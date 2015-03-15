@@ -147,19 +147,15 @@ def main(opts):
     sample_ct_df.to_csv(opts['sample_output'], sep='\t')
     del sample_ct_df['N']
 
-    # get coefficient of variation
-    count_cv = sample_ct_df.std() / sample_ct_df.mean()
-    count_cv_info = count_cv.tolist() + [None]*5
-
     # bootstrap to estimate variance of background estimate
-    num_samp_ids = len(sample_ct_df)
-    num_iter = 100
-    bootstrap_cts = np.zeros((num_iter, opts['bins']))
-    for i in range(num_iter):
-        rand_samp = np.random.choice(sample_ct_df.index, num_samp_ids)
-        bootstrap_cts[i,:] = sample_ct_df.ix[rand_samp].sum()
-    bootstrap_stdev = np.std(bootstrap_cts, axis=0)
-    bootstrap_std_info = list(bootstrap_stdev) + [None, None, None, None, None]
+    #num_samp_ids = len(sample_ct_df)
+    #num_iter = 100
+    #bootstrap_cts = np.zeros((num_iter, opts['bins']))
+    #for i in range(num_iter):
+        #rand_samp = np.random.choice(sample_ct_df.index, num_samp_ids)
+        #bootstrap_cts[i,:] = sample_ct_df.ix[rand_samp].sum()
+    #bootstrap_stdev = np.std(bootstrap_cts, axis=0)
+    #bootstrap_std_info = list(bootstrap_stdev) + [None, None, None, None, None]
 
     # get count information for frameshift lengths
     fs_len, fs_count = get_frameshift_info(fs_df, bins=opts['bins'])
@@ -177,10 +173,9 @@ def main(opts):
 
     # write to file
     #out_df = pd.DataFrame([out_info, bootstrap_std_info],
-    out_df = pd.DataFrame([out_info, count_cv_info],
+    out_df = pd.DataFrame([out_info],
                           columns=out_header,
-                          index=['non-coding frameshift',
-                                 'cv'])
+                          index=['non-coding frameshift'])
     out_df.to_csv(opts['output'], sep='\t')
 
 
