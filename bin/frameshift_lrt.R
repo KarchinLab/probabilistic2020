@@ -37,10 +37,14 @@ frameshift.lrt <- function(bg, fs.counts){
   # get the number of nucleotides
   n <- df[1,"N"]
   
-  # get the method of moment estimates for initialization of mle solving
+  # get the columns for frameshift counts
   indel.cols <- colnames(df)[grepl('^X', colnames(df))]
-  prob.moment <- colMeans(df[,indel.cols]) / n
-  sample.variance <- apply(df[,indel.cols], 2, var)
+  tmp.df <- as.data.frame(df[,indel.cols])
+  colnames(tmp.df) <- indel.cols
+
+  # get the method of moment estimates for initialization of mle solving
+  prob.moment <- colMeans(tmp.df) / n
+  sample.variance <- apply(tmp.df, 2, var)
   theta.moment <- (sample.variance - n*prob.moment*(1-prob.moment)) / (n^2*prob.moment*(1-prob.moment)-sample.variance)
   
   # re-format data frame
