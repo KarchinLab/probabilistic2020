@@ -14,24 +14,26 @@ if '--use-cython' in sys.argv:
     sys.argv.remove('--use-cython')
 else:
     USE_CYTHON = False
+
+import numpy as np
 ext = '.pyx' if USE_CYTHON else '.cpp'
 extensions = [
     Extension(SRC_DIR + ".cython.uniform_kde",
               [SRC_DIR +'/cython/uniform_kde'+ext],
               language='c++',
-              include_dirs=[SRC_DIR + '/cython/']),
-                            # np.get_include()]),
+              include_dirs=[SRC_DIR + '/cython/',
+                            np.get_include()]),
     Extension(SRC_DIR + ".cython.gaussian_kde",
               [SRC_DIR + '/cython/gaussian_kde'+ext],
               language='c++',
-              include_dirs=[SRC_DIR + '/cython/']),
-                            # np.get_include()]),
+              include_dirs=[SRC_DIR + '/cython/',
+                            np.get_include()]),
     Extension(SRC_DIR + ".cython.cutils",
               [SRC_DIR + "/cython/cutils"+ext],
               language='c++',
               include_dirs=[SRC_DIR + '/cpp/',
-                            SRC_DIR + '/cython/'])
-                            #np.get_include()])
+                            SRC_DIR + '/cython/',
+                            np.get_include()])
 ]
 
 
@@ -57,7 +59,7 @@ else:
           author_email=EMAIL,
           url=URL,
           packages=PACKAGES,
-          install_requires=['numpy', 'scipy', 'pandas==0.12.0', 'pysam'],
+          install_requires=['numpy', 'scipy', 'pandas', 'pysam'],
           scripts=['bin/permutation_test.py', 'bin/extract_gene_seq.py',
                    'bin/simulate_consistency.py', 'bin/simulate_performance.py',
                    'bin/check_mutations.py', 'bin/probabilistic2020.py',
