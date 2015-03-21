@@ -6,13 +6,13 @@ file_dir = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(file_dir, '../'))
 
 # package imports
-import permutation2020.python.utils as utils
-from permutation2020.python.bootstrap import Bootstrap
-from permutation2020.python.random_sample_names import RandomSampleNames
-from permutation2020.python.random_tumor_types import RandomTumorTypes
-import permutation2020.python.simulation_plots as plot_data
-import permutation2020.python.simulation as sim
-import permutation2020.python.mutation_context as mc
+import probabilistic2020.python.utils as utils
+from probabilistic2020.python.bootstrap import Bootstrap
+from probabilistic2020.python.random_sample_names import RandomSampleNames
+from probabilistic2020.python.random_tumor_types import RandomTumorTypes
+import probabilistic2020.python.simulation_plots as plot_data
+import probabilistic2020.python.simulation as sim
+import probabilistic2020.python.mutation_context as mc
 
 import permutation_test as pt
 import probabilistic2020 as prob

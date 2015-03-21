@@ -7,7 +7,7 @@ sys.path.append(os.path.join(file_dir, '..'))
 
 # import extract_genes module
 import extract_gene_seq as eg
-import permutation2020.python.utils as utils
+import probabilistic2020.python.utils as utils
 
 def test_rev_comp():
     seq1 = 'CT'

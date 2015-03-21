@@ -6,12 +6,12 @@ file_dir = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(file_dir, '../'))
 
 # package imports
-import permutation2020.python.utils as utils
-from permutation2020.python.gene_sequence import GeneSequence
-from permutation2020.python.sequence_context import SequenceContext
-import permutation2020.cython.cutils as cutils
-import permutation2020.python.permutation as pm
-import permutation2020.python.mutation_context as mc
+import probabilistic2020.python.utils as utils
+from probabilistic2020.python.gene_sequence import GeneSequence
+from probabilistic2020.python.sequence_context import SequenceContext
+import probabilistic2020.cython.cutils as cutils
+import probabilistic2020.python.permutation as pm
+import probabilistic2020.python.mutation_context as mc
 
 import argparse
 import pysam

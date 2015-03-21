@@ -5,8 +5,8 @@ import os
 file_dir = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(file_dir, '../'))
 
-import permutation2020.python.utils as utils
-import permutation2020.python.indel as indel
+import probabilistic2020.python.utils as utils
+import probabilistic2020.python.indel as indel
 import pandas as pd
 import argparse
 

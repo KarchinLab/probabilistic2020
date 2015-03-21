@@ -5,9 +5,9 @@ import sys
 # fix problems with pythons terrible import system
 import os
 file_dir = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(os.path.join(file_dir, 'permutation2020/cython'))
+sys.path.append(os.path.join(file_dir, 'probabilistic2020/cython'))
 
-SRC_DIR = 'permutation2020'
+SRC_DIR = 'probabilistic2020'
 
 if '--use-cython' in sys.argv:
     USE_CYTHON = True
@@ -45,14 +45,14 @@ if 'build_ext' in sys.argv:
     # just build cython extension module if build_ext subcommand is used
     setup(ext_modules = extensions)
 else:
-    import permutation2020
-    version = permutation2020.__version__
+    import probabilistic2020
+    version = probabilistic2020.__version__
     AUTHOR = 'Collin Tokheim'
     EMAIL = 'fake@gmail.com'
     URL = 'https://github.com/ctokheim/probabilistic2020'
     DESCRIPTION = 'Probabilistic 20/20'
     PACKAGES = [SRC_DIR, SRC_DIR + '.python', SRC_DIR + '.cython', SRC_DIR + '.cpp']
-    setup(name='permutation2020',
+    setup(name='probabilistic2020',
           version=version,
           description=DESCRIPTION,
           author=AUTHOR,

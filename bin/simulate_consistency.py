@@ -6,10 +6,10 @@ file_dir = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(file_dir, '../'))
 
 # package imports
-import permutation2020.python.utils as utils
-import permutation2020.python.simulation_plots as plot_data
-from permutation2020.python.random_split import RandomSplit
-import permutation2020.python.simulation as sim
+import probabilistic2020.python.utils as utils
+import probabilistic2020.python.simulation_plots as plot_data
+from probabilistic2020.python.random_split import RandomSplit
+import probabilistic2020.python.simulation as sim
 
 import permutation_test as pt
 import probabilistic2020 as prob

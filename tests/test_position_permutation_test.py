@@ -6,8 +6,8 @@ sys.path.append(os.path.join(file_dir, '../bin/'))
 sys.path.append(os.path.join(file_dir, '..'))
 
 import permutation_test as pt
-import permutation2020.python.utils as utils
-import permutation2020.python.mutation_context as mc
+import probabilistic2020.python.utils as utils
+import probabilistic2020.python.mutation_context as mc
 import numpy as np
 
 
@@ -46,7 +46,7 @@ def test_ctnnb1_main():
 
 def test_ctnnb1_get_aa_mut_info():
     import pysam
-    from permutation2020.python.gene_sequence import GeneSequence
+    from probabilistic2020.python.gene_sequence import GeneSequence
 
     # read fasta
     ctnnb1_fasta = os.path.join(file_dir, 'data/CTNNB1.fa')

@@ -6,9 +6,9 @@ sys.path.append(os.path.join(file_dir, '../bin/'))
 sys.path.append(os.path.join(file_dir, '..'))
 
 # useful imports
-from permutation2020.python.gene_sequence import GeneSequence
-import permutation2020.python.utils as utils
-import permutation2020.cython.cutils as cutils
+from probabilistic2020.python.gene_sequence import GeneSequence
+import probabilistic2020.python.utils as utils
+import probabilistic2020.cython.cutils as cutils
 import pysam
 
 # read in fake sequence
