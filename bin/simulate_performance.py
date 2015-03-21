@@ -6,16 +6,16 @@ file_dir = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(file_dir, '../'))
 
 # package imports
-import probabilistic2020.python.utils as utils
-from probabilistic2020.python.bootstrap import Bootstrap
-from probabilistic2020.python.random_sample_names import RandomSampleNames
-from probabilistic2020.python.random_tumor_types import RandomTumorTypes
-import probabilistic2020.python.simulation_plots as plot_data
-import probabilistic2020.python.simulation as sim
-import probabilistic2020.python.mutation_context as mc
+import prob2020.python.utils as utils
+from prob2020.python.bootstrap import Bootstrap
+from prob2020.python.random_sample_names import RandomSampleNames
+from prob2020.python.random_tumor_types import RandomTumorTypes
+import prob2020.python.simulation_plots as plot_data
+import prob2020.python.simulation as sim
+import prob2020.python.mutation_context as mc
 
 import permutation_test as pt
-import probabilistic2020 as prob
+import prob2020 as prob
 import count_frameshifts as cf
 import pandas as pd
 import numpy as np
@@ -369,7 +369,7 @@ def parse_arguments():
 
 
 def main(opts):
-    # hack for using probabilistic2020 main function
+    # hack for using prob2020 main function
     opts.setdefault('output', '')
 
     # Get Mutations

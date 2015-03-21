@@ -6,9 +6,9 @@ sys.path.append(os.path.join(file_dir, '../bin/'))
 sys.path.append(os.path.join(file_dir, '..'))
 
 # useful imports
-from probabilistic2020.python.gene_sequence import GeneSequence
-from probabilistic2020.python.sequence_context import SequenceContext
-import probabilistic2020.python.utils as utils
+from prob2020.python.gene_sequence import GeneSequence
+from prob2020.python.sequence_context import SequenceContext
+import prob2020.python.utils as utils
 import pysam
 
 # set up global variables

@@ -5,7 +5,7 @@ import os
 file_dir = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(file_dir, '../'))
 
-from probabilistic2020.python.bed_line import BedLine
+from prob2020.python.bed_line import BedLine
 import pandas as pd
 import argparse
 import IPython

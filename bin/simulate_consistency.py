@@ -6,13 +6,13 @@ file_dir = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(file_dir, '../'))
 
 # package imports
-import probabilistic2020.python.utils as utils
-import probabilistic2020.python.simulation_plots as plot_data
-from probabilistic2020.python.random_split import RandomSplit
-import probabilistic2020.python.simulation as sim
+import prob2020.python.utils as utils
+import prob2020.python.simulation_plots as plot_data
+from prob2020.python.random_split import RandomSplit
+import prob2020.python.simulation as sim
 
 import permutation_test as pt
-import probabilistic2020 as prob
+import prob2020 as prob
 import count_frameshifts as cf
 import pandas as pd
 from scipy import stats

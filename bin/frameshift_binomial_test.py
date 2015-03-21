@@ -8,7 +8,7 @@ sys.path.append(os.path.join(file_dir, '../'))
 import pandas as pd
 import numpy as np
 from scipy.stats import binom
-import probabilistic2020.python.utils as utils
+import prob2020.python.utils as utils
 import argparse
 import IPython
 

@@ -5,9 +5,9 @@ import sys
 # fix problems with pythons terrible import system
 import os
 file_dir = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(os.path.join(file_dir, 'probabilistic2020/cython'))
+sys.path.append(os.path.join(file_dir, 'prob2020/cython'))
 
-SRC_DIR = 'probabilistic2020'
+SRC_DIR = 'prob2020'
 
 if '--use-cython' in sys.argv:
     USE_CYTHON = True
@@ -45,14 +45,14 @@ if 'build_ext' in sys.argv:
     # just build cython extension module if build_ext subcommand is used
     setup(ext_modules = extensions)
 else:
-    import probabilistic2020
-    version = probabilistic2020.__version__
+    import prob2020
+    version = prob2020.__version__
     AUTHOR = 'Collin Tokheim'
     EMAIL = 'fake@gmail.com'
-    URL = 'https://github.com/ctokheim/probabilistic2020'
+    URL = 'https://github.com/ctokheim/prob2020'
     DESCRIPTION = 'Probabilistic 20/20'
     PACKAGES = [SRC_DIR, SRC_DIR + '.python', SRC_DIR + '.cython', SRC_DIR + '.cpp']
-    setup(name='probabilistic2020',
+    setup(name='prob2020',
           version=version,
           description=DESCRIPTION,
           author=AUTHOR,
@@ -62,7 +62,7 @@ else:
           install_requires=['numpy', 'scipy', 'pandas', 'pysam'],
           scripts=['bin/permutation_test.py', 'bin/extract_gene_seq.py',
                    'bin/simulate_consistency.py', 'bin/simulate_performance.py',
-                   'bin/check_mutations.py', 'bin/probabilistic2020.py',
+                   'bin/check_mutations.py', 'bin/prob2020.py',
                    'bin/simulate_non_silent_ratio.py', 'bin/frameshift_binomial_test.py',
                    'bin/count_frameshifts.py', 'bin/count_mutations.py',
                    'bin/simulate_summary.py', 'bin/mutation_binomial_test.py'],

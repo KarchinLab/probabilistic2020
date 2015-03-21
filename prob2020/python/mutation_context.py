@@ -1,7 +1,7 @@
-import probabilistic2020.python.utils as utils
-import probabilistic2020.python.sequence_context
-import probabilistic2020.python.indel as indel
-from probabilistic2020.python.gene_sequence import GeneSequence
+import prob2020.python.utils as utils
+import prob2020.python.sequence_context
+import prob2020.python.indel as indel
+from prob2020.python.gene_sequence import GeneSequence
 from amino_acid import AminoAcid
 from ..cython import cutils
 import numpy as np
@@ -38,9 +38,9 @@ def compute_mutation_context(bed, gs, df, opts):
 
     # get sequence context
     if 'seed' in opts:
-        sc = probabilistic2020.python.sequence_context.SequenceContext(gs, seed=opts['seed'])
+        sc = prob2020.python.sequence_context.SequenceContext(gs, seed=opts['seed'])
     else:
-        sc = probabilistic2020.python.sequence_context.SequenceContext(gs)
+        sc = prob2020.python.sequence_context.SequenceContext(gs)
 
     # count total mutations in gene
     total_mut = len(mut_info)
