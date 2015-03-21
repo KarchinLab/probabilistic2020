@@ -179,6 +179,10 @@ def parse_arguments():
                         action='store',
                         default='',
                         help='Path to log file. (accepts stdout)')
+    parser.add_argument('-v', '--verbose',
+                        action='store_true',
+                        default=False,
+                        help='Flag for more verbose log output')
 
     # program arguments
     help_str = 'Human genome FASTA file'
@@ -205,7 +209,8 @@ def parse_arguments():
         log_file = os.devnull
     log_level = args.log_level
     utils.start_logging(log_file=log_file,
-                        log_level=log_level)  # start logging
+                        log_level=log_level,
+                        verbose=args.verbose)  # start logging
 
     # log user entered command
     logger.info('Command: {0}'.format(' '.join(sys.argv)))

@@ -20,46 +20,6 @@ import datetime
 
 logger = logging.getLogger(__name__)  # module logger
 
-def start_logging(log_file='', log_level='INFO'):
-    """Start logging information into the log directory.
-
-    If os.devnull is specified as the log_file then the log file will
-    not actually be written to a file.
-    """
-
-    if not log_file:
-        # create log directory if it doesn't exist
-        file_dir = os.path.dirname(os.path.realpath(__file__))
-        log_dir = os.path.join(file_dir, '../log/')
-        if not os.path.isdir(log_dir):
-            os.mkdir(log_dir)
-
-        # path to new log file
-        log_file = log_dir + 'log.run.' + str(datetime.datetime.now()).replace(':', '.') + '.txt'
-
-    # logger options
-    lvl = logging.DEBUG if log_level.upper() == 'DEBUG' else logging.INFO
-    myformat = '%(asctime)s - %(name)s - %(levelname)s \n>>>  %(message)s'
-
-    # create logger
-    if not log_file == 'stdout':
-        # normal logging to a regular file
-        logging.basicConfig(level=lvl,
-                            format=myformat,
-                            filename=log_file,
-                            filemode='w')
-    else:
-        # logging to stdout
-        root = logging.getLogger()
-        root.setLevel(lvl)
-        stdout_stream = logging.StreamHandler(sys.stdout)
-        stdout_stream.setLevel(lvl)
-        formatter = logging.Formatter(myformat)
-        stdout_stream.setFormatter(formatter)
-        root.addHandler(stdout_stream)
-        root.propagate = True
-
-
 def parse_arguments():
     info = 'Checks mutations to see what strand they are reported on and for unmapped mutations.'
     parser = argparse.ArgumentParser(description=info)
@@ -76,6 +36,10 @@ def parse_arguments():
                         action='store',
                         default='stdout',
                         help='Path to log file. (Default: stdout)')
+    parser.add_argument('-v', '--verbose',
+                        action='store_true',
+                        default=False,
+                        help='Flag for more verbose log output')
 
     # program arguments
     help_str = 'Human genome FASTA file'
@@ -105,8 +69,9 @@ def parse_arguments():
     else:
         log_file = os.devnull
     log_level = args.log_level
-    start_logging(log_file=log_file,
-                  log_level=log_level)  # start logging
+    utils.start_logging(log_file=log_file,
+                        log_level=log_level,
+                        verbose=args.verbose)  # start logging
 
     return vars(args)
 
