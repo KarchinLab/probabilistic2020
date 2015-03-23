@@ -43,6 +43,11 @@ and chrY) along with their corresponding gene were not saved in the final output
 Creating Gene FASTA
 -------------------
 
+Gene sequences are extracted from a genome FASTA file. To do this, you need
+a BED file with names corresponding to genes, and a genome FASTA (e.g. hg19).
+Obtaining a BED file can be done using the above steps. Creating the gene
+sequence FASTA is then done by the `bin/extract_gene_seq.py` script:
+
 .. code-block:: bash
 
     $ python bin/extract_gene_seq.py --log-level=DEBUG -i data/hg19.fa -b data/snvboxGenes.bed -o data/snvboxGenes.fa

@@ -25,7 +25,7 @@ as lists of python BED objects.
 
 .. code-block:: python
 
-   import permutation2020.python.utils as utils
+   import prob2020.python.utils as utils
 
    # read in BED file
    bed_dict = utils.read_bed('genes.bed')
@@ -50,7 +50,7 @@ object. This context follows the same convention as the command line utilities.
 
    # required imports
    import pysam
-   from permutation2020.python.gene_sequence import GeneSequence
+   from prob2020.python.gene_sequence import GeneSequence
 
    # get gene sequence object
    gene_fa = pysam.Fastafile('genes.fa')
@@ -76,8 +76,8 @@ Performing simulation
 .. code-block:: python
 
    # required imports
-   import permutation2020.python.mutation_context as mc
-   import permutation2020.python.permutation as pm
+   import prob2020.python.mutation_context as mc
+   import prob2020.python.permutation as pm
 
    # specify options
    opts = {
