@@ -259,7 +259,9 @@ def summary_permutation(context_counts,
                         context_to_mut,
                         seq_context,
                         gene_seq,
-                        num_permutations=10000):
+                        num_permutations=10000,
+                        min_frac=0.0,
+                        min_recur=2):
     """Performs null-permutations and summarizes the results as features over
     the gene.
 
@@ -309,7 +311,9 @@ def summary_permutation(context_counts,
         # Get all metrics summarizing each gene
         tmp_summary = cutils.calc_summary_info(tmp_mut_info['Reference AA'],
                                                tmp_mut_info['Somatic AA'],
-                                               tmp_mut_info['Codon Pos'])
+                                               tmp_mut_info['Codon Pos'],
+                                               min_frac=min_frac,
+                                               min_recur=min_recur)
 
         # limit the precision of floats
         pos_ent = tmp_summary[-1]

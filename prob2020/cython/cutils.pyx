@@ -270,13 +270,36 @@ def get_variant_classification(germ_aa_list, somatic_aa_list, codon_pos):
     return var_class
 
 
-def calc_summary_info(germ_aa, somatic_aa, codon_pos):
+def calc_summary_info(germ_aa, somatic_aa, codon_pos,
+                      min_frac=0.0,
+                      min_recur=2):
     """Returns information from both missense position metrics and number of
     mutation types.
 
     Mostly a wrapper around calc_non_silent_info and calc_pos_info.
+
+    Parameters
+    ----------
+    germ_aa : list
+        list of strings indicating reference amino acid (single letter)
+    somatic_aa : list
+        list of strings indicating mutated amino acid
+    codon_pos : list
+        contains integer position of codon
+    min_frac : float
+        fraction of total mutations to be recurrent position
+    min_recur : int
+        minimum number of missense at same position to be defined as recurrent
+
+    Returns
+    -------
+    summary information
     """
     mut_type_info = calc_non_silent_info(germ_aa, somatic_aa, codon_pos)
     num_recur, pos_ent, delta_ent = calc_pos_info(codon_pos, germ_aa,
-                                                  somatic_aa, is_obs=0)
+                                                  somatic_aa,
+                                                  min_frac=min_frac,
+                                                  min_recur=min_recur
+                                                  #is_obs=0
+                                                  )
     return mut_type_info + [num_recur, pos_ent]

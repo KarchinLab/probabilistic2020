@@ -157,7 +157,9 @@ def singleprocess_permutation(info):
                 # calc mutation info summarizing observed mutations
                 tmp_result = cutils.calc_summary_info(tmp_mut_info['Reference AA'],
                                                       tmp_mut_info['Somatic AA'],
-                                                      tmp_mut_info['Codon Pos'])
+                                                      tmp_mut_info['Codon Pos'],
+                                                      min_frac=opts['fraction'],
+                                                      min_recur=opts['recurrent'])
                 tmp_result = [[bed.gene_name, 'NA', bed.cds_len] + tmp_result]
             ## Just record protein changes in MAF
             elif opts['maf'] and not num_permutations:
@@ -266,6 +268,17 @@ def parse_arguments():
                 'is used. (Default: None)')
     parser.add_argument('-g', '--genome',
                         type=str, default='',
+                        help=help_str)
+    help_str = ('Minimum number of mutations at a position for it to be '
+                'considered a recurrently mutated position (Default: 3).')
+    parser.add_argument('-r', '--recurrent',
+                        type=int, default=3,
+                        help=help_str)
+    help_str = ('Fraction of total mutations in a gene. This define the '
+                'minimumm number of mutations for a position to be defined '
+                'as recurrently mutated (Defaul: .02).')
+    parser.add_argument('-f', '--fraction',
+                        type=float, default=.02,
                         help=help_str)
     help_str = ('Specify the seed for the pseudo random number generator. '
                 'By default, the seed is randomly chosen based. The seed will '
