@@ -387,6 +387,8 @@ def main(opts):
     plot_results = {'Permutation Test': panel_result}
 
     # plot number of predicted genes
+    if not os.path.isdir(opts['plot_output']):
+        os.mkdir(opts['plot_output'])
     for plot_type in plot_results['Permutation Test'].major_axis:
         tmp_save_path = os.path.join(opts['plot_output'], plot_type + '.png')
         plot_data.count_errorbar(plot_results,
