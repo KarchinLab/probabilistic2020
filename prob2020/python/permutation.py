@@ -1,7 +1,7 @@
 import numpy as np
-import utils
+import prob2020.python.utils as utils
 from ..cython import cutils
-import mutation_context as mc
+import prob2020.python.mutation_context as mc
 
 
 def deleterious_permutation(context_counts,
