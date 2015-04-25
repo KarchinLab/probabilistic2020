@@ -1,4 +1,4 @@
-import prob2020.python.utils as utils
+from prob2020.python import utils
 import prob2020.python.sequence_context
 import prob2020.python.indel as indel
 from prob2020.python.gene_sequence import GeneSequence
@@ -32,7 +32,8 @@ def compute_mutation_context(bed, gs, df, opts):
     # prepare info for running permutation test
     gene_mut = df[df['Gene']==bed.gene_name]
     cols = ['Chromosome', 'Start_Position', 'Reference_Allele',
-            'Tumor_Allele', 'Variant_Classification', 'Protein_Change']
+            'Tumor_Allele', 'Variant_Classification', 'Protein_Change',
+            'Tumor_Sample', 'Tumor_Type']
     mut_info = gene_mut[cols]
     gs.set_gene(bed)
 
@@ -66,7 +67,8 @@ def compute_mutation_context(bed, gs, df, opts):
     mut_info['Coding Position'] = mut_info['Coding Position'].astype(int)
     unmapped_muts = total_mut - len(mut_info)
 
-    cols = ['Context', 'Tumor_Allele', 'Coding Position']
+    cols = ['Context', 'Tumor_Allele', 'Coding Position',
+            'Tumor_Sample', 'Tumor_Type']
     if len(mut_info) > 0:
         mut_info['Coding Position'] = mut_info['Coding Position'].astype(int)
         mut_info['Context'] = mut_info['Coding Position'].apply(lambda x: sc.pos2context[x])
@@ -292,6 +294,9 @@ def recover_unmapped_mut_info(mut_info, bed, sc, opts):
                                                      bed.chrom,
                                                      opts['context'])
         genome_fa.close()
+        # fill in tumor sample/tumor type info
+        unmapped_mut_info['Tumor_Sample'] = tmp_mut_info['Tumor_Sample'].tolist()
+        unmapped_mut_info['Tumor_Type'] = tmp_mut_info['Tumor_Type'].tolist()
 
         # filter out cases where the nucleotide context does not exist
         # on the reference transcript
@@ -302,7 +307,8 @@ def recover_unmapped_mut_info(mut_info, bed, sc, opts):
                                                        bad_contexts)
     else:
         unmapped_mut_info = {'Context': [], 'Reference AA': [], 'Codon Pos': [],
-                             'Somatic AA': [], 'Tumor_Allele': []}
+                             'Somatic AA': [], 'Tumor_Allele': [],
+                             'Tumor_Sample': [], 'Tumor_Type':[]}
     return unmapped_mut_info
 
 
