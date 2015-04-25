@@ -6,12 +6,13 @@ file_dir = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(file_dir, '../'))
 
 # package import
-import prob2020.python.permutation as pm
 import prob2020.python.utils as utils
 from prob2020.python.gene_sequence import GeneSequence
 import prob2020.cython.cutils as cutils
 import prob2020.python.mutation_context as mc
+import prob2020.python.permutation as pm
 import prob2020.python.indel as indel
+import prob2020.python.annotate as anot
 
 # external imports
 import numpy as np
@@ -38,10 +39,15 @@ def multiprocess_permutation(bed_dict, mut_df, opts, indel_df=None):
         num_processes = 1
     file_handle = open(opts['output'], 'w')
     mywriter = csv.writer(file_handle, delimiter='\t', lineterminator='\n')
-    if opts['maf']:
+    if opts['maf'] and opts['num_permutations']:
         header = ['Gene', 'strand', 'Chromosome', 'Start_Position',
                   'End_Position', 'Reference_Allele', 'Tumor_Allele',
                   'Context', 'DNA_Change', 'Protein_Change', 'Variant_Classification']
+    elif opts['maf']:
+        header = ['Gene', 'strand', 'Chromosome', 'Start_Position',
+                  'End_Position', 'Reference_Allele', 'Tumor_Allele',
+                  'DNA_Change', 'Protein_Change', 'Variant_Classification',
+                  'Tumor_Sample', 'Tumor_Type']
     else:
         header = ['Gene', 'ID', 'gene length', 'non-silent snv', 'silent snv', 'nonsense', 'lost stop',
                   'splice site', 'lost start', 'missense', 'recurrent missense',
@@ -164,7 +170,13 @@ def singleprocess_permutation(info):
             ## Just record protein changes in MAF
             elif opts['maf'] and not num_permutations:
                 # input code for just annotating genes mutations
-                pass
+                tmp_result = anot.annotate_maf(mutations_df['Coding Position'],
+                                               mutations_df['Tumor_Allele'].tolist(),
+                                               gs)
+                # add tumor sample / tumor type info to output
+                tmp_result = [line + [mutations_df['Tumor_Sample'].iloc[i],
+                                      mutations_df['Tumor_Type'].iloc[i]]
+                              for i, line in enumerate(tmp_result)]
             ## Do permutations
             elif opts['maf']:
                 # if user specified MAF format then output all mutations in
@@ -246,15 +258,13 @@ def parse_arguments():
     parser.add_argument('-c', '--context',
                         type=float, default=1.5,
                         help=help_str)
-    parser_grouper = parser.add_mutually_exclusive_group()
+    parser_grouper = parser.add_mutually_exclusive_group(required=True)
     parser_grouper.add_argument('--summary',
                                 action='store_true',
-                                default=True,
                                 help='Flag for saving results as summarized '
                                 'features (Default: True).')
     parser_grouper.add_argument('--maf',
                                 action='store_true',
-                                default=False,
                                 help='Flag for saving results in MAF format '
                                 '(Default: False).')
     help_str = ('Use mutations that are not mapped to the the single reference '
@@ -276,7 +286,7 @@ def parse_arguments():
                         help=help_str)
     help_str = ('Fraction of total mutations in a gene. This define the '
                 'minimumm number of mutations for a position to be defined '
-                'as recurrently mutated (Defaul: .02).')
+                'as recurrently mutated (Default: .02).')
     parser.add_argument('-f', '--fraction',
                         type=float, default=.02,
                         help=help_str)
