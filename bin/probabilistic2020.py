@@ -8,8 +8,6 @@ sys.path.append(os.path.join(file_dir, '../'))
 # package imports
 import prob2020.python.utils as utils
 import permutation_test as pt
-import frameshift_binomial_test as fs
-import count_frameshifts as cf
 
 import argparse
 import pandas as pd
@@ -202,53 +200,27 @@ def main(opts,
 
     # clean up p-values for combined p-value calculation
     if opts['kind'] == 'tsg':
-        p_val_col = 'deleterious p-value'
-        q_val_col = 'deleterious BH q-value'
+        p_val_col = 'inactivating p-value'
+        q_val_col = 'inactivating BH q-value'
     elif opts['kind'] == 'effect':
         p_val_col = 'entropy-on-effect p-value'
         q_val_col = 'entropy-on-effect BH q-value'
     elif opts['kind'] == 'oncogene':
         p_val_col = 'entropy p-value'
         q_val_col = 'entropy BH q-value'
-    #smallest_p_val = 1. / (opts['num_permutations'] * 10.)
-    smallest_p_val = 1. / (opts['num_permutations']*1.001)
-    result_df[p_val_col] = result_df[p_val_col].where(result_df[p_val_col]!=0,
-                                                      smallest_p_val)
     result_df[p_val_col] = result_df[p_val_col].fillna(1)
     result_df[q_val_col] = result_df[q_val_col].fillna(1)
 
     if opts['kind'] != 'oncogene':
-        # count frameshifts for user if they did not specify a file
-        # that was output from count_frameshifts.py script.
-        if frameshift_df is None and opts['frameshift_counts'] is None:
-            # read in mutations
-            if mutation_df is None:
-                mutation_df = pd.read_csv(opts['mutations'], sep='\t')
-
-            # find number of samples
-            if 'Tumor_Sample' in mutation_df.columns:
-                samp_num = len(mutation_df['Tumor_Sample'].unique())
-            else:
-                samp_num = opts['sample_number']
-
-            # count number of frameshifts
-            frameshift_df = cf.count_frameshifts(mutation_df, opts['bed'], opts['bins'],
-                                                 samp_num, opts['use_unmapped'])
-
-        # perform frameshift test if not trying to identify oncogenes
-        frameshift_result = fs.main(opts, fs_cts=frameshift_df)
-        result_df = pd.merge(result_df, frameshift_result, how='outer',
-                             left_on='gene', right_on='gene')
-
         # drop genes that never occur
-        if opts['kind'] == 'tsg' or opts['kind'] == 'effect':
-            no_ssvs = (result_df['Total Mutations']==0) & (result_df['total frameshifts']==0)
-            result_df = result_df[~no_ssvs]
+        #if opts['kind'] == 'tsg' or opts['kind'] == 'effect':
+            #no_ssvs = (result_df['Total Mutations']==0) & (result_df['total frameshifts']==0)
+            #result_df = result_df[~no_ssvs]
 
         # calculate combined results
-        result_df['combined p-value'] = result_df[[p_val_col, 'frameshift p-value']].apply(utils.fishers_method, axis=1)
-        result_df['combined BH q-value'] = utils.bh_fdr(result_df['combined p-value'])
-        result_df = result_df.sort(columns='combined p-value')
+        #result_df['combined p-value'] = result_df[[p_val_col, 'frameshift p-value']].apply(utils.fishers_method, axis=1)
+        #result_df['combined BH q-value'] = utils.bh_fdr(result_df['combined p-value'])
+        result_df = result_df.sort(columns='inactivating p-value')
     elif opts['kind'] == 'oncogene':
         result_df = result_df[result_df['Total Mutations']>0]
         result_df['entropy BH q-value'] = utils.bh_fdr(result_df['entropy p-value'])

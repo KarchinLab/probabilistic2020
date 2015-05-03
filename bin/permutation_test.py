@@ -9,10 +9,12 @@ sys.path.append(os.path.join(file_dir, '../'))
 import prob2020.python.utils as utils
 from prob2020.python.gene_sequence import GeneSequence
 from prob2020.python.sequence_context import SequenceContext
-import prob2020.cython.cutils as cutils
-import prob2020.python.permutation as pm
 import prob2020.python.mutation_context as mc
+import prob2020.python.count_frameshifts as cf
+import prob2020.python.process_result as pr
+import prob2020.python.p_value as mypval
 
+# external imports
 import argparse
 import pysam
 import pandas as pd
@@ -22,214 +24,18 @@ import logging
 
 logger = logging.getLogger(__name__)  # module logger
 
-def calc_deleterious_p_value(mut_info,
-                             unmapped_mut_info,
-                             sc,
-                             gs,
-                             bed,
-                             num_permutations,
-                             del_threshold,
-                             pseudo_count):
-    """Calculates the p-value for the number of inactivating SNV mutations.
-
-    Calculates p-value based on how many permutations exceed the observed value.
-
-    Parameters
-    ----------
-    mut_info : dict
-        contains codon and amino acid residue information for mutations mappable
-        to provided reference tx.
-    unmapped_mut_info : dict
-        contains codon/amino acid residue info for mutations that are NOT mappable
-        to provided reference tx.
-    sc : SequenceContext
-        object contains the nucleotide contexts for a gene such that new random
-        positions can be obtained while respecting nucleotide context.
-    gs : GeneSequence
-        contains gene sequence
-    bed : BedLine
-        just used to return gene name
-    num_permutations : int
-        number of permutations to perform to estimate p-value. more permutations
-        means more precision on the p-value.
-    """
-    if len(mut_info) > 0:
-        mut_info['Coding Position'] = mut_info['Coding Position'].astype(int)
-        mut_info['Context'] = mut_info['Coding Position'].apply(lambda x: sc.pos2context[x])
-
-        # group mutations by context
-        cols = ['Context', 'Tumor_Allele']
-        unmapped_mut_df = pd.DataFrame(unmapped_mut_info)
-        tmp_df = pd.concat([mut_info[cols], unmapped_mut_df[cols]])
-        context_cts = tmp_df['Context'].value_counts()
-        context_to_mutations = dict((name, group['Tumor_Allele'])
-                                    for name, group in tmp_df.groupby('Context'))
-
-        # get deleterious info for actual mutations
-        aa_mut_info = mc.get_aa_mut_info(mut_info['Coding Position'],
-                                         mut_info['Tumor_Allele'].tolist(),
-                                         gs)
-        ref_aa = aa_mut_info['Reference AA'] + unmapped_mut_info['Reference AA']
-        somatic_aa = aa_mut_info['Somatic AA'] + unmapped_mut_info['Somatic AA']
-        codon_pos = aa_mut_info['Codon Pos'] + unmapped_mut_info['Codon Pos']
-        num_del = cutils.calc_deleterious_info(ref_aa, somatic_aa, codon_pos)
-
-        # skip permutation test if number of deleterious mutations is not at
-        # least meet some user-specified threshold
-        if num_del >= del_threshold:
-            # perform permutations
-            null_del_list = pm.deleterious_permutation(context_cts,
-                                                       context_to_mutations,
-                                                       sc,  # sequence context obj
-                                                       gs,  # gene sequence obj
-                                                       num_permutations,
-                                                       pseudo_count)
-
-            # calculate p-value
-            del_num_nulls = sum([1 for d in null_del_list
-                                 if d+utils.epsilon >= num_del])
-            del_p_value = del_num_nulls / float(num_permutations)
-        else:
-            del_p_value = None
-    else:
-        num_del = 0
-        del_p_value = None
-
-    result = [bed.gene_name, num_del, del_p_value]
-    return result
-
-
-def calc_position_p_value(mut_info,
-                          unmapped_mut_info,
-                          sc,
-                          gs,
-                          bed,
-                          num_permutations,
-                          pseudo_count,
-                          min_recurrent,
-                          min_fraction):
-    if len(mut_info) > 0:
-        mut_info['Coding Position'] = mut_info['Coding Position'].astype(int)
-        mut_info['Context'] = mut_info['Coding Position'].apply(lambda x: sc.pos2context[x])
-
-        # group mutations by context
-        cols = ['Context', 'Tumor_Allele']
-        unmapped_mut_df = pd.DataFrame(unmapped_mut_info)
-        tmp_df = pd.concat([mut_info[cols], unmapped_mut_df[cols]])
-        context_cts = tmp_df['Context'].value_counts()
-        context_to_mutations = dict((name, group['Tumor_Allele'])
-                                    for name, group in tmp_df.groupby('Context'))
-
-        # perform permutations
-        permutation_result = pm.position_permutation(context_cts,
-                                                     context_to_mutations,
-                                                     sc,  # sequence context obj
-                                                     gs,  # gene sequence obj
-                                                     num_permutations,
-                                                     pseudo_count)
-        num_recur_list, pos_entropy_list, delta_pos_entropy_list = permutation_result  # unpack results
-
-        # get recurrent info for actual mutations
-        aa_mut_info = mc.get_aa_mut_info(mut_info['Coding Position'],
-                                         mut_info['Tumor_Allele'].tolist(),
-                                         gs)
-        codon_pos = aa_mut_info['Codon Pos'] + unmapped_mut_info['Codon Pos']
-        ref_aa = aa_mut_info['Reference AA'] + unmapped_mut_info['Reference AA']
-        somatic_aa = aa_mut_info['Somatic AA'] + unmapped_mut_info['Somatic AA']
-        num_recurrent, pos_ent, delta_pos_ent = cutils.calc_pos_info(codon_pos,
-                                                                     ref_aa,
-                                                                     somatic_aa,
-                                                                     min_frac=min_fraction,
-                                                                     min_recur=min_recurrent)
-
-        # calculate permutation p-value
-        recur_num_nulls = sum([1 for null_recur in num_recur_list
-                               if null_recur+utils.epsilon >= num_recurrent])
-        entropy_num_nulls = sum([1 for null_ent in pos_entropy_list
-                                 if null_ent-utils.epsilon <= pos_ent])
-        delta_entropy_num_nulls = sum([1 for null_ent in delta_pos_entropy_list
-                                       if null_ent+utils.epsilon >= delta_pos_ent])
-        recur_p_value = recur_num_nulls / float(num_permutations)
-        ent_p_value = entropy_num_nulls / float(num_permutations)
-        delta_ent_p_value = delta_entropy_num_nulls / float(num_permutations)
-    else:
-        num_recurrent = 0
-        pos_ent = 0
-        delta_pos_ent = 0
-        recur_p_value = 1.0
-        ent_p_value = 1.0
-        delta_ent_p_value = 1.0
-    result = [bed.gene_name, num_recurrent, pos_ent, delta_pos_ent,
-              recur_p_value, ent_p_value, delta_ent_p_value]
-    return result
-
-
-def calc_effect_p_value(mut_info,
-                        unmapped_mut_info,
-                        sc,
-                        gs,
-                        bed,
-                        num_permutations,
-                        pseudo_count,
-                        min_recurrent,
-                        min_fraction):
-    if len(mut_info) > 0:
-        mut_info['Coding Position'] = mut_info['Coding Position'].astype(int)
-        mut_info['Context'] = mut_info['Coding Position'].apply(lambda x: sc.pos2context[x])
-
-        # group mutations by context
-        cols = ['Context', 'Tumor_Allele']
-        unmapped_mut_df = pd.DataFrame(unmapped_mut_info)
-        tmp_df = pd.concat([mut_info[cols], unmapped_mut_df[cols]])
-        context_cts = tmp_df['Context'].value_counts()
-        context_to_mutations = dict((name, group['Tumor_Allele'])
-                                    for name, group in tmp_df.groupby('Context'))
-
-        # perform permutations
-        permutation_result = pm.effect_permutation(context_cts,
-                                                   context_to_mutations,
-                                                   sc,  # sequence context obj
-                                                   gs,  # gene sequence obj
-                                                   num_permutations,
-                                                   pseudo_count)
-        effect_entropy_list, recur_list, inactivating_list = permutation_result  # unpack results
-
-        # get effect info for actual mutations
-        aa_mut_info = mc.get_aa_mut_info(mut_info['Coding Position'],
-                                         mut_info['Tumor_Allele'].tolist(),
-                                         gs)
-        codon_pos = aa_mut_info['Codon Pos'] + unmapped_mut_info['Codon Pos']
-        ref_aa = aa_mut_info['Reference AA'] + unmapped_mut_info['Reference AA']
-        somatic_aa = aa_mut_info['Somatic AA'] + unmapped_mut_info['Somatic AA']
-        effect_ent, num_recur, num_inactivating = cutils.calc_effect_info(codon_pos,
-                                                                          ref_aa,
-                                                                          somatic_aa,
-                                                                          min_frac=min_fraction,
-                                                                          min_recur=min_recurrent)
-
-        # calculate permutation p-value
-        entropy_num_nulls = sum([1 for null_ent in effect_entropy_list
-                                 if null_ent-utils.epsilon <= effect_ent])
-        ent_p_value = entropy_num_nulls / float(num_permutations)
-    else:
-        num_recur = 0
-        num_inactivating = 0
-        effect_ent = 0
-        ent_p_value = 1.0
-    result = [bed.gene_name, num_recur, num_inactivating,
-              effect_ent, ent_p_value]
-    return result
-
 
 @utils.log_error_decorator
 def singleprocess_permutation(info):
-    bed_list, mut_df, opts = info
+    # initialize input
+    bed_list, mut_df, opts, fs_cts_df, p_inactivating = info
     current_chrom = bed_list[0].chrom
     logger.info('Working on chromosome: {0} . . .'.format(current_chrom))
     num_permutations = opts['num_permutations']
     gene_fa = pysam.Fastafile(opts['input'])
     gs = GeneSequence(gene_fa, nuc_context=opts['context'])
 
+    # iterate through each gene
     result = []
     for bed in bed_list:
         # prepare info for running permutation test
@@ -262,7 +68,8 @@ def singleprocess_permutation(info):
         # drop mutations wich do not map to reference tx
         mut_info = mut_info.dropna(subset=['Coding Position'])  # mutations need to map to tx
         mut_info['Coding Position'] = mut_info['Coding Position'].astype(int)
-        unmapped_muts = total_mut - len(mut_info)
+        num_mapped_muts = len(mut_info)
+        unmapped_muts = total_mut - num_mapped_muts
 
         # construct sequence context
         #gs.add_germline_variants(mut_info['Reference_Allele'].tolist(),
@@ -271,26 +78,31 @@ def singleprocess_permutation(info):
         # calculate results of permutation test
         if opts['kind'] == 'oncogene':
             # calculate position based permutation results
-            tmp_result = calc_position_p_value(mut_info, unmapped_mut_info, sc,
-                                               gs, bed, num_permutations,
-                                               opts['recurrent_pseudo_count'],
-                                               opts['recurrent'],
-                                               opts['fraction'])
+            tmp_result = mypval.calc_position_p_value(mut_info, unmapped_mut_info, sc,
+                                                      gs, bed, num_permutations,
+                                                      opts['recurrent_pseudo_count'],
+                                                      opts['recurrent'],
+                                                      opts['fraction'])
             result.append(tmp_result + [total_mut, unmapped_muts])
         elif opts['kind'] == 'tsg':
             # calculate results for deleterious mutation permutation test
-            tmp_result = calc_deleterious_p_value(mut_info, unmapped_mut_info,
-                                                  sc, gs, bed, num_permutations,
-                                                  opts['deleterious'],
-                                                  opts['deleterious_pseudo_count'])
-            result.append(tmp_result + [total_mut, unmapped_muts])
+            fs_ct = fs_cts_df['total'][bed.gene_name]
+            fs_unmapped = fs_cts_df['unmapped'][bed.gene_name]
+            tmp_result = mypval.calc_deleterious_p_value(mut_info, unmapped_mut_info,
+                                                         fs_ct, p_inactivating,
+                                                         sc, gs, bed, num_permutations,
+                                                         opts['deleterious'],
+                                                         opts['deleterious_pseudo_count'],
+                                                         opts['seed'])
+            result.append(tmp_result + [num_mapped_muts, unmapped_muts,
+                                        fs_ct, fs_unmapped])
         else:
             # calc results for entropy-on-effect permutation test
-            tmp_result = calc_effect_p_value(mut_info, unmapped_mut_info,
-                                             sc, gs, bed, num_permutations,
-                                             opts['recurrent_pseudo_count'],
-                                             opts['recurrent'],
-                                             opts['fraction'])
+            tmp_result = mypval.calc_effect_p_value(mut_info, unmapped_mut_info,
+                                                    sc, gs, bed, num_permutations,
+                                                    opts['recurrent_pseudo_count'],
+                                                    opts['recurrent'],
+                                                    opts['fraction'])
             result.append(tmp_result + [total_mut, unmapped_muts])
 
     gene_fa.close()
@@ -298,7 +110,8 @@ def singleprocess_permutation(info):
     return result
 
 
-def multiprocess_permutation(bed_dict, mut_df, opts):
+def multiprocess_permutation(bed_dict, mut_df, opts,
+                             fs_cts_df=None, p_inactivating=None):
     """Handles parallelization of permutations by splitting work
     by chromosome.
     """
@@ -313,7 +126,7 @@ def multiprocess_permutation(bed_dict, mut_df, opts):
         if multiprocess_flag:
             pool = Pool(processes=num_processes)
             tmp_num_proc = len(chroms) - i if i + num_processes > len(chroms) else num_processes
-            info_repeat = ((bed_dict[chroms[tmp_ix]], mut_df, opts)
+            info_repeat = ((bed_dict[chroms[tmp_ix]], mut_df, opts, fs_cts_df, p_inactivating)
                             for tmp_ix in range(i, i+tmp_num_proc))
             process_results = pool.imap(singleprocess_permutation, info_repeat)
             process_results.next = utils.keyboard_exit_wrapper(process_results.next)
@@ -328,92 +141,10 @@ def multiprocess_permutation(bed_dict, mut_df, opts):
             pool.close()
             pool.join()
         else:
-            info = (bed_dict[chroms[i]], mut_df, opts)
+            info = (bed_dict[chroms[i]], mut_df, opts, fs_cts_df, p_inactivating)
             result_list += singleprocess_permutation(info)
 
     return result_list
-
-
-def handle_tsg_results(permutation_result):
-    permutation_df = pd.DataFrame(sorted(permutation_result, key=lambda x: x[2]),
-                                  columns=['gene', 'num deleterious', 'deleterious p-value',
-                                           'Total Mutations', 'Unmapped to Ref Tx'])
-    permutation_df['deleterious p-value'] = permutation_df['deleterious p-value'].astype('float')
-    tmp_df = permutation_df[permutation_df['deleterious p-value'].notnull()]
-
-    # get benjamani hochberg adjusted p-values
-    permutation_df['deleterious BH q-value'] = np.nan
-    permutation_df['deleterious BH q-value'][tmp_df.index] = utils.bh_fdr(tmp_df['deleterious p-value'])
-
-    # sort output by p-value. due to no option to specify NaN order in
-    # sort, the df needs to sorted descendingly and then flipped
-    permutation_df = permutation_df.sort(columns='deleterious p-value', ascending=False)
-    permutation_df = permutation_df.reindex(index=permutation_df.index[::-1])
-
-    # order result
-    permutation_df = permutation_df.set_index('gene', drop=False)
-    col_order  = ['gene', 'Total Mutations', 'Unmapped to Ref Tx',
-                  'num deleterious', 'deleterious p-value',
-                  'deleterious BH q-value']
-    return permutation_df[col_order]
-
-
-def handle_oncogene_results(permutation_result, non_tested_genes):
-    mycols = ['gene', 'num recurrent', 'position entropy',
-              'delta position entropy',
-              # 'kde position entropy', 'kde bandwidth',
-              'recurrent p-value', 'entropy p-value',
-              'delta entropy p-value',
-              # 'kde entropy p-value', 'kde bandwidth p-value',
-              'Total Mutations', 'Unmapped to Ref Tx']
-    permutation_df = pd.DataFrame(sorted(permutation_result, key=lambda x: x[4]),
-                                  columns=mycols)
-
-    # get benjamani hochberg adjusted p-values
-    permutation_df['recurrent BH q-value'] = utils.bh_fdr(permutation_df['recurrent p-value'])
-    permutation_df['entropy BH q-value'] = utils.bh_fdr(permutation_df['entropy p-value'])
-    permutation_df['delta entropy BH q-value'] = utils.bh_fdr(permutation_df['delta entropy p-value'])
-    #permutation_df['kde entropy BH q-value'] = utils.bh_fdr(permutation_df['kde entropy p-value'])
-    #permutation_df['kde bandwidth BH q-value'] = utils.bh_fdr(permutation_df['kde bandwidth p-value'])
-
-    # include non-tested genes in the result
-    no_test_df = pd.DataFrame(index=range(len(non_tested_genes)))
-    no_test_df['Performed Recurrency Test'] = 0
-    no_test_df['gene'] = non_tested_genes
-    permutation_df = pd.concat([permutation_df, no_test_df])
-    permutation_df['Performed Recurrency Test'] = permutation_df['Performed Recurrency Test'].fillna(1).astype(int)
-
-    # order output
-    permutation_df = permutation_df.set_index('gene', drop=False)  # make sure genes are indices
-    permutation_df['num recurrent'] = permutation_df['num recurrent'].fillna(-1).astype(int)  # fix dtype isssue
-    col_order = ['gene', 'Total Mutations', 'Unmapped to Ref Tx',
-                 'num recurrent', 'position entropy',
-                 'delta position entropy',
-                 #'kde position entropy', 'kde bandwidth',
-                 'recurrent p-value', 'recurrent BH q-value', 'entropy p-value', 'entropy BH q-value',
-                 #'kde entropy p-value', 'kde entropy BH q-value', 'kde bandwidth p-value', 'kde bandwidth BH q-value',
-                 'delta entropy p-value', 'delta entropy BH q-value',
-                 'Performed Recurrency Test']
-    return permutation_df[col_order]
-
-
-def handle_effect_results(permutation_result):
-    mycols = ['gene', 'num recurrent', 'num inactivating', 'entropy-on-effect',
-              'entropy-on-effect p-value',
-              'Total Mutations', 'Unmapped to Ref Tx']
-    permutation_df = pd.DataFrame(sorted(permutation_result, key=lambda x: x[4]),
-                                  columns=mycols)
-
-    # get benjamani hochberg adjusted p-values
-    permutation_df['entropy-on-effect BH q-value'] = utils.bh_fdr(permutation_df['entropy-on-effect p-value'])
-
-    # order output
-    permutation_df = permutation_df.set_index('gene', drop=False)  # make sure genes are indices
-    permutation_df['num recurrent'] = permutation_df['num recurrent'].fillna(-1).astype(int)  # fix dtype isssue
-    col_order = ['gene', 'Total Mutations', 'Unmapped to Ref Tx',
-                 'num recurrent', 'num inactivating', 'entropy-on-effect',
-                 'entropy-on-effect p-value', 'entropy-on-effect BH q-value']
-    return permutation_df[col_order]
 
 
 def parse_arguments():
@@ -560,7 +291,7 @@ def parse_arguments():
     return opts
 
 
-def main(opts, mut_df=None):
+def main(opts, mut_df=None, frameshift_df=None):
     # hack to index the FASTA file
     gene_fa = pysam.Fastafile(opts['input'])
     gene_fa.close()
@@ -582,6 +313,22 @@ def main(opts, mut_df=None):
         # don't filter out genes for tsg permutation test
         non_tested_genes = []
 
+    # count frameshifts
+    if opts['kind'] != 'oncogene':
+        if frameshift_df is None and opts['frameshift_counts'] is None:
+            # read in mutations
+            if mut_df is None:
+                mut_df = pd.read_csv(opts['mutations'], sep='\t')
+
+            # count number of frameshifts
+            frameshift_df = cf.count_frameshifts(mut_df, opts['bed'],
+                                                 opts['use_unmapped'])
+
+        # calculate the proportion of inactivating
+        num_inact = len(mut_df[mut_df['Variant_Classification'].isin(utils.variant_inactivating)])
+        num_non_inact = len(mut_df[mut_df['Variant_Classification'].isin(utils.variant_non_inactivating)])
+        p_inactivating = float(num_inact) / (num_inact + num_non_inact)
+
     # select valid single nucleotide variants only
     mut_df = utils._fix_mutation_df(mut_df)
 
@@ -591,15 +338,18 @@ def main(opts, mut_df=None):
 
     # perform permutation test
     bed_dict = utils.read_bed(opts['bed'], non_tested_genes)
-    permutation_result = multiprocess_permutation(bed_dict, mut_df, opts)
 
     # Perform BH p-value adjustment and tidy up data for output
     if opts['kind'] == 'oncogene':
-        permutation_df = handle_oncogene_results(permutation_result, non_tested_genes)
+        permutation_result = multiprocess_permutation(bed_dict, mut_df, opts)
+        permutation_df = pr.handle_oncogene_results(permutation_result, non_tested_genes)
     elif opts['kind'] == 'tsg':
-        permutation_df = handle_tsg_results(permutation_result)
+        permutation_result = multiprocess_permutation(bed_dict, mut_df, opts,
+                                                      frameshift_df, p_inactivating)
+        permutation_df = pr.handle_tsg_results(permutation_result)
     elif opts['kind'] == 'effect':
-        permutation_df = handle_effect_results(permutation_result)
+        permutation_result = multiprocess_permutation(bed_dict, mut_df, opts)
+        permutation_df = pr.handle_effect_results(permutation_result)
 
     # save output
     if opts['output']:

@@ -1,10 +1,8 @@
 # normal imports
 from bed_line import BedLine
 import numpy as np
-import scipy.stats as stats
 import pandas as pd
 import csv
-import itertools as it
 from collections import OrderedDict
 from functools import wraps
 
@@ -47,6 +45,28 @@ base_pairing = {'A': 'T',
                 '-': '-',  # some people denote indels with '-'
                 'n': 'n',
                 'N': 'N'}
+
+##############################
+# Define groups of mutation consequences
+# based on the variant classification
+# column names
+##############################
+# variant classifications for SNVs
+variant_snv = ['Missense_Mutation', 'Silent', 'Nonsense_Mutation',
+               'Splice_Site', 'Nonstop_Mutation', 'Translation_Start_Site']
+
+# variant classifications that are inactivating
+variant_inactivating = ['Splice_Site', 'Nonsense_Mutation', 'Translation_Start_Site',
+                        'Nonstop_Mutation', 'Frame_Shift_Del', 'Frame_Shift_Ins',
+                        'Frame_Shift_Indel']
+
+# coding variant classifications that are not necessarily inactivating
+variant_non_inactivating = ['Missense_Mutation', 'Silent']
+
+# indel/frameshift variant names
+variant_frameshift = ['Frame_Shift_Indel', 'Frame_Shift_Ins', 'Frame_Shift_Del']
+variant_in_frame_indel = ['In_Frame_Indel', 'In_Frame_Ins', 'In_Frame_Del']
+variant_indel = variant_frameshift + variant_in_frame_indel
 
 def start_logging(log_file='', log_level='INFO', verbose=False):
     """Start logging information into the log directory.
@@ -248,15 +268,13 @@ def _fix_mutation_df(mutation_df):
     """
     # only keep allowed mutation types
     orig_len = len(mutation_df)  # number of mutations before filtering
-    allowed_types = ['Missense_Mutation', 'Silent', 'Nonsense_Mutation',
-                     'Splice_Site', 'Nonstop_Mutation', 'Translation_Start_Site']
-    mutation_df = mutation_df[mutation_df.Variant_Classification.isin(allowed_types)]  # only keep SNV
+    mutation_df = mutation_df[mutation_df.Variant_Classification.isin(variant_snv)]  # only keep SNV
     type_len = len(mutation_df)  # number of mutations after filtering based on mut type
 
     # log the number of dropped mutations
     log_msg = ('Dropped {num_dropped} mutations after only keeping '
                '{mut_types}. Indels are processed separately.'.format(num_dropped=orig_len-type_len,
-                                                                      mut_types=', '.join(allowed_types)))
+                                                                      mut_types=', '.join(variant_snv)))
     logger.info(log_msg)
 
     # check if mutations are valid SNVs
@@ -328,50 +346,5 @@ def lzip(*args):
         for i, ele in enumerate(arg):
             result[i].append(ele)
     return result
-
-
-def fishers_method(pvals):
-    pvals = np.asarray(pvals)
-    degrees_of_freedom = 2 * pvals.size
-    chisq_stat = np.sum(-2*np.log(pvals))
-    fishers_pval = stats.chi2.sf(chisq_stat, degrees_of_freedom)
-    return fishers_pval
-
-
-def cummin(x):
-    """A python implementation of the cummin function in R"""
-    for i in range(1, len(x)):
-        if x[i-1] < x[i]:
-            x[i] = x[i-1]
-    return x
-
-
-def bh_fdr(pval):
-    """A python implementation of the Benjamani-Hochberg FDR method.
-
-    This code should always give precisely the same answer as using
-    p.adjust(pval, method="BH") in R.
-
-    Parameters
-    ----------
-    pval : list or array
-        list/array of p-values
-
-    Returns
-    -------
-    pval_adj : np.array
-        adjusted p-values according the benjamani-hochberg method
-    """
-    pval_array = np.array(pval)
-    sorted_order = np.argsort(pval_array)
-    original_order = np.argsort(sorted_order)
-    pval_array = pval_array[sorted_order]
-
-    # calculate the needed alpha
-    n = float(len(pval))
-    pval_adj = np.zeros(n)
-    i = np.arange(1, n+1, dtype=float)[::-1]  # largest to smallest
-    pval_adj = np.minimum(1, cummin(n/i * pval_array[::-1]))[::-1]
-    return pval_adj[original_order]
 
 

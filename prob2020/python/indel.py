@@ -3,6 +3,7 @@
 Indels and frameshifts are detected from the allele columns of the mutation
 input.
 """
+import prob2020.python.utils as utils
 import numpy as np
 import pandas as pd
 
@@ -179,13 +180,16 @@ def keep_frameshifts(mut_df,
         mut_df['indel len'] = mut_df['End_Position'] - mut_df['Start_Position']
 
     # keep only frameshifts
-    mut_df = mut_df[is_frameshift(mut_df)]
+    mut_df = mut_df[is_frameshift_annotation(mut_df)]
     return mut_df
 
 
-def is_frameshift(mut_df):
+def is_frameshift_len(mut_df):
     """Simply returns a series indicating whether each corresponding mutation
     is a frameshift.
+
+    This is based on the length of the indel. Thus may be fooled by frameshifts
+    at exon-intron boundaries or other odd cases.
 
     Parameters
     ----------
@@ -209,7 +213,13 @@ def is_frameshift(mut_df):
     return is_fs
 
 
-def is_indel(mut_df):
+def is_frameshift_annotation(mut_df):
+    """Designates frameshift mutations by the Variant_Classification column."""
+    is_fs = mut_df['Variant_Classification'].isin(utils.variant_frameshift)
+    return is_fs
+
+
+def is_indel_len(mut_df):
     """Simply returns a series indicating whether each corresponding mutation
     is an indel.
 
@@ -231,6 +241,18 @@ def is_indel(mut_df):
 
     # make sure indel has a length
     # is_indel[indel_len<1] = False
+    return is_indel
+
+
+def is_indel_annotation(mut_df):
+    """Designates indel mutations by the Variant_Classification column."""
+    is_indel = mut_df['Variant_Classification'].isin(utils.variant_indel)
+    return is_indel
+
+
+def is_in_frame_indel_annotation(mut_df):
+    """Designates in frame indel mutations by the Variant_Classification column."""
+    is_indel = mut_df['Variant_Classification'].isin(utils.variant_in_frame_indel)
     return is_indel
 
 
