@@ -32,7 +32,13 @@ if ("getopt" %in% rownames(installed.packages())){
 
 frameshift.lrt <- function(bg, fs.counts){
   # real data
-  df <- read.delim(bg, sep="\t", row.names=1)
+  if (is.character(bg)){
+    df <- read.delim(bg, sep="\t", row.names=1)
+  } else{
+    df <- bg 
+    # hack to get rpy2 conversion to work
+    df[,"N"] <- as.numeric(as.character(df[,"N"]))
+  }
   
   # get the number of nucleotides
   n <- df[1,"N"]
@@ -74,7 +80,13 @@ frameshift.lrt <- function(bg, fs.counts){
   }
   
   # estimate relative rate
-  count.df <- read.delim(fs.counts, sep="\t", row.names=1)
+  if (is.character(fs.counts)){
+    count.df <- read.delim(fs.counts, sep="\t", row.names=1)
+  } else {
+    count.df <- fs.counts 
+    # hack to get rpy2 conversion to work
+    count.df[,"bases.at.risk"] <- as.numeric(as.character(count.df[,"bases.at.risk"]))
+  }
   count.df <- count.df[count.df["total"]>0,]
   # check if there is data
   if (nrow(count.df)==0){
