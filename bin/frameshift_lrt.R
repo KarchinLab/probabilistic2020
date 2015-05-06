@@ -4,9 +4,10 @@
 # background rate.
 # 
 # Parameters
-# background : file with non-coding frameshift counts
-# counts : file with frameshift counts in genes
-# output : path to output results
+# ----------
+# background (-b) : file with non-coding frameshift counts
+# counts (-c) : file with frameshift counts in genes
+# output (-o) : path to output results
 ###############################
 suppressPackageStartupMessages(library(bbmle))
 library(reshape2)
