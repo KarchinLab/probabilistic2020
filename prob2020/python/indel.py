@@ -151,7 +151,7 @@ def keep_indels(mut_df,
         mut_df['indel type'][is_del] = 'DEL'
 
     # keep only frameshifts
-    mut_df = mut_df[is_indel(mut_df)]
+    mut_df = mut_df[is_indel_annotation(mut_df)]
     return mut_df
 
 
