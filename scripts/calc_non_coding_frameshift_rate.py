@@ -4,6 +4,13 @@ import pandas as pd
 import numpy as np
 
 
+def compute_indel_length(fs_df):
+    fs_df['indel len'] = 0
+    fs_df['indel len'][fs_df['Reference_Allele']=='-'] = fs_df['Tumor_Allele'][fs_df['Reference_Allele']=='-'].str.len()
+    fs_df['indel len'][fs_df['Tumor_Allele']=='-'] = fs_df['Reference_Allele'][fs_df['Tumor_Allele']=='-'].str.len()
+    return fs_df
+
+
 def get_frameshift_info(fs_df, bins):
     """Counts frameshifts stratified by a given length.
 
@@ -21,7 +28,7 @@ def get_frameshift_info(fs_df, bins):
     num_indels : list
         number of frameshifts matchin indel_len
     """
-    fs_df['indel len'] = fs_df['End_Position'] - fs_df['Start_Position']
+    fs_df = compute_indel_length(fs_df)
 
     # count the number INDELs with length non-dividable by 3
     num_indels = []
