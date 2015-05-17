@@ -88,8 +88,10 @@ def singleprocess_permutation(info):
             # calculate results for deleterious mutation permutation test
             fs_ct = fs_cts_df['total'][bed.gene_name]
             fs_unmapped = fs_cts_df['unmapped'][bed.gene_name]
+            # replaced fs_ct with zero to stop using the frameshifts in
+            # simulation
             tmp_result = mypval.calc_deleterious_p_value(mut_info, unmapped_mut_info,
-                                                         fs_ct, p_inactivating,
+                                                         0, p_inactivating,
                                                          sc, gs, bed, num_permutations,
                                                          opts['deleterious'],
                                                          opts['deleterious_pseudo_count'],
@@ -315,14 +317,14 @@ def main(opts, mut_df=None, frameshift_df=None):
 
     # count frameshifts
     if opts['kind'] != 'oncogene':
-        if frameshift_df is None and opts['frameshift_counts'] is None:
+        if frameshift_df is None:
             # read in mutations
             if mut_df is None:
                 mut_df = pd.read_csv(opts['mutations'], sep='\t')
 
             # count number of frameshifts
-            frameshift_df = cf.count_frameshifts(mut_df, opts['bed'],
-                                                 opts['use_unmapped'])
+            frameshift_df = cf.count_frameshift_total(mut_df, opts['bed'],
+                                                      opts['use_unmapped'])
 
         # calculate the proportion of inactivating
         num_inact = len(mut_df[mut_df['Variant_Classification'].isin(utils.variant_inactivating)])

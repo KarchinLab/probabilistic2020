@@ -6,7 +6,9 @@ file_dir = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(file_dir, '../'))
 
 # package imports
+import prob2020
 import prob2020.python.utils as utils
+import prob2020.python.p_value as mypval
 import permutation_test as pt
 
 import argparse
@@ -184,6 +186,7 @@ def parse_arguments():
         sys.exit(1)
 
     # log user entered command
+    logger.info('Version: {0}'.format(prob2020.__version__))
     logger.info('Command: {0}'.format(' '.join(sys.argv)))
     return opts
 
@@ -212,20 +215,65 @@ def main(opts,
     result_df[q_val_col] = result_df[q_val_col].fillna(1)
 
     if opts['kind'] != 'oncogene':
+        logger.info('Working on Frameshift Mutations . . .')
+        import prob2020.python.count_frameshifts as cf
+        import rpy2.robjects as ro
+        import pandas.rpy.common as com
+
+        # get background data for frameshifts
+        bg = pd.read_csv(opts['non_coding_background'], sep='\t', index_col=0)
+        bg['N'] = bg['N'].astype(str)
+        bg_r = com.convert_to_r_dataframe(bg)
+
+        if mutation_df is None:
+            mutation_df = pd.read_csv(opts['mutations'], sep='\t')
+
+        fc = cf.count_frameshift_bins(mutation_df, opts['bed'], opts['bins'],
+                                      to_zero_based=True)
+        fc['bases at risk'] = fc['bases at risk'].astype(str)
+        fc_r = com.convert_to_r_dataframe(fc)
+
+        # source frameshift script
+        ro.r("source('{0}/frameshift_lrt.R')".format(file_dir))
+        frameshift_lrt_func = ro.r["frameshift.lrt"]
+
+        # run frameshift test
+        fs_out_r = frameshift_lrt_func(bg_r, fc_r)
+        fs_out_df = com.convert_robj(fs_out_r)
+        fs_out_df['gene.name'] = fs_out_df.index
+
+        # fill under-enriched frameshift genes with a p-value of 1
+        p_q_cols = ['frameshift.p.value', 'frameshift.q.value']
+        fs_out_df.loc[fs_out_df['ratio.mle']<1, p_q_cols] = 1
+
+        # merge two data frames
+        out_cols = ['gene.name', 'frameshift.p.value', 'frameshift.q.value']
+        result_df = pd.merge(result_df, fs_out_df[out_cols],
+                             left_on='gene', right_on='gene.name',
+                             how='left')
+
+        # drop redundant gene-name
+        result_df = result_df.drop('gene.name', axis=1)
+
+        # fill empty values with a p-value of 1
+        result_df['frameshift.p.value'] = result_df['frameshift.p.value'].fillna(1)
+        result_df['frameshift.q.value'] = result_df['frameshift.q.value'].fillna(1)
+
         # drop genes that never occur
-        #if opts['kind'] == 'tsg' or opts['kind'] == 'effect':
-            #no_ssvs = (result_df['Total Mutations']==0) & (result_df['total frameshifts']==0)
-            #result_df = result_df[~no_ssvs]
+        if opts['kind'] == 'tsg' or opts['kind'] == 'effect':
+            no_ssvs = (result_df['Total SNV Mutations']==0) & (result_df['Total Frameshift Mutations']==0)
+            result_df = result_df[~no_ssvs]
 
         # calculate combined results
-        #result_df['combined p-value'] = result_df[[p_val_col, 'frameshift p-value']].apply(utils.fishers_method, axis=1)
-        #result_df['combined BH q-value'] = utils.bh_fdr(result_df['combined p-value'])
-        result_df = result_df.sort(columns='inactivating p-value')
+        result_df['combined p-value'] = result_df[[p_val_col, 'frameshift.p.value']].apply(mypval.fishers_method, axis=1)
+        result_df['combined BH q-value'] = mypval.bh_fdr(result_df['combined p-value'])
+        # result_df = result_df.sort(columns='inactivating p-value')
+        result_df = result_df.sort(columns='combined p-value')
     elif opts['kind'] == 'oncogene':
         result_df = result_df[result_df['Total Mutations']>0]
-        result_df['entropy BH q-value'] = utils.bh_fdr(result_df['entropy p-value'])
-        result_df['delta entropy BH q-value'] = utils.bh_fdr(result_df['delta entropy p-value'])
-        result_df['recurrent BH q-value'] = utils.bh_fdr(result_df['recurrent p-value'])
+        result_df['entropy BH q-value'] = mypval.bh_fdr(result_df['entropy p-value'])
+        result_df['delta entropy BH q-value'] = mypval.bh_fdr(result_df['delta entropy p-value'])
+        result_df['recurrent BH q-value'] = mypval.bh_fdr(result_df['recurrent p-value'])
 
     if myoutput_path:
         # write output if specified
