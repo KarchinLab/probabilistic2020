@@ -57,13 +57,13 @@ def multiprocess_permutation(bed_dict, mut_df, opts, indel_df=None):
     num_permutations = opts['num_permutations']
 
     # simulate indel counts
-    if not opts['maf'] and num_permutations:
+    if opts['summary'] and num_permutations:
         fs_cts, inframe_cts, gene_names = indel.simulate_indel_counts(indel_df,
                                                                       bed_dict,
                                                                       num_permutations)
         name2ix = {gene_names[z]: z for z in range(len(gene_names))}
     # just count observed indels
-    elif not opts['maf']:
+    elif opts['summary']:
         # get gene names
         gene_names = [mybed.gene_name
                       for chrom in bed_dict
@@ -76,7 +76,7 @@ def multiprocess_permutation(bed_dict, mut_df, opts, indel_df=None):
 
         # populate observed counts
         indel_cts_dict = indel_df['Gene'].value_counts().to_dict()
-        fs_cts_dict = indel_df[indel.is_frameshift(indel_df)]['Gene'].value_counts().to_dict()
+        fs_cts_dict = indel_df[indel.is_frameshift_annotation(indel_df)]['Gene'].value_counts().to_dict()
         for mygene in indel_cts_dict:
             if mygene in name2ix:
                 # gene should be found in BED file annotation
@@ -98,7 +98,7 @@ def multiprocess_permutation(bed_dict, mut_df, opts, indel_df=None):
                 # iterate through each chromosome result
                 for chrom_result in process_results:
                     # add columns for indels
-                    if not opts['maf']:
+                    if opts['summary']:
                         tmp_chrom_result = []
                         for gname, grp in it.groupby(chrom_result, lambda x: x[0]):
                             for l, row in enumerate(grp):
@@ -123,7 +123,7 @@ def multiprocess_permutation(bed_dict, mut_df, opts, indel_df=None):
             chrom_results = singleprocess_permutation(info)
 
             # add indel columns
-            if not opts['maf']:
+            if opts['summary']:
                 tmp_chrom_result = []
                 for gname, grp in it.groupby(chrom_results, lambda x: x[0]):
                     for l, row in enumerate(grp):
