@@ -67,6 +67,7 @@ def count_frameshift_total(mut_df,
 def count_frameshift_bins(mut_df,
                           bed_path,
                           num_bins,
+                          num_samples=None,
                           use_unmapped=False,
                           to_zero_based=False):
     """Count frameshifts for each gene.
@@ -79,6 +80,8 @@ def count_frameshift_bins(mut_df,
         path to BED file containing reference tx for genes
     num_bins : int
         number of bins to stratify frameshift lengths
+    num_samples : int
+        number of samples where mutations were gathered
     use_unmapped : Bool
         flag indicating whether to include frameshifts not mapping
         to reference tx
@@ -96,7 +99,8 @@ def count_frameshift_bins(mut_df,
         mut_df['Start_Position'] = mut_df['Start_Position'] - 1
 
     # number of samples
-    num_samples = mut_df['Tumor_Sample'].nunique()
+    if num_samples is None:
+        num_samples = mut_df['Tumor_Sample'].nunique()
 
     fs_cts = {}  # frameshift count information for each gene
     fs_df = indel.keep_frameshifts(mut_df)

@@ -229,6 +229,7 @@ def main(opts,
             mutation_df = pd.read_csv(opts['mutations'], sep='\t')
 
         fc = cf.count_frameshift_bins(mutation_df, opts['bed'], opts['bins'],
+                                      num_samples=opts['sample_number'],
                                       to_zero_based=True)
         fc['bases at risk'] = fc['bases at risk'].astype(str)
         fc_r = com.convert_to_r_dataframe(fc)
