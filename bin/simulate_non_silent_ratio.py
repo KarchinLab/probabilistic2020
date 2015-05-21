@@ -78,69 +78,6 @@ def multiprocess_permutation(bed_dict, mut_df, opts):
     return result_list, obs_result
 
 
-def multiprocess_gene_shuffle(info, opts):
-    """Handles parallelization of permutations by splitting work
-    by chromosome.
-    """
-    chroms = sorted(info.keys())
-    multiprocess_flag = opts['processes']>0
-    if multiprocess_flag:
-        num_processes = opts['processes']
-    else:
-        num_processes = 1
-    num_permutations = opts['num_permutations']
-    result_list = [[0, 0] for k in range(num_permutations)]
-    for i in range(0, len(chroms), num_processes):
-        if multiprocess_flag:
-            pool = Pool(processes=num_processes)
-            tmp_num_proc = len(chroms) - i if i + num_processes > len(chroms) else num_processes
-            info_repeat = (info[chroms[tmp_ix]] + [num_permutations]
-                           for tmp_ix in range(i, i+tmp_num_proc))
-            process_results = pool.imap(singleprocess_gene_shuffle, info_repeat)
-            process_results.next = utils.keyboard_exit_wrapper(process_results.next)
-            try:
-                for chrom_result in process_results:
-                    for j in range(num_permutations):
-                        result_list[j][0] += chrom_result[j][0]
-                        result_list[j][1] += chrom_result[j][1]
-            except KeyboardInterrupt:
-                pool.close()
-                pool.join()
-                logger.info('Exited by user. ctrl-c')
-                sys.exit(0)
-            pool.close()
-            pool.join()
-        else:
-            info_repeat = info[chroms[i]] + [num_permutations]
-            chrom_result = singleprocess_gene_shuffle(info_repeat)
-            for j in range(num_permutations):
-                result_list[j][0] += chrom_result[j][0]
-                result_list[j][1] += chrom_result[j][1]
-
-    return result_list
-
-
-@utils.log_error_decorator
-def singleprocess_gene_shuffle(info):
-    #num_permutations = info[0][-1]  # number of permutations is always last column
-    num_permutations = info.pop(-1)  # number of permutations is always last column
-    result = [[0, 0] for k in range(num_permutations)]
-    for (context_cts, context_to_mutations, mut_df, gs, sc) in info:
-        ## Do permutations
-        # calculate non silent count
-        tmp_result = pm.non_silent_ratio_permutation(context_cts,
-                                                     context_to_mutations,
-                                                     sc,  # sequence context obj
-                                                     gs,  # gene sequence obj
-                                                     num_permutations)
-
-        # increment the non-silent/silent counts for each permutation
-        for j in range(num_permutations):
-            result[j][0] += tmp_result[j][0]
-            result[j][1] += tmp_result[j][1]
-    return result
-
-
 @utils.log_error_decorator
 def singleprocess_permutation(info):
     bed_list, mut_df, opts = info
@@ -335,77 +272,29 @@ def main(opts):
     # read in bed info
     bed_dict = utils.read_bed(opts['bed'], [])
 
-    # if user designated to shuffle gene names, then precompute mutation context
-    # info so that they can be reassigned to a new gene
-    if opts['shuffle_genes']:
-        # compute mutation context counts for all genes
-        gene_fa = pysam.Fastafile(opts['input'])
-        gs = GeneSequence(gene_fa, nuc_context=opts['context'])
-        logger.info('Computing gene context counts . . .')
-        for chrom in bed_dict:
-            bed_dict[chrom] = [list(mc.compute_mutation_context(b, gs, mut_df, opts))
-                               for b in bed_dict[chrom]]
-        logger.info('Computed all mutational context counts.')
+    # perform permutation test
+    #permutation_result = multiprocess_permutation(bed_dict, mut_df, opts)
+    sim_result, obs_result = multiprocess_permutation(bed_dict, mut_df, opts)
 
-        # filter out genes that have no mutations
-        for chrom in bed_dict:
-            bed_dict[chrom] = filter(lambda x: x[1], bed_dict[chrom])
-
-        # shuffle gene mutation context counts
-        logger.info('Shuffling gene names . . .')
-        #gene_pos = [[chrom, i]
-                    #for chrom in bed_dict
-                    #for gene_list in bed_dict[chrom]
-                    #for i, gene_info in enumerate(gene_list)]
-        gene_pos = [[chrom, i]
-                    for chrom, gene_list in bed_dict.iteritems()
-                    for i in range(len(gene_list))]
-        shuffled_gene_pos = copy.deepcopy(gene_pos)
-        prng = np.random.RandomState()
-        prng.shuffle(shuffled_gene_pos)  # shuffling happens inplace
-
-        # update info with new shuffled gene name
-        old_bed_dict = {chrom: [gene_row[:2] for gene_row in bed_dict[chrom]]
-                        for chrom in bed_dict}
-        #old_bed_dict = copy.deepcopy(bed_dict)
-        for i in range(len(shuffled_gene_pos)):
-            old_chrom, old_pos = gene_pos[i]
-            new_chrom, new_pos = shuffled_gene_pos[i]
-            tmp_context_cts = old_bed_dict[old_chrom][old_pos][0]
-            tmp_context2mut = old_bed_dict[old_chrom][old_pos][1]
-            bed_dict[new_chrom][new_pos][0] = tmp_context_cts
-            bed_dict[new_chrom][new_pos][1] = tmp_context2mut
-        logger.info('Finished shuffling gene names.')
-
-        #permutation_result = multiprocess_gene_shuffle(bed_dict, opts)
-        sim_result = multiprocess_gene_shuffle(bed_dict, opts)
-    # if user doesn't shuffle genes, then it is a regular evalutation
-    # of non-silent/silent ratio based on the genes the mutations actually
-    # occurred in
-    else:
-        # perform permutation test
-        #permutation_result = multiprocess_permutation(bed_dict, mut_df, opts)
-        sim_result, obs_result = multiprocess_permutation(bed_dict, mut_df, opts)
-
-        # report number of observed non-silent and silent mutations
-        #obs_result = [x[1] for x in permutation_result]  # actually observed num mutations
-        #obs_result = permutation_result[1]  # actually observed num mutations
-        total_non_silent = sum(o[0] for o in obs_result)
-        total_silent = sum(o[1] for o in obs_result)
-        total_nonsense = sum(o[2] for o in obs_result)
-        total_loststop = sum(o[3] for o in obs_result)
-        total_splice_site = sum(o[4] for o in obs_result)
-        total_loststart = sum(o[5] for o in obs_result)
-        total_missense = sum(o[6] for o in obs_result)
-        logger.info('There were {0} non-silent SNVs and {1} silent SNVs actually '
-                    'observed from the provided mutations.'.format(total_non_silent,
-                                                                   total_silent))
-        logger.info('There were {0} missense SNVs, {1} nonsense SNVs, {2} lost stop SNVs, '
-                    ', {3} lost start, and {4} splice site SNVs'.format(total_missense,
-                                                                        total_nonsense,
-                                                                        total_loststop,
-                                                                        total_loststart,
-                                                                        total_splice_site))
+    # report number of observed non-silent and silent mutations
+    #obs_result = [x[1] for x in permutation_result]  # actually observed num mutations
+    #obs_result = permutation_result[1]  # actually observed num mutations
+    total_non_silent = sum(o[0] for o in obs_result)
+    total_silent = sum(o[1] for o in obs_result)
+    total_nonsense = sum(o[2] for o in obs_result)
+    total_loststop = sum(o[3] for o in obs_result)
+    total_splice_site = sum(o[4] for o in obs_result)
+    total_loststart = sum(o[5] for o in obs_result)
+    total_missense = sum(o[6] for o in obs_result)
+    logger.info('There were {0} non-silent SNVs and {1} silent SNVs actually '
+                'observed from the provided mutations.'.format(total_non_silent,
+                                                                total_silent))
+    logger.info('There were {0} missense SNVs, {1} nonsense SNVs, {2} lost stop SNVs, '
+                ', {3} lost start, and {4} splice site SNVs'.format(total_missense,
+                                                                    total_nonsense,
+                                                                    total_loststop,
+                                                                    total_loststart,
+                                                                    total_splice_site))
 
     #sim_result = [s[0] for s in permutation_result]  # results with permutation
     #sim_result = permutation_result[0]
