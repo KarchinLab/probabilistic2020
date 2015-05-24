@@ -68,6 +68,9 @@ variant_frameshift = ['Frame_Shift_Indel', 'Frame_Shift_Ins', 'Frame_Shift_Del']
 variant_in_frame_indel = ['In_Frame_Indel', 'In_Frame_Ins', 'In_Frame_Del']
 variant_indel = variant_frameshift + variant_in_frame_indel
 
+# all variants
+all_variants = variant_snv + variant_indel
+
 def start_logging(log_file='', log_level='INFO', verbose=False):
     """Start logging information into the log directory.
 
