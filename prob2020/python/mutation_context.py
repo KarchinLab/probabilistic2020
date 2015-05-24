@@ -190,6 +190,16 @@ def get_aa_mut_info(coding_pos, somatic_base, gene_seq):
     aa_info : dict
         information about the somatic mutation effect on AA's
     """
+    # if no mutations return empty result
+    if not somatic_base:
+        aa_info = {'Reference Codon': [],
+                   'Somatic Codon': [],
+                   'Codon Pos': [],
+                   'Reference Nuc': [],
+                   'Reference AA': [],
+                   'Somatic AA': []}
+        return aa_info
+
     # get codon information into three lists
     ref_codon, codon_pos, pos_in_codon, ref_nuc = it.izip(*[cutils.pos_to_codon(gene_seq, p)
                                                             for p in coding_pos])
