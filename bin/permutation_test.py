@@ -41,7 +41,10 @@ def singleprocess_permutation(info):
         # prepare info for running permutation test
         gene_mut = mut_df[mut_df['Gene']==bed.gene_name]
         cols = ['Chromosome', 'Start_Position', 'Reference_Allele',
-                'Tumor_Allele', 'Variant_Classification', 'Protein_Change']
+                'Tumor_Allele', 'Variant_Classification',]
+        # conditionally add protein_change column if exists
+        if 'Protein_Change' in gene_mut.columns:
+            cols += ['Protein_Change']
         mut_info = gene_mut[cols]
         gs.set_gene(bed)
         sc = SequenceContext(gs, seed=opts['seed'])
@@ -91,7 +94,7 @@ def singleprocess_permutation(info):
             # replaced fs_ct with zero to stop using the frameshifts in
             # simulation
             tmp_result = mypval.calc_deleterious_p_value(mut_info, unmapped_mut_info,
-                                                         0, p_inactivating,
+                                                         fs_ct, p_inactivating,
                                                          sc, gs, bed, num_permutations,
                                                          opts['deleterious'],
                                                          opts['deleterious_pseudo_count'],
@@ -327,9 +330,13 @@ def main(opts, mut_df=None, frameshift_df=None):
                                                       opts['use_unmapped'])
 
         # calculate the proportion of inactivating
-        num_inact = len(mut_df[mut_df['Variant_Classification'].isin(utils.variant_inactivating)])
-        num_non_inact = len(mut_df[mut_df['Variant_Classification'].isin(utils.variant_non_inactivating)])
-        p_inactivating = float(num_inact) / (num_inact + num_non_inact)
+        #num_inact = len(mut_df[mut_df['Variant_Classification'].isin(utils.variant_inactivating)])
+        #num_non_inact = len(mut_df[mut_df['Variant_Classification'].isin(utils.variant_non_inactivating)])
+        num_fs = len(mut_df[mut_df['Variant_Classification'].isin(utils.variant_frameshift)])
+        num_all = len(mut_df[mut_df['Variant_Classification'].isin(utils.all_variants)])
+        #p_inactivating = float(num_inact) / (num_inact + num_non_inact)
+        p_inactivating = float(num_fs) / num_all
+        print p_inactivating
 
     # select valid single nucleotide variants only
     mut_df = utils._fix_mutation_df(mut_df)

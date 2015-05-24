@@ -97,7 +97,7 @@ def calc_deleterious_p_value(mut_info,
         seed number to random number generator (None to be randomly set)
     """
     prng = np.random.RandomState(seed)
-    if len(mut_info) > 0:
+    if len(mut_info) > 0 or fs_ct:
         mut_info['Coding Position'] = mut_info['Coding Position'].astype(int)
         mut_info['Context'] = mut_info['Coding Position'].apply(lambda x: sc.pos2context[x])
 
@@ -123,12 +123,16 @@ def calc_deleterious_p_value(mut_info,
         # least meet some user-specified threshold
         if num_del >= del_threshold:
             # perform permutations
-            null_del_list = pm.deleterious_permutation(context_cts,
-                                                       context_to_mutations,
-                                                       sc,  # sequence context obj
-                                                       gs,  # gene sequence obj
-                                                       num_permutations,
-                                                       pseudo_count)
+            if len(mut_info) > 0:
+                null_del_list = pm.deleterious_permutation(context_cts,
+                                                           context_to_mutations,
+                                                           sc,  # sequence context obj
+                                                           gs,  # gene sequence obj
+                                                           num_permutations,
+                                                           pseudo_count)
+            else:
+                # no SNV mutation case
+                null_del_list = [0 for i in range(num_permutations)]
 
             # calculate p-value
             if not fs_ct:
