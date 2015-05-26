@@ -94,7 +94,7 @@ def singleprocess_permutation(info):
             # replaced fs_ct with zero to stop using the frameshifts in
             # simulation
             tmp_result = mypval.calc_deleterious_p_value(mut_info, unmapped_mut_info,
-                                                         fs_ct, p_inactivating,
+                                                         0, p_inactivating,
                                                          sc, gs, bed, num_permutations,
                                                          opts['deleterious'],
                                                          opts['deleterious_pseudo_count'],

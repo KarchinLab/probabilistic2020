@@ -118,6 +118,27 @@ def counts2maf(num_indels, myindel_lens, myindel_types, gene_bed, seed=None):
     return maf_list
 
 
+def compute_indel_length(fs_df):
+    """Computes the indel length accounting for wether it is an insertion or
+    deletion.
+
+    Parameters
+    ----------
+    fs_df : pd.DataFrame
+        mutation input as dataframe only containing indel mutations
+
+    Returns
+    -------
+    indel_len : pd.Series
+        length of indels
+    """
+    indel_len = pd.Series(index=fs_df.index)
+    indel_len[fs_df['Reference_Allele']=='-'] = fs_df['Tumor_Allele'][fs_df['Reference_Allele']=='-'].str.len()
+    indel_len[fs_df['Tumor_Allele']=='-'] = fs_df['Reference_Allele'][fs_df['Tumor_Allele']=='-'].str.len()
+    indel_len = indel_len.fillna(0)
+    return indel_len
+
+
 def keep_indels(mut_df,
                 indel_len_col=True,
                 indel_type_col=True):
@@ -139,9 +160,12 @@ def keep_indels(mut_df,
     mut_df : pd.DataFrame
         mutations with only frameshift mutations kept
     """
+    # keep only frameshifts
+    mut_df = mut_df[is_indel_annotation(mut_df)]
+
     if indel_len_col:
         # calculate length
-        mut_df['indel len'] = mut_df['End_Position'] - mut_df['Start_Position']
+        mut_df['indel len'] = compute_indel_length(mut_df)
 
     if indel_type_col:
         is_ins = mut_df['Reference_Allele']=='-'
@@ -150,8 +174,6 @@ def keep_indels(mut_df,
         mut_df['indel type'][is_ins] = 'INS'
         mut_df['indel type'][is_del] = 'DEL'
 
-    # keep only frameshifts
-    mut_df = mut_df[is_indel_annotation(mut_df)]
     return mut_df
 
 
@@ -175,12 +197,12 @@ def keep_frameshifts(mut_df,
     mut_df : pd.DataFrame
         mutations with only frameshift mutations kept
     """
-    if indel_len_col:
-        # calculate length
-        mut_df['indel len'] = mut_df['End_Position'] - mut_df['Start_Position']
-
     # keep only frameshifts
     mut_df = mut_df[is_frameshift_annotation(mut_df)]
+
+    if indel_len_col:
+        # calculate length
+        mut_df['indel len'] = compute_indel_length(mut_df)
     return mut_df
 
 
@@ -202,7 +224,11 @@ def is_frameshift_len(mut_df):
         pandas series indicating if mutaitons are frameshifts
     """
     # calculate length, 0-based coordinates
-    indel_len = mut_df['End_Position'] - mut_df['Start_Position']
+    #indel_len = mut_df['End_Position'] - mut_df['Start_Position']
+    if 'indel len' in mut_df.columns:
+        indel_len = mut_df['indel len']
+    else:
+        indel_len = compute_indel_length(mut_df)
 
     # only non multiples of 3 are frameshifts
     is_fs = (indel_len%3)>0
@@ -234,7 +260,7 @@ def is_indel_len(mut_df):
         pandas series indicating if mutaitons are indels
     """
     # calculate length, 0-based coordinates
-    indel_len = mut_df['End_Position'] - mut_df['Start_Position']
+    #indel_len = mut_df['End_Position'] - mut_df['Start_Position']
 
     # make sure no single base substitutions are counted
     is_indel = (mut_df['Reference_Allele']=='-') | (mut_df['Tumor_Allele']=='-')

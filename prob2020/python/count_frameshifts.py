@@ -125,10 +125,13 @@ def count_frameshift_bins(mut_df,
         if not use_unmapped:
             gene_df = gene_df[gene_df['unmapped']==0]
 
-        # count frameshifts
+        # count all frameshifts
         all_len_counts = gene_df['indel len'].value_counts()
+        all_lens = list(set(all_len_counts.index) | set(fs_lens))
+        all_len_counts = all_len_counts.reindex(all_lens)
+        # count only in specified lengths
         fs_len_cts = all_len_counts[fs_lens]
-        fs_len_cts[max(fs_len_cts.index)]= all_len_counts[all_len_counts.index>=fs_lens[-1]].sum()
+        fs_len_cts[max(fs_len_cts.index)] = all_len_counts[all_len_counts.index>=fs_lens[-1]].sum()
         fs_len_cts = fs_len_cts.fillna(0).astype(int)
 
         # get length of gene
