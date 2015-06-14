@@ -13,7 +13,7 @@ def test_100genes_main():
     opts = {'input': os.path.join(file_dir, 'data/100genes.fa'),
             'bed': os.path.join(file_dir, 'data/100genes.bed'),
             'mutations': os.path.join(file_dir, 'data/100genes_mutations.txt'),
-            'non_coding_background': 'data/non_coding_fs.background.txt',
+            'non_coding_background': os.path.join(file_dir, 'data/non_coding_fs.background.txt'),
             'bins': 5,
             'sample_number': 9000,
             'text_output': os.path.join(file_dir, oncogene_path),

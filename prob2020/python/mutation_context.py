@@ -338,7 +338,7 @@ def is_nonsilent(mut_df, bed_dict, opts):
 
     # record indels and get only snvs
     mut_df['is_nonsilent'] = 0
-    indel_flag = indel.is_indel(mut_df)
+    indel_flag = indel.is_indel_annotation(mut_df)
     mut_df['is_nonsilent'][indel_flag] = 1
     snv_df = mut_df[~indel_flag]
 

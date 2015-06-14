@@ -16,7 +16,7 @@ import prob2020.python.mutation_context as mc
 
 import permutation_test as pt
 import probabilistic2020 as prob
-import count_frameshifts as cf
+import prob2020.python.count_frameshifts as cf
 import pandas as pd
 import numpy as np
 import pysam

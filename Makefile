@@ -25,4 +25,4 @@ cython-build: clean clean-cpp
 .PHONY: tests
 tests:
 	@hash nosetests 2>/dev/null || { echo -e >&2 "############################\nI require the python library \"nose\" for unit tests but it's not installed.  Aborting.\n############################\n"; exit 1; } 
-	nosetests --logging-level=INFO tests/
+	nosetests --nologcapture tests/
