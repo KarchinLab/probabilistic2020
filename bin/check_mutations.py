@@ -20,6 +20,21 @@ import datetime
 
 logger = logging.getLogger(__name__)  # module logger
 
+def correct_chrom_names(chroms):
+    """Make sure chromosome names follow UCSC chr convention."""
+    chrom_list = []
+    for chrom in chroms:
+        # fix chrom numbering
+        chrom = str(chrom)
+        chrom = chrom.replace('23', 'X')
+        chrom = chrom.replace('24', 'Y')
+        chrom = chrom.replace('25', 'Mt')
+        if not chrom.startswith('chr'):
+            chrom = 'chr' + chrom
+        chrom_list.append(chrom)
+    return chrom_list
+
+
 def parse_arguments():
     info = 'Checks mutations to see what strand they are reported on and for unmapped mutations.'
     parser = argparse.ArgumentParser(description=info)
@@ -82,6 +97,7 @@ def detect_coordinates(mut_df, genome_fa):
     num_snv = 0
     matching_ref = [0, 0]
     matching_pair = [0, 0]
+    bad_match = [0, 0]
     for ix, row in mut_df.iterrows():
         if (row['End_Position'] - row['Start_Position']) == 0:
             zero_len_count += 1
@@ -100,16 +116,22 @@ def detect_coordinates(mut_df, genome_fa):
             if seqs[i].upper() == row['Reference_Allele'].upper() and len(row['Reference_Allele']) == 1:
                 matching_ref[i] += 1
             elif seqs[i].upper() == utils.rev_comp(row['Reference_Allele']).upper() and len(row['Reference_Allele']) == 1:
+                #if i == 1:
+                    #print row
                 matching_pair[i] += 1
+            else:
+                bad_match[i] += 1
 
     # return coordinate type
     num_mut = len(mut_df)
     zero_len_pct = zero_len_count / float(num_mut)
     matching_pair_pct = map(lambda x: x / float(num_snv), matching_pair)
     matching_pct = map(lambda x: x / float(num_snv), matching_ref)
+    bad_match_pct = map(lambda x: x / float(num_snv), bad_match)
     logger.info('{0:.2f}%% for {1} tested mutations had zero length'.format(100*zero_len_pct, num_mut))
     logger.info('{0} for {1} did match the + strand reference genome'.format(matching_pct, num_snv))
     logger.info('{0} for {1} did match the - strand reference genome'.format(matching_pair_pct, num_snv))
+    logger.info('{0} for {1} was a bad match'.format(bad_match_pct, num_snv))
     if zero_len_pct > .3:
         logger.info('1-based coordinate system likely used.')
         if matching_pair_pct[1] > .25:
@@ -140,6 +162,11 @@ def main(opts):
     # read in mutations
     mut_df = pd.read_csv(opts['mutations'], sep='\t')
     orig_num_mut = len(mut_df)
+
+    # correct chromosome names
+    mut_df['Chromosome'] = correct_chrom_names(mut_df['Chromosome'])
+
+    # fix additional issues
     mut_df = mut_df.dropna(subset=['Tumor_Allele', 'Start_Position', 'Chromosome'])
     logger.info('Kept {0} mutations after droping mutations with missing '
                 'information (Droped: {1})'.format(len(mut_df), orig_num_mut - len(mut_df)))
