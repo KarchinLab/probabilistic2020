@@ -32,8 +32,8 @@ def calc_performance(df, opts):
     """
     # count frameshifts if needed
     if opts['kind'] != 'oncogene':
-        fs_df = cf.count_frameshifts(df, opts['bed'], opts['bins'],
-                                     opts['sample_number'], opts['use_unmapped'])
+        fs_df = cf.count_frameshift_bins(df, opts['bed'], opts['bins'],
+                                         opts['sample_number'], opts['use_unmapped'])
     else:
         fs_df=None
     # get statistical results
