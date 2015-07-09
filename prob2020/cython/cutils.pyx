@@ -5,6 +5,8 @@ from libcpp.string cimport string
 import numpy as np
 cimport numpy as np
 from ..python import utils
+from ..python import scores
+
 
 # define data types for kde function
 DTYPE_INT = np.int
@@ -271,10 +273,11 @@ def get_variant_classification(germ_aa_list, somatic_aa_list, codon_pos):
 
 
 def calc_summary_info(germ_aa, somatic_aa, codon_pos,
+                      gene_name, score_dir,
                       min_frac=0.0,
                       min_recur=2):
-    """Returns information from both missense position metrics and number of
-    mutation types.
+    """Returns information from both missense position metrics, number of
+    mutation types, and score information.
 
     Mostly a wrapper around calc_non_silent_info and calc_pos_info.
 
@@ -286,6 +289,10 @@ def calc_summary_info(germ_aa, somatic_aa, codon_pos,
         list of strings indicating mutated amino acid
     codon_pos : list
         contains integer position of codon
+    gene_name: str
+        name of gene, used to fetch score information
+    score_dir: str
+        directory containing pickle files with score information
     min_frac : float
         fraction of total mutations to be recurrent position
     min_recur : int
@@ -302,4 +309,12 @@ def calc_summary_info(germ_aa, somatic_aa, codon_pos,
                                                   min_recur=min_recur
                                                   #is_obs=0
                                                   )
-    return mut_type_info + [num_recur, pos_ent]
+    # output list of mutation information
+    out_list = mut_type_info + [num_recur, pos_ent]
+
+    # add score information if user specified a directory
+    if score_dir:
+        total_mgaentropy, total_vest = scores.retrieve_scores(gene_name, score_dir,
+                                                              codon_pos, germ_aa, somatic_aa)
+        out_list += [total_mgaentropy, total_vest]
+    return out_list

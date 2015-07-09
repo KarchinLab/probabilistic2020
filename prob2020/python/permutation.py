@@ -2,6 +2,7 @@ import numpy as np
 import prob2020.python.utils as utils
 from ..cython import cutils
 import prob2020.python.mutation_context as mc
+import prob2020.python.scores as scores
 
 
 def deleterious_permutation(context_counts,
@@ -68,6 +69,7 @@ def position_permutation(context_counts,
                          context_to_mut,
                          seq_context,
                          gene_seq,
+                         gene_vest=None,
                          num_permutations=10000,
                          pseudo_count=0):
     """Performs null-permutations for position-based mutation statistics
@@ -112,7 +114,7 @@ def position_permutation(context_counts,
 
     # calculate position-based statistics as a result of random positions
     #num_recur_list, entropy_list, kde_entropy_list, bw_list = [], [], [], []
-    num_recur_list, entropy_list, delta_entropy_list = [], [], []
+    num_recur_list, entropy_list, delta_entropy_list, vest_list = [], [], [], []
     for row in tmp_mut_pos:
         # get info about mutations
         tmp_mut_info = mc.get_aa_mut_info(row,
@@ -125,11 +127,21 @@ def position_permutation(context_counts,
                                                                             tmp_mut_info['Somatic AA'],
                                                                             pseudo_count=pseudo_count,
                                                                             is_obs=0)
+        # get vest scores
+        if gene_vest:
+            tmp_vest = scores.compute_mean_vest(gene_vest,
+                                                tmp_mut_info['Reference AA'],
+                                                tmp_mut_info['Somatic AA'],
+                                                tmp_mut_info['Codon Pos'])
+        else:
+            tmp_vest = 0.0
+
         num_recur_list.append(tmp_recur_ct)
         entropy_list.append(tmp_entropy)
         delta_entropy_list.append(tmp_delta_entropy)
+        vest_list.append(tmp_vest)
 
-    return num_recur_list, entropy_list, delta_entropy_list
+    return num_recur_list, entropy_list, delta_entropy_list, vest_list
 
 
 def effect_permutation(context_counts,
@@ -259,6 +271,7 @@ def summary_permutation(context_counts,
                         context_to_mut,
                         seq_context,
                         gene_seq,
+                        score_dir,
                         num_permutations=10000,
                         min_frac=0.0,
                         min_recur=2):
@@ -312,12 +325,14 @@ def summary_permutation(context_counts,
         tmp_summary = cutils.calc_summary_info(tmp_mut_info['Reference AA'],
                                                tmp_mut_info['Somatic AA'],
                                                tmp_mut_info['Codon Pos'],
+                                               gene_name,
+                                               score_dir,
                                                min_frac=min_frac,
                                                min_recur=min_recur)
 
         # limit the precision of floats
-        pos_ent = tmp_summary[-1]
-        tmp_summary[-1] = '{0:.5f}'.format(pos_ent)
+        #pos_ent = tmp_summary[-1]
+        #tmp_summary[-1] = '{0:.5f}'.format(pos_ent)
 
         summary_info_list.append([gene_name, i+1, gene_len]+tmp_summary)
     return summary_info_list

@@ -3,12 +3,15 @@ import prob2020.python.mutation_context as mc
 import prob2020.python.permutation as pm
 import prob2020.cython.cutils as cutils
 import prob2020.python.utils as utils
+import prob2020.python.scores as scores
 
 # external imports
 import numpy as np
 import pandas as pd
 import scipy.stats as stats
 
+import logging
+logger = logging.getLogger(__name__)  # module logger
 
 def fishers_method(pvals):
     """Fisher's method for combining independent p-values."""
@@ -160,6 +163,7 @@ def calc_position_p_value(mut_info,
                           sc,
                           gs,
                           bed,
+                          score_dir,
                           num_permutations,
                           pseudo_count,
                           min_recurrent,
@@ -176,14 +180,13 @@ def calc_position_p_value(mut_info,
         context_to_mutations = dict((name, group['Tumor_Allele'])
                                     for name, group in tmp_df.groupby('Context'))
 
-        # perform permutations
-        permutation_result = pm.position_permutation(context_cts,
-                                                     context_to_mutations,
-                                                     sc,  # sequence context obj
-                                                     gs,  # gene sequence obj
-                                                     num_permutations,
-                                                     pseudo_count)
-        num_recur_list, pos_entropy_list, delta_pos_entropy_list = permutation_result  # unpack results
+        # get vest scores for gene if directory provided
+        if score_dir:
+            gene_vest = scores.read_vest_pickle(bed.gene_name, score_dir)
+            if gene_vest is None:
+                logger.warning('Could not find VEST scores for {0}, skipping . . .'.format(bed.gene_name))
+        else:
+            gene_vest = None
 
         # get recurrent info for actual mutations
         aa_mut_info = mc.get_aa_mut_info(mut_info['Coding Position'],
@@ -197,6 +200,22 @@ def calc_position_p_value(mut_info,
                                                                      somatic_aa,
                                                                      min_frac=min_fraction,
                                                                      min_recur=min_recurrent)
+        # get vest score for actual mutations
+        vest_score = scores.compute_mean_vest(gene_vest,
+                                              aa_mut_info['Reference AA'],
+                                              aa_mut_info['Somatic AA'],
+                                              aa_mut_info['Codon Pos'])
+
+        # perform simulations
+        permutation_result = pm.position_permutation(context_cts,
+                                                     context_to_mutations,
+                                                     sc,  # sequence context obj
+                                                     gs,  # gene sequence obj
+                                                     gene_vest,
+                                                     num_permutations,
+                                                     pseudo_count)
+        num_recur_list, pos_entropy_list, delta_pos_entropy_list, vest_list = permutation_result  # unpack results
+
 
         # calculate permutation p-value
         recur_num_nulls = sum([1 for null_recur in num_recur_list
@@ -205,18 +224,23 @@ def calc_position_p_value(mut_info,
                                  if null_ent-utils.epsilon <= pos_ent])
         delta_entropy_num_nulls = sum([1 for null_ent in delta_pos_entropy_list
                                        if null_ent+utils.epsilon >= delta_pos_ent])
+        vest_num_nulls = sum([1 for null_vest in vest_list
+                              if null_vest+utils.epsilon >= vest_score])
         recur_p_value = recur_num_nulls / float(num_permutations)
         ent_p_value = entropy_num_nulls / float(num_permutations)
         delta_ent_p_value = delta_entropy_num_nulls / float(num_permutations)
+        vest_p_value = vest_num_nulls / float(num_permutations)
     else:
         num_recurrent = 0
         pos_ent = 0
         delta_pos_ent = 0
+        vest_score = 0.0
         recur_p_value = 1.0
         ent_p_value = 1.0
         delta_ent_p_value = 1.0
-    result = [bed.gene_name, num_recurrent, pos_ent, delta_pos_ent,
-              recur_p_value, ent_p_value, delta_ent_p_value]
+        vest_p_value = 1.0
+    result = [bed.gene_name, num_recurrent, pos_ent, delta_pos_ent, vest_score,
+              recur_p_value, ent_p_value, delta_ent_p_value, vest_p_value]
     return result
 
 

@@ -82,7 +82,8 @@ def singleprocess_permutation(info):
         if opts['kind'] == 'oncogene':
             # calculate position based permutation results
             tmp_result = mypval.calc_position_p_value(mut_info, unmapped_mut_info, sc,
-                                                      gs, bed, num_permutations,
+                                                      gs, bed, opts['score_dir'],
+                                                      num_permutations,
                                                       opts['recurrent_pseudo_count'],
                                                       opts['recurrent'],
                                                       opts['fraction'])
@@ -186,6 +187,10 @@ def parse_arguments():
     help_str = 'BED file annotation of genes'
     parser.add_argument('-b', '--bed',
                         type=str, required=True,
+                        help=help_str)
+    help_str = 'Directory containing score information in pickle files (Default: None).'
+    parser.add_argument('-s', '--score-dir',
+                        type=str, default=None,
                         help=help_str)
     help_str = ('Number of processes to use. 0 indicates using a single '
                 'process without using a multiprocessing pool '
@@ -351,7 +356,9 @@ def main(opts, mut_df=None, frameshift_df=None):
     # Perform BH p-value adjustment and tidy up data for output
     if opts['kind'] == 'oncogene':
         permutation_result = multiprocess_permutation(bed_dict, mut_df, opts)
-        permutation_df = pr.handle_oncogene_results(permutation_result, non_tested_genes)
+        permutation_df = pr.handle_oncogene_results(permutation_result,
+                                                    non_tested_genes,
+                                                    opts['num_permutations'])
     elif opts['kind'] == 'tsg':
         permutation_result = multiprocess_permutation(bed_dict, mut_df, opts,
                                                       frameshift_df, p_inactivating)
