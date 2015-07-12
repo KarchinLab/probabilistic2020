@@ -51,8 +51,12 @@ def multiprocess_permutation(bed_dict, mut_df, opts, indel_df=None):
     else:
         header = ['Gene', 'ID', 'gene length', 'non-silent snv', 'silent snv', 'nonsense', 'lost stop',
                   'splice site', 'lost start', 'missense', 'recurrent missense',
-                  'normalized missense position entropy', 'frameshift indel',
-                  'inframe indel']
+                  'normalized missense position entropy', ]
+        # add column header for scores, is user provided one
+        if opts['score_dir']:
+            header += ['Total Missense MGAEntropy', 'Total Missense VEST Score']
+        # add indel columns
+        header += ['frameshift indel', 'inframe indel']
     mywriter.writerow(header)
     num_permutations = opts['num_permutations']
 
@@ -147,7 +151,7 @@ def singleprocess_permutation(info):
     gene_fa = pysam.Fastafile(opts['input'])
     gs = GeneSequence(gene_fa, nuc_context=opts['context'])
 
-    # go through each gene to permform simulation
+    # go through each gene to perform simulation
     result = []
     for bed in bed_list:
         # compute context counts and somatic bases for each context
@@ -164,6 +168,8 @@ def singleprocess_permutation(info):
                 tmp_result = cutils.calc_summary_info(tmp_mut_info['Reference AA'],
                                                       tmp_mut_info['Somatic AA'],
                                                       tmp_mut_info['Codon Pos'],
+                                                      bed.gene_name,
+                                                      opts['score_dir'],
                                                       min_frac=opts['fraction'],
                                                       min_recur=opts['recurrent'])
                 tmp_result = [[bed.gene_name, 'NA', bed.cds_len] + tmp_result]
@@ -193,6 +199,7 @@ def singleprocess_permutation(info):
                                                     context_to_mutations,
                                                     sc,  # sequence context obj
                                                     gs,  # gene sequence obj
+                                                    opts['score_dir'],
                                                     num_permutations)
             result += tmp_result
 
@@ -235,6 +242,10 @@ def parse_arguments():
     help_str = 'BED file annotation of genes'
     parser.add_argument('-b', '--bed',
                         type=str, required=True,
+                        help=help_str)
+    help_str = 'Directory containing score information in pickle files (Default: None).'
+    parser.add_argument('-s', '--score-dir',
+                        type=str, default=None,
                         help=help_str)
     help_str = ('Number of processes to use. 0 indicates using a single '
                 'process without using a multiprocessing pool '
