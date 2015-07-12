@@ -61,12 +61,11 @@ def bh_fdr(pval):
 
 def calc_deleterious_p_value(mut_info,
                              unmapped_mut_info,
-                             fs_ct,
-                             prob_inactive,
                              sc,
                              gs,
                              bed,
                              num_permutations,
+                             stop_thresh,
                              del_threshold,
                              pseudo_count,
                              seed=None):
@@ -100,7 +99,7 @@ def calc_deleterious_p_value(mut_info,
         seed number to random number generator (None to be randomly set)
     """
     prng = np.random.RandomState(seed)
-    if len(mut_info) > 0 or fs_ct:
+    if len(mut_info) > 0:
         mut_info['Coding Position'] = mut_info['Coding Position'].astype(int)
         mut_info['Context'] = mut_info['Coding Position'].apply(lambda x: sc.pos2context[x])
 
@@ -119,35 +118,31 @@ def calc_deleterious_p_value(mut_info,
         ref_aa = aa_mut_info['Reference AA'] + unmapped_mut_info['Reference AA']
         somatic_aa = aa_mut_info['Somatic AA'] + unmapped_mut_info['Somatic AA']
         codon_pos = aa_mut_info['Codon Pos'] + unmapped_mut_info['Codon Pos']
-        num_snv_del = cutils.calc_deleterious_info(ref_aa, somatic_aa, codon_pos)
-        num_del = fs_ct + num_snv_del
+        num_del = cutils.calc_deleterious_info(ref_aa, somatic_aa, codon_pos)
+        #num_del = fs_ct + num_snv_del
 
         # skip permutation test if number of deleterious mutations is not at
         # least meet some user-specified threshold
         if num_del >= del_threshold:
             # perform permutations
-            if len(mut_info) > 0:
-                null_del_list = pm.deleterious_permutation(context_cts,
-                                                           context_to_mutations,
-                                                           sc,  # sequence context obj
-                                                           gs,  # gene sequence obj
-                                                           num_permutations,
-                                                           pseudo_count)
-            else:
+            #if len(mut_info) > 0:
+            del_p_value = pm.deleterious_permutation(num_del,
+                                                        context_cts,
+                                                        context_to_mutations,
+                                                        sc,  # sequence context obj
+                                                        gs,  # gene sequence obj
+                                                        num_permutations,
+                                                        stop_thresh,
+                                                        pseudo_count)
+            #else:
                 # no SNV mutation case
-                null_del_list = [0 for i in range(num_permutations)]
+                #null_del_list = [0 for i in range(num_permutations)]
+                #del_p_value = 1.0
 
             # calculate p-value
-            if not fs_ct:
-                # calculate p-value if no frameshift occurs
-                del_num_nulls = sum([1 for d in null_del_list
-                                     if d+utils.epsilon >= num_del])
-            else:
-                # adjust null if frameshifts happened
-                inactive_fs_null = prng.binomial(fs_ct, prob_inactive, num_permutations)
-                del_num_nulls_array = np.array(null_del_list) + inactive_fs_null + utils.epsilon
-                del_num_nulls = np.sum(del_num_nulls_array>=num_del)
-            del_p_value = del_num_nulls / float(num_permutations)
+            #del_num_nulls = sum([1 for d in null_del_list
+                                    #if d+utils.epsilon >= num_del])
+            #del_p_value = del_num_nulls / float(num_permutations)
         else:
             del_p_value = None
     else:
@@ -165,6 +160,7 @@ def calc_position_p_value(mut_info,
                           bed,
                           score_dir,
                           num_permutations,
+                          stop_thresh,
                           pseudo_count,
                           min_recurrent,
                           min_fraction):
@@ -206,30 +202,34 @@ def calc_position_p_value(mut_info,
                                               aa_mut_info['Somatic AA'],
                                               aa_mut_info['Codon Pos'])
 
-        # perform simulations
-        permutation_result = pm.position_permutation(context_cts,
+        # perform simulations to get p-value
+        observed_stats = (num_recurrent, pos_ent, delta_pos_ent, vest_score)
+        permutation_result = pm.position_permutation(observed_stats,
+                                                     context_cts,
                                                      context_to_mutations,
                                                      sc,  # sequence context obj
                                                      gs,  # gene sequence obj
                                                      gene_vest,
                                                      num_permutations,
+                                                     stop_thresh,
                                                      pseudo_count)
-        num_recur_list, pos_entropy_list, delta_pos_entropy_list, vest_list = permutation_result  # unpack results
+        #num_recur_list, pos_entropy_list, delta_pos_entropy_list, vest_list = permutation_result  # unpack results
+        recur_p_value, ent_p_value, delta_ent_p_value, vest_p_value = permutation_result
 
 
         # calculate permutation p-value
-        recur_num_nulls = sum([1 for null_recur in num_recur_list
-                               if null_recur+utils.epsilon >= num_recurrent])
-        entropy_num_nulls = sum([1 for null_ent in pos_entropy_list
-                                 if null_ent-utils.epsilon <= pos_ent])
-        delta_entropy_num_nulls = sum([1 for null_ent in delta_pos_entropy_list
-                                       if null_ent+utils.epsilon >= delta_pos_ent])
-        vest_num_nulls = sum([1 for null_vest in vest_list
-                              if null_vest+utils.epsilon >= vest_score])
-        recur_p_value = recur_num_nulls / float(num_permutations)
-        ent_p_value = entropy_num_nulls / float(num_permutations)
-        delta_ent_p_value = delta_entropy_num_nulls / float(num_permutations)
-        vest_p_value = vest_num_nulls / float(num_permutations)
+        #recur_num_nulls = sum([1 for null_recur in num_recur_list
+                               #if null_recur+utils.epsilon >= num_recurrent])
+        #entropy_num_nulls = sum([1 for null_ent in pos_entropy_list
+                                 #if null_ent-utils.epsilon <= pos_ent])
+        #delta_entropy_num_nulls = sum([1 for null_ent in delta_pos_entropy_list
+                                       #if null_ent+utils.epsilon >= delta_pos_ent])
+        #vest_num_nulls = sum([1 for null_vest in vest_list
+                              #if null_vest+utils.epsilon >= vest_score])
+        #recur_p_value = recur_num_nulls / float(num_permutations)
+        #ent_p_value = entropy_num_nulls / float(num_permutations)
+        #delta_ent_p_value = delta_entropy_num_nulls / float(num_permutations)
+        #vest_p_value = vest_num_nulls / float(num_permutations)
     else:
         num_recurrent = 0
         pos_ent = 0

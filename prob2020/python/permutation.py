@@ -5,11 +5,13 @@ import prob2020.python.mutation_context as mc
 import prob2020.python.scores as scores
 
 
-def deleterious_permutation(context_counts,
+def deleterious_permutation(obs_del,
+                            context_counts,
                             context_to_mut,
                             seq_context,
                             gene_seq,
                             num_permutations=10000,
+                            stop_criteria=100,
                             pseudo_count=0):
     """Performs null-permutations for deleterious mutation statistics
     in a single gene.
@@ -50,8 +52,9 @@ def deleterious_permutation(context_counts,
     tmp_mut_pos = np.hstack(pos_array for base, pos_array in tmp_contxt_pos)
 
     # determine result of random positions
-    del_count_list = []
-    for row in tmp_mut_pos:
+    #del_count_list = []
+    null_del_ct = 0
+    for i, row in enumerate(tmp_mut_pos):
         # get info about mutations
         tmp_mut_info = mc.get_aa_mut_info(row,
                                           somatic_base,
@@ -61,22 +64,37 @@ def deleterious_permutation(context_counts,
         tmp_del_count = cutils.calc_deleterious_info(tmp_mut_info['Reference AA'],
                                                      tmp_mut_info['Somatic AA'],
                                                      tmp_mut_info['Codon Pos'])
-        del_count_list.append(tmp_del_count + pseudo_count)
-    return del_count_list
+        #del_count_list.append(tmp_del_count + pseudo_count)
+
+        # update empricial null distribution
+        if tmp_del_count >= obs_del: null_del_ct += 1
+
+        # stop if reach sufficient precision on p-value
+        if null_del_ct >= stop_criteria:
+            break
+
+    del_pval = float(null_del_ct) / (i+1)
+
+    #return del_count_list
+    return del_pval
 
 
-def position_permutation(context_counts,
+def position_permutation(obs_stat,
+                         context_counts,
                          context_to_mut,
                          seq_context,
                          gene_seq,
                          gene_vest=None,
                          num_permutations=10000,
+                         stop_criteria=100,
                          pseudo_count=0):
     """Performs null-permutations for position-based mutation statistics
     in a single gene.
 
     Parameters
     ----------
+    obs_stat : tuple, (recur ct, entropy, delta entropy, mean vest)
+        tuple containing the observed statistics
     context_counts : pd.Series
         number of mutations for each context
     context_to_mut : dict
@@ -90,6 +108,9 @@ def position_permutation(context_counts,
         Sequence of gene of interest
     num_permutations : int, default: 10000
         number of permutations to create for null
+    stop_criteria : int
+        stop after stop_criteria iterations are more significant
+        then the observed statistic.
     pseudo_count : int, default: 0
         Pseudo-count for number of recurrent missense mutations for each
         permutation for the null distribution. Increasing pseudo_count
@@ -102,6 +123,7 @@ def position_permutation(context_counts,
     entropy_list : list
         list of position entropy values under the null
     """
+    # get contexts and somatic base
     mycontexts = context_counts.index.tolist()
     somatic_base = [base
                     for one_context in mycontexts
@@ -113,9 +135,11 @@ def position_permutation(context_counts,
     tmp_mut_pos = np.hstack(pos_array for base, pos_array in tmp_contxt_pos)
 
     # calculate position-based statistics as a result of random positions
-    #num_recur_list, entropy_list, kde_entropy_list, bw_list = [], [], [], []
-    num_recur_list, entropy_list, delta_entropy_list, vest_list = [], [], [], []
-    for row in tmp_mut_pos:
+    #stop_count = int(stop_criteria*num_permutations)
+    obs_recur, obs_ent, obs_delta_ent, obs_vest = obs_stat
+    #num_recur_list, entropy_list, delta_entropy_list, vest_list = [], [], [], []
+    null_num_recur_ct, null_entropy_ct, null_delta_entropy_ct, null_vest_ct = 0, 0, 0, 0
+    for i, row in enumerate(tmp_mut_pos):
         # get info about mutations
         tmp_mut_info = mc.get_aa_mut_info(row,
                                           somatic_base,
@@ -136,12 +160,28 @@ def position_permutation(context_counts,
         else:
             tmp_vest = 0.0
 
-        num_recur_list.append(tmp_recur_ct)
-        entropy_list.append(tmp_entropy)
-        delta_entropy_list.append(tmp_delta_entropy)
-        vest_list.append(tmp_vest)
+        # update empirical null distribution counts
+        if tmp_recur_ct >= obs_recur: null_num_recur_ct += 1
+        if tmp_entropy-utils.epsilon <= obs_ent: null_entropy_ct += 1
+        if tmp_delta_entropy+utils.epsilon >= obs_delta_ent: null_delta_entropy_ct += 1
+        if tmp_vest+utils.epsilon >= obs_vest: null_vest_ct += 1
+        #num_recur_list.append(tmp_recur_ct)
+        #entropy_list.append(tmp_entropy)
+        #delta_entropy_list.append(tmp_delta_entropy)
+        #vest_list.append(tmp_vest)
 
-    return num_recur_list, entropy_list, delta_entropy_list, vest_list
+        # stop iterations if reached sufficient precision
+        if null_vest_ct >= stop_criteria and null_entropy_ct >= stop_criteria:
+            break
+
+    # calculate p-value from empirical null-distribution
+    recur_pval = float(null_num_recur_ct) / (i+1)
+    ent_pval = float(null_entropy_ct) / (i+1)
+    delta_ent_pval = float(null_delta_entropy_ct) / (i+1)
+    vest_pval = float(null_vest_ct) / (i+1)
+
+    #return num_recur_list, entropy_list, delta_entropy_list, vest_list
+    return recur_pval, ent_pval, delta_ent_pval, vest_pval
 
 
 def effect_permutation(context_counts,

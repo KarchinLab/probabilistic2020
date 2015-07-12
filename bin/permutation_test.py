@@ -84,24 +84,25 @@ def singleprocess_permutation(info):
             tmp_result = mypval.calc_position_p_value(mut_info, unmapped_mut_info, sc,
                                                       gs, bed, opts['score_dir'],
                                                       num_permutations,
+                                                      opts['stop_criteria'],
                                                       opts['recurrent_pseudo_count'],
                                                       opts['recurrent'],
                                                       opts['fraction'])
             result.append(tmp_result + [total_mut, unmapped_muts])
         elif opts['kind'] == 'tsg':
             # calculate results for deleterious mutation permutation test
-            fs_ct = fs_cts_df['total'][bed.gene_name]
-            fs_unmapped = fs_cts_df['unmapped'][bed.gene_name]
+            #fs_ct = fs_cts_df['total'][bed.gene_name]
+            #fs_unmapped = fs_cts_df['unmapped'][bed.gene_name]
             # replaced fs_ct with zero to stop using the frameshifts in
             # simulation
             tmp_result = mypval.calc_deleterious_p_value(mut_info, unmapped_mut_info,
-                                                         0, p_inactivating,
                                                          sc, gs, bed, num_permutations,
+                                                         opts['stop_criteria'],
                                                          opts['deleterious'],
                                                          opts['deleterious_pseudo_count'],
                                                          opts['seed'])
-            result.append(tmp_result + [num_mapped_muts, unmapped_muts,
-                                        fs_ct, fs_unmapped])
+            result.append(tmp_result + [num_mapped_muts, unmapped_muts])
+                                        #fs_ct, fs_unmapped])
         else:
             # calc results for entropy-on-effect permutation test
             tmp_result = mypval.calc_effect_p_value(mut_info, unmapped_mut_info,
@@ -203,6 +204,12 @@ def parse_arguments():
                 'increase the run time (Default: 10000).')
     parser.add_argument('-n', '--num-permutations',
                         type=int, default=10000,
+                        help=help_str)
+    help_str = ('Number of iterations more significant then the observed statistic '
+                'to stop further computations. This decreases compute time spent in resolving '
+                'p-values for non-significant genes. (Default: 100).')
+    parser.add_argument('-sc', '--stop-criteria',
+                        type=int, default=100,
                         help=help_str)
     help_str = ('Kind of permutation test to perform ("oncogene" or "tsg"). "position-based" permutation '
                 'test is intended to find oncogenes using position based statistics. '
