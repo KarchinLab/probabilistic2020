@@ -9,6 +9,7 @@ sys.path.append(os.path.join(file_dir, '../'))
 import prob2020
 import prob2020.python.utils as utils
 import prob2020.python.p_value as mypval
+import prob2020.python.indel as indel
 import permutation_test as pt
 
 import argparse
@@ -53,6 +54,10 @@ def parse_arguments():
     parser.add_argument('-b', '--bed',
                         type=str, required=True,
                         help=help_str)
+    help_str = 'Directory containing score information in pickle files (Default: None).'
+    parser.add_argument('-s', '--score-dir',
+                        type=str, default=None,
+                        help=help_str)
     help_str = ('Number of processes to use. 0 indicates using a single '
                 'process without using a multiprocessing pool '
                 '(more means Faster, default: 0).')
@@ -64,6 +69,12 @@ def parse_arguments():
                 'increase the run time (Default: 10000).')
     parser.add_argument('-n', '--num-permutations',
                         type=int, default=10000,
+                        help=help_str)
+    help_str = ('Number of iterations more significant then the observed statistic '
+                'to stop further computations. This decreases compute time spent in resolving '
+                'p-values for non-significant genes. (Default: 100).')
+    parser.add_argument('-sc', '--stop-criteria',
+                        type=int, default=100,
                         help=help_str)
     help_str = ('Kind of permutation test to perform ("oncogene" or "tsg"). "position-based" permutation '
                 'test is intended to find oncogenes using position based statistics. '
@@ -225,40 +236,61 @@ def main(opts,
         bg['N'] = bg['N'].astype(str)
         bg_r = com.convert_to_r_dataframe(bg)
 
+        # read in mutation data, if needed
         if mutation_df is None:
             mutation_df = pd.read_csv(opts['mutations'], sep='\t')
 
-        fc = cf.count_frameshift_bins(mutation_df, opts['bed'], opts['bins'],
-                                      num_samples=opts['sample_number'],
-                                      to_zero_based=True)
-        fc['bases at risk'] = fc['bases at risk'].astype(str)
-        fc_r = com.convert_to_r_dataframe(fc)
+        # check if there are any frameshift mutations
+        num_fs = len(mutation_df[indel.is_frameshift_annotation(mutation_df)])
 
-        # source frameshift script
-        ro.r("source('{0}/frameshift_lrt.R')".format(file_dir))
-        frameshift_lrt_func = ro.r["frameshift.lrt"]
+        # if there are frameshift mutations then run LRT
+        if num_fs:
+            fc = cf.count_frameshift_bins(mutation_df, opts['bed'], opts['bins'],
+                                          num_samples=opts['sample_number'],
+                                          to_zero_based=True)
+            fc['bases at risk'] = fc['bases at risk'].astype(str)
+            fc_r = com.convert_to_r_dataframe(fc)
+            fs_total_df = cf.count_frameshift_total(mutation_df, opts['bed'],
+                                                    to_zero_based=True)
 
-        # run frameshift test
-        fs_out_r = frameshift_lrt_func(bg_r, fc_r)
-        fs_out_df = com.convert_robj(fs_out_r)
-        fs_out_df['gene.name'] = fs_out_df.index
+            # source frameshift script
+            ro.r("source('{0}/frameshift_lrt.R')".format(file_dir))
+            frameshift_lrt_func = ro.r["frameshift.lrt"]
 
-        # fill under-enriched frameshift genes with a p-value of 1
-        p_q_cols = ['frameshift.p.value', 'frameshift.q.value']
-        fs_out_df.loc[fs_out_df['ratio.mle']<1, p_q_cols] = 1
+            # run frameshift test
+            fs_out_r = frameshift_lrt_func(bg_r, fc_r)
+            fs_out_df = com.convert_robj(fs_out_r)
+            fs_out_df['gene.name'] = fs_out_df.index
 
-        # merge two data frames
-        out_cols = ['gene.name', 'frameshift.p.value', 'frameshift.q.value']
-        result_df = pd.merge(result_df, fs_out_df[out_cols],
-                             left_on='gene', right_on='gene.name',
-                             how='left')
+            #merge total frameshift counts
+            result_df = pd.merge(result_df, fs_total_df,
+                                 left_on='gene', right_index=True,
+                                 how='left')
+            result_df = result_df.rename(columns={'total': 'Total Frameshift Mutations',
+                                                  'unmapped': 'Unmapped Frameshift Mutations'})
 
-        # drop redundant gene-name
-        result_df = result_df.drop('gene.name', axis=1)
+            # fill under-enriched frameshift genes with a p-value of 1
+            p_q_cols = ['frameshift.p.value', 'frameshift.q.value']
+            fs_out_df.loc[fs_out_df['ratio.mle']<1, p_q_cols] = 1
 
-        # fill empty values with a p-value of 1
-        result_df['frameshift.p.value'] = result_df['frameshift.p.value'].fillna(1)
-        result_df['frameshift.q.value'] = result_df['frameshift.q.value'].fillna(1)
+            # merge two data frames
+            out_cols = ['gene.name', 'frameshift.p.value', 'frameshift.q.value']
+            result_df = pd.merge(result_df, fs_out_df[out_cols],
+                                 left_on='gene', right_on='gene.name',
+                                 how='left')
+
+            # drop redundant gene-name
+            result_df = result_df.drop('gene.name', axis=1)
+
+
+            # fill empty values with a p-value of 1
+            result_df['frameshift.p.value'] = result_df['frameshift.p.value'].fillna(1)
+            result_df['frameshift.q.value'] = result_df['frameshift.q.value'].fillna(1)
+        else:
+            # case where no frameshift mutations seen
+            logger.warning('No frameshift Mutations were observed in data!')
+            result_df['frameshift.p.value'] = 1
+            result_df['frameshift.q.value'] = 1
 
         # drop genes that never occur
         if opts['kind'] == 'tsg' or opts['kind'] == 'effect':
@@ -271,10 +303,21 @@ def main(opts,
         # result_df = result_df.sort(columns='inactivating p-value')
         result_df = result_df.sort(columns='combined p-value')
     elif opts['kind'] == 'oncogene':
+        # get FDR
         result_df = result_df[result_df['Total Mutations']>0]
         result_df['entropy BH q-value'] = mypval.bh_fdr(result_df['entropy p-value'])
         result_df['delta entropy BH q-value'] = mypval.bh_fdr(result_df['delta entropy p-value'])
         result_df['recurrent BH q-value'] = mypval.bh_fdr(result_df['recurrent p-value'])
+
+        # combine p-values
+        result_df['tmp entropy p-value'] = result_df['entropy p-value']
+        result_df['tmp vest p-value'] = result_df['vest p-value']
+        result_df.loc[result_df['entropy p-value']==0, 'tmp entropy p-value'] = 1. / opts['num_permutations']
+        result_df.loc[result_df['vest p-value']==0, 'tmp vest p-value'] = 1. / opts['num_permutations']
+        result_df['combined p-value'] = result_df[['tmp entropy p-value', 'tmp vest p-value']].apply(mypval.fishers_method, axis=1)
+        result_df['combined BH q-value'] = mypval.bh_fdr(result_df['combined p-value'])
+        del result_df['tmp vest p-value']
+        del result_df['tmp entropy p-value']
 
     if myoutput_path:
         # write output if specified
