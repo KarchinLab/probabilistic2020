@@ -21,8 +21,10 @@ def test_ctnnb1_main():
             'tsg_score': .1,
             'recurrent': 3,
             'fraction': .02,
+            'score_dir': os.path.join(file_dir, '../data/scores'),
             'processes': 0,
             'num_permutations': 10000,
+            'stop_criteria': 100,
             'recurrent_pseudo_count': 0,
             'seed': None,
             'kind': 'oncogene'}
@@ -82,14 +84,16 @@ def test_100genes_main():
             'use_unmapped': False,
             'processes': 0,
             'num_permutations': 1000,
+            'stop_criteria': 100,
+            'score_dir': os.path.join(file_dir, '../data/scores'),
             'recurrent_pseudo_count': 0,
             'seed': None,
             'kind': 'oncogene'}
     # single nucleotide context
     result = pt.main(opts)
-    tested_result = result[result['Performed Recurrency Test']==1]
-    num_recur_sig = np.sum(tested_result['recurrent BH q-value'] < .1)
-    num_ent_sig = np.sum(tested_result['entropy BH q-value'] < .1)
+    #tested_result = result[result['Performed Recurrency Test']==1]
+    num_recur_sig = np.sum(result['recurrent BH q-value'] < .1)
+    num_ent_sig = np.sum(result['entropy BH q-value'] < .1)
     assert num_recur_sig < 9, 'Few of the 100 test genes should not be significant ({0})'.format(num_recur_sig)
     assert num_ent_sig < 9, 'Few of the 100 test genes should not be significant ({0})'.format(num_ent_sig)
 
@@ -97,9 +101,9 @@ def test_100genes_main():
     opts['context'] = 0
     opts['output'] = os.path.join(file_dir, 'output/100genes_position_no_context_output.txt')
     result = pt.main(opts)
-    tested_result = result[result['Performed Recurrency Test']==1]
-    num_recur_sig = np.sum(tested_result['recurrent BH q-value'] < .1)
-    num_ent_sig = np.sum(tested_result['entropy BH q-value'] < .1)
+    #tested_result = result[result['Performed Recurrency Test']==1]
+    num_recur_sig = np.sum(result['recurrent BH q-value'] < .1)
+    num_ent_sig = np.sum(result['entropy BH q-value'] < .1)
     assert num_recur_sig < 9, 'Few of the 100 test genes should not be significant ({0})'.format(num_recur_sig)
     assert num_ent_sig < 9, 'Few of the 100 test genes should not be significant ({0})'.format(num_ent_sig)
 
@@ -107,8 +111,8 @@ def test_100genes_main():
     opts['context'] = 2
     opts['output'] = os.path.join(file_dir, 'output/100genes_position_dinuc_output.txt')
     result = pt.main(opts)
-    tested_result = result[result['Performed Recurrency Test']==1]
-    num_recur_sig = np.sum(tested_result['recurrent BH q-value'] < .1)
-    num_ent_sig = np.sum(tested_result['entropy BH q-value'] < .1)
+    #tested_result = result[result['Performed Recurrency Test']==1]
+    num_recur_sig = np.sum(result['recurrent BH q-value'] < .1)
+    num_ent_sig = np.sum(result['entropy BH q-value'] < .1)
     assert num_recur_sig < 9, 'Few of the 100 test genes should not be significant ({0})'.format(num_recur_sig)
     assert num_ent_sig < 9, 'Few of the 100 test genes should not be significant ({0})'.format(num_ent_sig)

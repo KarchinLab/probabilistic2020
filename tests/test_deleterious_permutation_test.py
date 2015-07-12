@@ -18,6 +18,7 @@ def test_tp53_main():
             'deleterious': 5,
             'processes': 0,
             'num_permutations': 10000,
+            'stop_criteria': 100,
             'deleterious_pseudo_count': 0,
             'seed': None,
             'kind': 'tsg'}
@@ -46,6 +47,7 @@ def test_100genes_main():
             'deleterious': 5,
             'processes': 0,
             'num_permutations': 1000,
+            'stop_criteria': 100,
             'deleterious_pseudo_count': 0,
             'seed': None,
             'kind': 'tsg'}
