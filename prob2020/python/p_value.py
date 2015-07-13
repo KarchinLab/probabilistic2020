@@ -197,7 +197,7 @@ def calc_position_p_value(mut_info,
                                                                      min_frac=min_fraction,
                                                                      min_recur=min_recurrent)
         # get vest score for actual mutations
-        vest_score = scores.compute_mean_vest(gene_vest,
+        vest_score = scores.compute_vest_stat(gene_vest,
                                               aa_mut_info['Reference AA'],
                                               aa_mut_info['Somatic AA'],
                                               aa_mut_info['Codon Pos'])

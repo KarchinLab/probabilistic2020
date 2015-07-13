@@ -153,7 +153,7 @@ def position_permutation(obs_stat,
                                                                             is_obs=0)
         # get vest scores
         if gene_vest:
-            tmp_vest = scores.compute_mean_vest(gene_vest,
+            tmp_vest = scores.compute_vest_stat(gene_vest,
                                                 tmp_mut_info['Reference AA'],
                                                 tmp_mut_info['Somatic AA'],
                                                 tmp_mut_info['Codon Pos'])
