@@ -64,8 +64,7 @@ def handle_oncogene_results(permutation_result, non_tested_genes, num_permutatio
               'recurrent p-value', 'entropy p-value',
               'delta entropy p-value', 'vest p-value',
               'Total Mutations', 'Unmapped to Ref Tx']
-    permutation_df = pd.DataFrame(sorted(permutation_result, key=lambda x: x[6]),
-                                  columns=mycols)
+    permutation_df = pd.DataFrame(permutation_result, columns=mycols)
 
     # get benjamani hochberg adjusted p-values
     permutation_df['recurrent BH q-value'] = mypval.bh_fdr(permutation_df['recurrent p-value'])
@@ -100,6 +99,7 @@ def handle_oncogene_results(permutation_result, non_tested_genes, num_permutatio
                  'vest p-value', 'combined p-value', 'entropy BH q-value', 'delta entropy p-value',
                  'delta entropy BH q-value', 'vest BH q-value', 'combined BH q-value']
                  #'Performed Recurrency Test']
+    permutation_df = permutation_df.sort(columns=['combined p-value'])
     return permutation_df[col_order]
 
 
