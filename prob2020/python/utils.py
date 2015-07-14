@@ -251,7 +251,7 @@ def read_bed(file_path, filtered_genes=[]):
     return bed_dict
 
 
-def _fix_mutation_df(mutation_df):
+def _fix_mutation_df(mutation_df, only_unique=False):
     """Drops invalid mutations and corrects for 1-based coordinates.
 
     TODO: Be smarter about what coordinate system is put in the provided
@@ -261,6 +261,10 @@ def _fix_mutation_df(mutation_df):
     ----------
     mutation_df : pd.DataFrame
         user provided mutations
+    only_unique : bool
+        flag indicating whether only unique mutations for each tumor sample
+        should be kept. This avoids issues when the same mutation has
+        duplicate reportings.
 
     Returns
     -------
@@ -292,6 +296,12 @@ def _fix_mutation_df(mutation_df):
     log_msg = ('Dropped {num_dropped} mutations after only keeping '
                'valid SNVs'.format(num_dropped=type_len-valid_len))
     logger.info(log_msg)
+
+    # drop duplicate mutations
+    if only_unique:
+        dup_cols = ['Tumor_Sample', 'Chromosome', 'Start_Position',
+                    'End_Position', 'Reference_Allele', 'Tumor_Allele']
+        mutation_df = mutation_df.drop_duplicates(cols=dup_cols)
 
     # correct for 1-based coordinates
     mutation_df['Start_Position'] = mutation_df['Start_Position'] - 1

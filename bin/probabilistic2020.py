@@ -122,6 +122,13 @@ def parse_arguments():
     parser.add_argument('-g', '--genome',
                         type=str, default='',
                         help=help_str)
+    help_str = ('Only keep unique mutations for each tumor sample.'
+                'Mutations reproted from heterogeneous sources may contain'
+                ' duplicates, e.g. a tumor sample was sequenced twice.')
+    parser.add_argument('--unique',
+                        action='store_true',
+                        default=False,
+                        help=help_str)
     help_str = ('Minimum number of mutations at a position for it to be '
                 'considered a recurrently mutated position (Default: 3).')
     parser.add_argument('-r', '--recurrent',
