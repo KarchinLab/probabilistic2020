@@ -303,6 +303,12 @@ def _fix_mutation_df(mutation_df, only_unique=False):
                     'End_Position', 'Reference_Allele', 'Tumor_Allele']
         mutation_df = mutation_df.drop_duplicates(cols=dup_cols)
 
+        # log results of de-duplication
+        dedup_len = len(mutation_df)
+        log_msg = ('Dropped {num_dropped} mutations when removing '
+                   'duplicates'.format(num_dropped=valid_len-dedup_len))
+        logger.info(log_msg)
+
     # correct for 1-based coordinates
     mutation_df['Start_Position'] = mutation_df['Start_Position'] - 1
     return mutation_df
