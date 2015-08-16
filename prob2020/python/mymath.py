@@ -56,6 +56,34 @@ def max_shannon_entropy(n):
     return float(np.log2(n))
 
 
+def normalized_mutation_entropy(counts):
+    """Calculate the normalized mutation entropy based on a list/array
+    of mutation counts.
+
+    Note: Any grouping of mutation counts together should be done before hand
+
+    Parameters
+    ----------
+    counts : np.array_like
+        array/list of mutation counts
+
+    Returns
+    -------
+    norm_ent : float
+        normalized entropy of mutation count distribution.
+    """
+    cts = np.asarray(counts, dtype=float)
+    total_cts = np.sum(cts)
+    if total_cts > 0:
+        p = cts / total_cts
+        ent = shannon_entropy(p)
+        max_ent = max_shannon_entropy(total_cts)
+        norm_ent = ent / max_ent
+    else:
+        norm_ent = 1.0
+    return norm_ent
+
+
 def kl_divergence(p, q):
     """Compute the Kullback-Leibler (KL) divergence for discrete distributions.
 
