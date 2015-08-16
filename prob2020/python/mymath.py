@@ -74,7 +74,7 @@ def normalized_mutation_entropy(counts):
     """
     cts = np.asarray(counts, dtype=float)
     total_cts = np.sum(cts)
-    if total_cts > 0:
+    if total_cts > 1:
         p = cts / total_cts
         ent = shannon_entropy(p)
         max_ent = max_shannon_entropy(total_cts)
