@@ -296,6 +296,7 @@ def main(opts,
         else:
             # case where no frameshift mutations seen
             logger.warning('No frameshift Mutations were observed in data!')
+            result_df['Total Frameshift Mutations'] = 0
             result_df['frameshift.p.value'] = 1
             result_df['frameshift.q.value'] = 1
 
