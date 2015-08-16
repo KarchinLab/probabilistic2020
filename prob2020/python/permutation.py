@@ -146,7 +146,7 @@ def position_permutation(obs_stat,
                                           gene_seq)
 
         # calculate position info
-        tmp_recur_ct, tmp_entropy, tmp_delta_entropy = cutils.calc_pos_info(tmp_mut_info['Codon Pos'],
+        tmp_recur_ct, tmp_entropy, tmp_delta_entropy, _ = cutils.calc_pos_info(tmp_mut_info['Codon Pos'],
                                                                             tmp_mut_info['Reference AA'],
                                                                             tmp_mut_info['Somatic AA'],
                                                                             pseudo_count=pseudo_count,

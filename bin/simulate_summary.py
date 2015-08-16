@@ -13,6 +13,7 @@ import prob2020.python.mutation_context as mc
 import prob2020.python.permutation as pm
 import prob2020.python.indel as indel
 import prob2020.python.annotate as anot
+import prob2020.python.mymath as math
 
 # external imports
 import numpy as np
@@ -24,6 +25,7 @@ import argparse
 import logging
 import copy
 import itertools as it
+import IPython
 
 logger = logging.getLogger(__name__)  # module logger
 
@@ -51,12 +53,12 @@ def multiprocess_permutation(bed_dict, mut_df, opts, indel_df=None):
     else:
         header = ['Gene', 'ID', 'gene length', 'non-silent snv', 'silent snv', 'nonsense', 'lost stop',
                   'splice site', 'lost start', 'missense', 'recurrent missense',
-                  'normalized missense position entropy', ]
+                  'normalized missense position entropy',]
         # add column header for scores, is user provided one
         if opts['score_dir']:
             header += ['Total Missense MGAEntropy', 'Total Missense VEST Score']
         # add indel columns
-        header += ['frameshift indel', 'inframe indel']
+        header += ['frameshift indel', 'inframe indel', 'normalized mutation entropy']
     mywriter.writerow(header)
     num_permutations = opts['num_permutations']
 
@@ -109,7 +111,12 @@ def multiprocess_permutation(bed_dict, mut_df, opts, indel_df=None):
                                 gene_ix = name2ix[gname]
                                 fs_count = fs_cts[l, gene_ix]
                                 inframe_count = inframe_cts[l, gene_ix]
-                                tmp_chrom_result.append(row+[fs_count, inframe_count])
+                                missense_pos_ct = row.pop(-1).values()  # missense codon counts
+                                silent_pos_ct = [1 for l in range(row[4])]
+                                inactivating_ct = sum(row[5:9]) + fs_count
+                                tmp_count_list = missense_pos_ct + silent_pos_ct + [inactivating_ct, inframe_count]
+                                norm_ent = math.normalized_mutation_entropy(tmp_count_list)
+                                tmp_chrom_result.append(row+[fs_count, inframe_count, norm_ent])
                         chrom_result = tmp_chrom_result
 
                     # write output to file
@@ -134,7 +141,12 @@ def multiprocess_permutation(bed_dict, mut_df, opts, indel_df=None):
                         gene_ix = name2ix[gname]
                         fs_count = fs_cts[l, gene_ix]
                         inframe_count = inframe_cts[l, gene_ix]
-                        tmp_chrom_result.append(row+[fs_count, inframe_count])
+                        missense_pos_ct = row.pop(-1).values()  # missense codon counts
+                        silent_pos_ct = [1 for l in range(row[4])]
+                        inactivating_ct = sum(row[5:9]) + fs_count
+                        tmp_count_list = missense_pos_ct + silent_pos_ct + [inactivating_ct, inframe_count]
+                        norm_ent = math.normalized_mutation_entropy(tmp_count_list)
+                        tmp_chrom_result.append(row+[fs_count, inframe_count, norm_ent])
                 chrom_results = tmp_chrom_result
 
             # write to file

@@ -109,7 +109,7 @@ def calc_pos_info(aa_mut_pos,
     num_recur = <int> pos_info["recurrent"]
     frac_pos_ent = pos_info["entropy_fraction"]
     delta_pos_ent = pos_info["delta_entropy"]
-    return num_recur, frac_pos_ent, delta_pos_ent
+    return num_recur, frac_pos_ent, delta_pos_ent, pos_ctr
 
 
 def calc_effect_info(aa_mut_pos,
@@ -303,18 +303,19 @@ def calc_summary_info(germ_aa, somatic_aa, codon_pos,
     summary information
     """
     mut_type_info = calc_non_silent_info(germ_aa, somatic_aa, codon_pos)
-    num_recur, pos_ent, delta_ent = calc_pos_info(codon_pos, germ_aa,
+    num_recur, pos_ent, delta_ent, pos_ct = calc_pos_info(codon_pos, germ_aa,
                                                   somatic_aa,
                                                   min_frac=min_frac,
                                                   min_recur=min_recur
                                                   #is_obs=0
                                                   )
     # output list of mutation information
-    out_list = mut_type_info + [num_recur, pos_ent]
+    out_list = mut_type_info + [num_recur, pos_ent, ]
 
     # add score information if user specified a directory
     if score_dir:
         total_mgaentropy, total_vest = scores.retrieve_scores(gene_name, score_dir,
                                                               codon_pos, germ_aa, somatic_aa)
         out_list += [total_mgaentropy, total_vest]
+    out_list.append(pos_ct)
     return out_list

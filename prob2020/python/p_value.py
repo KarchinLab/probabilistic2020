@@ -191,7 +191,7 @@ def calc_position_p_value(mut_info,
         codon_pos = aa_mut_info['Codon Pos'] + unmapped_mut_info['Codon Pos']
         ref_aa = aa_mut_info['Reference AA'] + unmapped_mut_info['Reference AA']
         somatic_aa = aa_mut_info['Somatic AA'] + unmapped_mut_info['Somatic AA']
-        num_recurrent, pos_ent, delta_pos_ent = cutils.calc_pos_info(codon_pos,
+        num_recurrent, pos_ent, delta_pos_ent, pos_ct = cutils.calc_pos_info(codon_pos,
                                                                      ref_aa,
                                                                      somatic_aa,
                                                                      min_frac=min_fraction,
