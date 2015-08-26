@@ -18,8 +18,8 @@ class SequenceContext(object):
         The self.context2pos and self.pos2context dictionaries map from
         sequence context to sequence position and sequence position to
         sequence context, respectively. These attributes allow for randomly
-        permuting mutation positions while respecting sequence context in the
-        permutation test.
+        sampling of mutation positions while respecting sequence context in the
+        randomization-based test.
 
         Parameters
         ----------

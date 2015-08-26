@@ -1,7 +1,6 @@
 #from ..cython import cutils
 import numpy as np
 import os
-import IPython
 
 # import pickle module
 try:
