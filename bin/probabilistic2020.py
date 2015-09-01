@@ -216,7 +216,7 @@ def main(opts,
     myoutput_path = opts['output']
     opts['output'] = ''
 
-    # perform permutation test
+    # perform randomization-based test
     result_df = pt.main(opts, mutation_df)
 
     # clean up p-values for combined p-value calculation
