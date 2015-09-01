@@ -48,7 +48,7 @@ def compute_mutation_context(bed, gs, df, opts):
 
     # fix nucleotide letter if gene is on - strand
     if bed.strand == '-':
-        mut_info['Tumor_Allele'] = mut_info['Tumor_Allele'].map(lambda x: utils.rev_comp(x))
+        mut_info.loc[:,'Tumor_Allele'] = mut_info['Tumor_Allele'].map(lambda x: utils.rev_comp(x))
 
     # get coding positions, mutations unmapped to the reference tx will have
     # NA for a coding position
