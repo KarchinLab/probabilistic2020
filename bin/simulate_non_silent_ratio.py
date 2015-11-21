@@ -45,7 +45,14 @@ def multiprocess_permutation(bed_dict, mut_df, opts):
         uniq_samp = mut_df['Tumor_Sample'].unique()
         obs_result = pd.DataFrame(np.zeros((len(uniq_samp), len(cols))),
                                   index=uniq_samp, columns=cols)
-    result_list = [[0, 0, 0, 0, 0, 0, 0] for k in range(num_permutations)]
+
+    # initialize list containing output
+    if not opts['score_dir']:
+        result_list = [[0, 0, 0, 0, 0, 0, 0] for k in range(num_permutations)]
+    else:
+        result_list = [[0, 0, 0, 0, 0, 0, 0, 0, 0] for k in range(num_permutations)]
+
+    # iterate over each chromosome
     for i in range(0, len(chroms), num_processes):
         if multiprocess_flag:
             pool = Pool(processes=num_processes)
@@ -64,6 +71,10 @@ def multiprocess_permutation(bed_dict, mut_df, opts):
                         result_list[j][4] += chrom_result[j][4]
                         result_list[j][5] += chrom_result[j][5]
                         result_list[j][6] += chrom_result[j][6]
+                        if opts['score_dir']:
+                            result_list[j][7] += chrom_result[j][7]
+                            result_list[j][8] += chrom_result[j][8]
+
                     if not opts['by_sample']:
                         obs_result.append(obs_mutations)
                     else:
@@ -86,6 +97,9 @@ def multiprocess_permutation(bed_dict, mut_df, opts):
                 result_list[j][4] += chrom_result[j][4]
                 result_list[j][5] += chrom_result[j][5]
                 result_list[j][6] += chrom_result[j][6]
+                if opts['score_dir']:
+                    result_list[j][7] += chrom_result[j][7]
+                    result_list[j][8] += chrom_result[j][8]
             if not opts['by_sample']:
                 obs_result.append(obs_mutations)
             else:
@@ -113,13 +127,18 @@ def singleprocess_permutation(info):
         obs_splice_site = 0
         obs_loststart = 0
         obs_missense = 0
+        obs_vest = 0
+        obs_mga_entropy = 0
     else:
         uniq_samp = mut_df['Tumor_Sample'].unique()
         obs_df = pd.DataFrame(np.zeros((len(uniq_samp), len(cols))),
                               index=uniq_samp, columns=cols)
 
     # go through each gene to permform simulation
-    result = [[0, 0, 0, 0, 0, 0, 0] for k in range(num_permutations)]
+    if opts['score_dir']:
+        result = [[0, 0, 0, 0, 0, 0, 0, 0, 0] for k in range(num_permutations)]
+    else:
+        result = [[0, 0, 0, 0, 0, 0, 0] for k in range(num_permutations)]
     for bed in bed_list:
         # compute context counts and somatic bases for each context
         gene_tuple = mc.compute_mutation_context(bed, gs, mut_df, opts)
@@ -134,51 +153,94 @@ def singleprocess_permutation(info):
             # update the observed count
             if not opts['by_sample']:
                 # calc deleterious mutation info
-                tmp_non_silent = cutils.calc_non_silent_info(tmp_mut_info['Reference AA'],
-                                                             tmp_mut_info['Somatic AA'],
-                                                             tmp_mut_info['Codon Pos'])
-                obs_non_silent += tmp_non_silent[0]
-                obs_silent += tmp_non_silent[1]
-                obs_nonsense += tmp_non_silent[2]
-                obs_loststop += tmp_non_silent[3]
-                obs_splice_site += tmp_non_silent[4]
-                obs_loststart += tmp_non_silent[5]
-                obs_missense += tmp_non_silent[6]
+                #tmp_non_silent = cutils.calc_non_silent_info(tmp_mut_info['Reference AA'],
+                                                             #tmp_mut_info['Somatic AA'],
+                                                             #tmp_mut_info['Codon Pos'])
+                # calc mutation info summarizing observed mutations
+                tmp_result = cutils.calc_summary_info(tmp_mut_info['Reference AA'],
+                                                      tmp_mut_info['Somatic AA'],
+                                                      tmp_mut_info['Codon Pos'],
+                                                      bed.gene_name,
+                                                      opts['score_dir'],
+                                                      #min_frac=opts['fraction'],
+                                                      min_frac=0.0,
+                                                      #min_recur=opts['recurrent']
+                                                      min_recur=3
+                                                      )
+                obs_non_silent += tmp_result[0]
+                obs_silent += tmp_result[1]
+                obs_nonsense += tmp_result[2]
+                obs_loststop += tmp_result[3]
+                obs_splice_site += tmp_result[4]
+                obs_loststart += tmp_result[5]
+                obs_missense += tmp_result[6]
+                if opts['score_dir']:
+                    obs_vest += tmp_result[-2]
+                    obs_mga_entropy += tmp_result[-3]
             else:
                 for tsamp in mutations_df['Tumor_Sample'].unique():
                     ixs = np.where(mutations_df['Tumor_Sample']==tsamp)[0]
                     ref_aa = [r for i, r in enumerate(tmp_mut_info['Reference AA']) if i in ixs]
                     somatic_aa = [s for i, s in enumerate(tmp_mut_info['Somatic AA']) if i in ixs]
                     codon_pos = [c for i, c in enumerate(tmp_mut_info['Codon Pos']) if i in ixs]
-                    tmp_non_silent = cutils.calc_non_silent_info(ref_aa,
-                                                                 somatic_aa,
-                                                                 codon_pos)
-                    obs_df.loc[tsamp,:] = obs_df.loc[tsamp,:] + np.array(tmp_non_silent)
+                    #tmp_non_silent = cutils.calc_non_silent_info(ref_aa,
+                                                                 #somatic_aa,
+                                                                 #codon_pos)
+                    # get summary info
+                    tmp_result = cutils.calc_summary_info(ref_aa,
+                                                          somatic_aa,
+                                                          codon_pos,
+                                                          bed.gene_name,
+                                                          opts['score_dir'],
+                                                          min_frac=0.0,
+                                                          min_recur=3)
+                    if opts['score_dir']:
+                        tmp_result.pop(-4)
+                        tmp_result.pop(-4)
+                        tmp_result.pop(-1)
+                    # update df
+                    #obs_df.loc[tsamp,:] = obs_df.loc[tsamp,:] + np.array(tmp_non_silent)
+                    obs_df.loc[tsamp,:] = obs_df.loc[tsamp,:] + np.array(tmp_result)
 
             ## Do permutations
             # calculate non silent count
-            tmp_result = pm.non_silent_ratio_permutation(context_cts,
-                                                         context_to_mutations,
-                                                         sc,  # sequence context obj
-                                                         gs,  # gene sequence obj
-                                                         num_permutations)
+            #tmp_result = pm.non_silent_ratio_permutation(context_cts,
+                                                         #context_to_mutations,
+                                                         #sc,  # sequence context obj
+                                                         #gs,  # gene sequence obj
+                                                         #num_permutations)
+            tmp_result = pm.summary_permutation(context_cts,
+                                                context_to_mutations,
+                                                sc,  # sequence context obj
+                                                gs,  # gene sequence obj
+                                                opts['score_dir'],
+                                                num_permutations)
         else:
-            tmp_result = [[0, 0, 0, 0, 0, 0, 0] for k in range(num_permutations)]
+            if opts['score_dir']:
+                tmp_result = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] for k in range(num_permutations)]
+            else:
+                tmp_result = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0] for k in range(num_permutations)]
 
         # increment the non-silent/silent counts for each permutation
+        offset = 3
         for j in range(num_permutations):
-            result[j][0] += tmp_result[j][0]
-            result[j][1] += tmp_result[j][1]
-            result[j][2] += tmp_result[j][2]
-            result[j][3] += tmp_result[j][3]
-            result[j][4] += tmp_result[j][4]
-            result[j][5] += tmp_result[j][5]
-            result[j][6] += tmp_result[j][6]
+            result[j][0] += tmp_result[j][0+offset]
+            result[j][1] += tmp_result[j][1+offset]
+            result[j][2] += tmp_result[j][2+offset]
+            result[j][3] += tmp_result[j][3+offset]
+            result[j][4] += tmp_result[j][4+offset]
+            result[j][5] += tmp_result[j][5+offset]
+            result[j][6] += tmp_result[j][6+offset]
+            if opts['score_dir']:
+                result[j][7] += tmp_result[j][9+offset]
+                result[j][8] += tmp_result[j][10+offset]
 
     gene_fa.close()
     if not opts['by_sample']:
         obs_result = [obs_non_silent, obs_silent, obs_nonsense,
                       obs_loststop, obs_splice_site, obs_loststart, obs_missense]
+        if opts['score_dir']:
+            obs_result.extend([obs_mga_entropy, obs_vest])
     else:
         obs_result = obs_df
     logger.info('Finished working on chromosome: {0}.'.format(current_chrom))
@@ -237,6 +299,10 @@ def parse_arguments():
     parser.add_argument('-c', '--context',
                         type=float, default=1.5,
                         help=help_str)
+    help_str = 'Directory containing score information in pickle files (Default: None).'
+    parser.add_argument('-s', '--score-dir',
+                        type=str, default=None,
+                        help=help_str)
     help_str = 'Report counts for observed mutations stratified by the tumor sample'
     parser.add_argument('-bs', '--by-sample',
                         action='store_true',
@@ -287,6 +353,10 @@ def parse_arguments():
 
 
 def main(opts):
+    global cols
+    if opts['score_dir']:
+        cols.extend(['Total MGAEntropy', 'Total Missense VEST'])
+
     # hack to index the FASTA file
     gene_fa = pysam.Fastafile(opts['input'])
     gene_fa.close()
@@ -319,6 +389,9 @@ def main(opts):
         total_splice_site = sum(o[4] for o in obs_result)
         total_loststart = sum(o[5] for o in obs_result)
         total_missense = sum(o[6] for o in obs_result)
+        if opts['score_dir']:
+            total_mgaentropy = sum(o[7] for o in obs_result)
+            total_vest = sum(o[8] for o in obs_result)
         logger.info('There were {0} non-silent SNVs and {1} silent SNVs actually '
                     'observed from the provided mutations.'.format(total_non_silent,
                                                                     total_silent))
@@ -346,6 +419,8 @@ def main(opts):
             obs_result = [total_non_silent, total_silent, total_nonsense,
                         total_loststop, total_splice_site, total_loststart,
                         total_missense]
+            if opts['score_dir']:
+                obs_result.extend([total_mgaentropy, total_vest])
             obs_non_silent_df = pd.DataFrame([obs_result], columns=cols)
             obs_non_silent_df.to_csv(opts['observed_output'], sep='\t', index=False)
         else:
