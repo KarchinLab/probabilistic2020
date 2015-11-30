@@ -1,4 +1,4 @@
-SRC_DIR = permutation2020
+SRC_DIR = prob2020
 
 clean:
 	rm -f -r build/
