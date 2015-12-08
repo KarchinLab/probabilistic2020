@@ -7,7 +7,7 @@ missense mutations (clustered missense mutations tend to indicate actiavting mut
 While statistically signficant tumor suppressor genes (TSGs) are found by abnormally high number of inactivating mutations.
 
 Probabilistic 20/20 evaluates statistical significance by employing 
-monte carlo simulations, which incorporates observed mutation context. Monte carlo,
+monte carlo simulations, which incorporates observed mutation context. Monte carlo
 simulations are performed within the same gene and thus avoid building a background
 distribution based on other genes.  
 
