@@ -193,14 +193,18 @@ def parse_arguments():
     parser.add_argument('-s', '--score-dir',
                         type=str, default=None,
                         help=help_str)
+    help_str = 'Directory containing neighbor graph information in pickle files (Default: None).'
+    parser.add_argument('-ng', '--neighbor-graph-dir',
+                        type=str, default=None,
+                        help=help_str)
     help_str = ('Number of processes to use. 0 indicates using a single '
                 'process without using a multiprocessing pool '
                 '(more means Faster, default: 0).')
     parser.add_argument('-p', '--processes',
                         type=int, default=0,
                         help=help_str)
-    help_str = ('Number of permutations for null model. p-value precision '
-                'increases with more permutations, however this will also '
+    help_str = ('Number of iterations for null model. p-value precision '
+                'increases with more iterations, however this will also '
                 'increase the run time (Default: 10000).')
     parser.add_argument('-n', '--num-permutations',
                         type=int, default=10000,
@@ -355,7 +359,6 @@ def main(opts, mut_df=None, frameshift_df=None):
         num_all = len(mut_df[mut_df['Variant_Classification'].isin(utils.all_variants)])
         #p_inactivating = float(num_inact) / (num_inact + num_non_inact)
         p_inactivating = float(num_fs) / num_all
-        print p_inactivating
 
     # select valid single nucleotide variants only
     mut_df = utils._fix_mutation_df(mut_df, opts['unique'])
@@ -377,6 +380,8 @@ def main(opts, mut_df=None, frameshift_df=None):
         permutation_result = multiprocess_permutation(bed_dict, mut_df, opts,
                                                       frameshift_df, p_inactivating)
         permutation_df = pr.handle_tsg_results(permutation_result)
+    elif opts['kind'] == 'protein':
+        pass
     elif opts['kind'] == 'effect':
         permutation_result = multiprocess_permutation(bed_dict, mut_df, opts)
         permutation_df = pr.handle_effect_results(permutation_result)
