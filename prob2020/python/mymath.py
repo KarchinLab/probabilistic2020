@@ -56,7 +56,7 @@ def max_shannon_entropy(n):
     return float(np.log2(n))
 
 
-def normalized_mutation_entropy(counts):
+def normalized_mutation_entropy(counts, total_cts=None):
     """Calculate the normalized mutation entropy based on a list/array
     of mutation counts.
 
@@ -73,7 +73,8 @@ def normalized_mutation_entropy(counts):
         normalized entropy of mutation count distribution.
     """
     cts = np.asarray(counts, dtype=float)
-    total_cts = np.sum(cts)
+    if total_cts is None:
+        total_cts = np.sum(cts)
     if total_cts > 1:
         p = cts / total_cts
         ent = shannon_entropy(p)

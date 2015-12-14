@@ -1,6 +1,7 @@
 #from ..cython import cutils
 import numpy as np
 import os
+import mymath
 
 # import pickle module
 try:
@@ -237,3 +238,66 @@ def fetch_mga_scores(mga_vec,
         mga_ent_scores = None
 
     return mga_ent_scores
+
+
+def read_neighbor_graph_pickle(gname, graph_dir):
+    """Read in neighbor graph for given gene.
+
+    Parameters
+    ----------
+    gname : str
+        name of gene
+    graph_dir : str
+        directory containing gene graphs
+
+    Returns
+    -------
+    gene_graph : dict or None
+        neighbor graph as dict for gene. Returns None if not found.
+    """
+    graph_path = os.path.join(graph_dir, gname+".pickle")
+    if os.path.exists(graph_path):
+        with open(graph_path) as handle:
+            gene_graph = pickle.load(handle)
+        return gene_graph
+    else:
+        return None
+
+
+def compute_ng_stat(gene_graph, pos_ct, alpha=.5):
+    """Compute the clustering score for the gene on its neighbor graph.
+
+    Parameters
+    ----------
+    gene_graph : dict
+        Graph of spatially near codons. keys = nodes, edges = key -> value.
+    pos_ct : dict
+        missense mutation count for each codon
+    alpha : float
+        smoothing factor
+
+    Returns
+    -------
+    graph_score : float
+        score measuring the clustering of missense mutations in the graph
+    """
+    max_pos = max(gene_graph)
+    codon_vals = np.zeros(max_pos+1)
+
+    # smooth out mutation counts
+    for pos in pos_ct:
+        mut_count = pos_ct[pos]
+
+        # update neighbor values
+        neighbors = list(gene_graph[pos])
+        num_neighbors = len(neighbors)
+        codon_vals[neighbors] += alpha*mut_count
+
+        # update self-value
+        codon_vals[pos] += (1-alpha)*mut_count
+
+    # compute the normalized entropy
+    total_cts = float(np.count_nonzero(codon_vals))
+    graph_score = mymath.normalized_mutation_entropy(codon_vals, total_cts=total_cts)
+
+    return graph_score
