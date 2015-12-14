@@ -85,7 +85,7 @@ def singleprocess_permutation(info):
                                                       gs, bed, opts['score_dir'],
                                                       num_permutations,
                                                       opts['stop_criteria'],
-                                                      opts['recurrent_pseudo_count'],
+                                                      0,  # no recurrent mutation pseudo count
                                                       opts['recurrent'],
                                                       opts['fraction'])
             result.append(tmp_result + [total_mut, unmapped_muts])
@@ -99,7 +99,7 @@ def singleprocess_permutation(info):
                                                          sc, gs, bed, num_permutations,
                                                          opts['stop_criteria'],
                                                          opts['deleterious'],
-                                                         opts['deleterious_pseudo_count'],
+                                                         0,  # no deleterious mutation pseudo count
                                                          opts['seed'])
             result.append(tmp_result + [num_mapped_muts, unmapped_muts])
                                         #fs_ct, fs_unmapped])
@@ -107,7 +107,7 @@ def singleprocess_permutation(info):
             # calc results for entropy-on-effect permutation test
             tmp_result = mypval.calc_effect_p_value(mut_info, unmapped_mut_info,
                                                     sc, gs, bed, num_permutations,
-                                                    opts['recurrent_pseudo_count'],
+                                                    0, #  no recurrent mutation pseudo count
                                                     opts['recurrent'],
                                                     opts['fraction'])
             result.append(tmp_result + [total_mut, unmapped_muts])
