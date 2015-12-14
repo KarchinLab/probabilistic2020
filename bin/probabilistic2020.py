@@ -27,20 +27,20 @@ def parse_arguments():
 
     # logging arguments
     parent_parser.add_argument('-ll', '--log-level',
-                        type=str,
-                        action='store',
-                        default='',
-                        help='Write a log file (--log-level=DEBUG for debug mode, '
-                        '--log-level=INFO for info mode)')
+                               type=str,
+                               action='store',
+                               default='',
+                               help='Write a log file (--log-level=DEBUG for debug mode, '
+                               '--log-level=INFO for info mode)')
     parent_parser.add_argument('-l', '--log',
-                        type=str,
-                        action='store',
-                        default='',
-                        help='Path to log file. (accepts "stdout")')
+                               type=str,
+                               action='store',
+                               default='',
+                               help='Path to log file. (accepts "stdout")')
     parent_parser.add_argument('-v', '--verbose',
-                        action='store_true',
-                        default=False,
-                        help='Flag for more verbose log output')
+                               action='store_true',
+                               default=False,
+                               help='Flag for more verbose log output')
 
     # add subparsers
     subparsers = parent_parser.add_subparsers(title='Driver Gene Type', dest='kind')
@@ -154,6 +154,17 @@ def parse_arguments():
             help_str = 'Directory containing codon neighbor graph information in pickle files (Default: None).'
             parser.add_argument('-ng', '--neighbor-graph-dir',
                                 type=str, required=True,
+                                help=help_str)
+            help_str = ('Minimum number of mutations at a position for it to be '
+                        'considered a recurrently mutated position (Default: 3).')
+            parser.add_argument('-r', '--recurrent',
+                                type=int, default=3,
+                                help=help_str)
+            help_str = ('Fraction of total mutations in a gene. This define the '
+                        'minimumm number of mutations for a position to be defined '
+                        'as recurrently mutated (Defaul: .02).')
+            parser.add_argument('-f', '--fraction',
+                                type=float, default=.02,
                                 help=help_str)
         help_str = ('Use mutations that are not mapped to the the single reference '
                     'transcript for a gene specified in the bed file indicated by '

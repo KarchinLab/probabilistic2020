@@ -251,7 +251,9 @@ def calc_protein_p_value(mut_info,
                          bed,
                          graph_dir,
                          num_permutations,
-                         stop_thresh):
+                         stop_thresh,
+                         min_recurrent,
+                         min_fraction):
     """Computes the p-value for clustering on a neighbor graph composed
     of codons connected with edges if they are spatially near in 3D protein
     structure.
@@ -292,25 +294,30 @@ def calc_protein_p_value(mut_info,
         ref_aa = aa_mut_info['Reference AA'] + unmapped_mut_info['Reference AA']
         somatic_aa = aa_mut_info['Somatic AA'] + unmapped_mut_info['Somatic AA']
         num_recurrent, pos_ent, delta_pos_ent, pos_ct = cutils.calc_pos_info(codon_pos,
-                                                                     ref_aa,
-                                                                     somatic_aa,
-                                                                     min_frac=min_fraction,
-                                                                     min_recur=min_recurrent)
-        # get vest score for actual mutations
-        graph_score = scores.compute_ng_stat(gene_graph, pos_ct)
+                                                                             ref_aa,
+                                                                             somatic_aa,
+                                                                             min_frac=min_fraction,
+                                                                             min_recur=min_recurrent)
+        try:
+            # get vest score for actual mutations
+            graph_score = scores.compute_ng_stat(gene_graph, pos_ct)
 
-        # perform simulations to get p-value
-        protein_p_value = pm.protein_permutation(graph_score,
-                                                 context_cts,
-                                                 context_to_mutations,
-                                                 sc,  # sequence context obj
-                                                 gs,  # gene sequence obj
-                                                 gene_graph,
-                                                 num_permutations,
-                                                 stop_thresh)
+            # perform simulations to get p-value
+            protein_p_value = pm.protein_permutation(graph_score,
+                                                    context_cts,
+                                                    context_to_mutations,
+                                                    sc,  # sequence context obj
+                                                    gs,  # gene sequence obj
+                                                    gene_graph,
+                                                    num_permutations,
+                                                    stop_thresh)
+        except:
+            graph_score = 0.0
+            protein_p_value = 1.0
+            logger.warning('Codon numbering problem with '+bed.gene_name)
 
     else:
-        graph_score = 0
+        graph_score = 0.0
         protein_p_value = 1.0
     result = [bed.gene_name, graph_score, protein_p_value]
     return result
