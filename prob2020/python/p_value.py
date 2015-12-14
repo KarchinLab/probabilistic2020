@@ -278,11 +278,11 @@ def calc_protein_p_value(mut_info,
 
         # get vest scores for gene if directory provided
         if graph_dir:
-            gene_vest = scores.read_vest_pickle(bed.gene_name, graph_dir)
-            if gene_vest is None:
-                logger.warning('Could not find VEST scores for {0}, skipping . . .'.format(bed.gene_name))
+            gene_graph = scores.read_neighbor_graph_pickle(bed.gene_name, graph_dir)
+            if gene_graph is None:
+                logger.warning('Could not find neighbor graph for {0}, skipping . . .'.format(bed.gene_name))
         else:
-            gene_vest = None
+            gene_graph = None
 
         # get recurrent info for actual mutations
         aa_mut_info = mc.get_aa_mut_info(mut_info['Coding Position'],
@@ -297,37 +297,22 @@ def calc_protein_p_value(mut_info,
                                                                      min_frac=min_fraction,
                                                                      min_recur=min_recurrent)
         # get vest score for actual mutations
-        vest_score = scores.compute_vest_stat(gene_vest,
-                                              aa_mut_info['Reference AA'],
-                                              aa_mut_info['Somatic AA'],
-                                              aa_mut_info['Codon Pos'])
+        graph_score = scores.compute_ng_stat(gene_graph, pos_ct)
 
         # perform simulations to get p-value
-        observed_stats = (num_recurrent, pos_ent, delta_pos_ent, vest_score)
-        permutation_result = pm.position_permutation(observed_stats,
-                                                     context_cts,
-                                                     context_to_mutations,
-                                                     sc,  # sequence context obj
-                                                     gs,  # gene sequence obj
-                                                     gene_vest,
-                                                     num_permutations,
-                                                     stop_thresh,
-                                                     pseudo_count)
-        #num_recur_list, pos_entropy_list, delta_pos_entropy_list, vest_list = permutation_result  # unpack results
-        recur_p_value, ent_p_value, delta_ent_p_value, vest_p_value = permutation_result
-
+        protein_p_value = pm.protein_permutation(graph_score,
+                                                 context_cts,
+                                                 context_to_mutations,
+                                                 sc,  # sequence context obj
+                                                 gs,  # gene sequence obj
+                                                 gene_graph,
+                                                 num_permutations,
+                                                 stop_thresh)
 
     else:
-        num_recurrent = 0
-        pos_ent = 0
-        delta_pos_ent = 0
-        vest_score = 0.0
-        recur_p_value = 1.0
-        ent_p_value = 1.0
-        delta_ent_p_value = 1.0
-        vest_p_value = 1.0
-    result = [bed.gene_name, num_recurrent, pos_ent, delta_pos_ent, vest_score,
-              recur_p_value, ent_p_value, delta_ent_p_value, vest_p_value]
+        graph_score = 0
+        protein_p_value = 1.0
+    result = [bed.gene_name, graph_score, protein_p_value]
     return result
 
 

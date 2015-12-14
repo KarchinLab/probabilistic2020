@@ -184,6 +184,88 @@ def position_permutation(obs_stat,
     return recur_pval, ent_pval, delta_ent_pval, vest_pval
 
 
+def protein_permutation(graph_score,
+                        context_counts,
+                        context_to_mut,
+                        seq_context,
+                        gene_seq,
+                        gene_graph,
+                        num_permutations=10000,
+                        stop_criteria=100,
+                        pseudo_count=0):
+    """Performs null-permutations for position-based mutation statistics
+    in a single gene.
+
+    Parameters
+    ----------
+    graph_score : float
+        clustering score for observed data
+    context_counts : pd.Series
+        number of mutations for each context
+    context_to_mut : dict
+        dictionary mapping nucleotide context to a list of observed
+        somatic base changes.
+    seq_context : SequenceContext
+        Sequence context for the entire gene sequence (regardless
+        of where mutations occur). The nucleotide contexts are
+        identified at positions along the gene.
+    gene_seq : GeneSequence
+        Sequence of gene of interest
+    num_permutations : int, default: 10000
+        number of permutations to create for null
+    stop_criteria : int
+        stop after stop_criteria iterations are more significant
+        then the observed statistic.
+
+    Returns
+    -------
+    protein_pval : float
+        p-value for clustering in neighbor graph constructure from protein
+        structures
+    """
+    # get contexts and somatic base
+    mycontexts = context_counts.index.tolist()
+    somatic_base = [base
+                    for one_context in mycontexts
+                    for base in context_to_mut[one_context]]
+
+    # get random positions determined by sequence context
+    tmp_contxt_pos = seq_context.random_pos(context_counts.iteritems(),
+                                            num_permutations)
+    tmp_mut_pos = np.hstack(pos_array for base, pos_array in tmp_contxt_pos)
+
+    # calculate position-based statistics as a result of random positions
+    null_graph_entropy_ct = 0
+    for i, row in enumerate(tmp_mut_pos):
+        # get info about mutations
+        tmp_mut_info = mc.get_aa_mut_info(row,
+                                          somatic_base,
+                                          gene_seq)
+
+        # calculate position info
+        tmp_tuple = cutils.calc_pos_info(tmp_mut_info['Codon Pos'],
+                                         tmp_mut_info['Reference AA'],
+                                         tmp_mut_info['Somatic AA'],
+                                         pseudo_count=pseudo_count,
+                                         is_obs=0)
+        _, _, _, tmp_pos_ct = tmp_tuple
+
+        # get entropy on graph-smoothed probability distribution
+        tmp_graph_entropy = scores.compute_ng_stat(gene_graph, tmp_pos_ct)
+
+        # update empirical null distribution counts
+        if tmp_graph_entropy-utils.epsilon <= graph_score: null_graph_entropy_ct += 1
+
+        # stop iterations if reached sufficient precision
+        if null_graph_entropy_ct >= stop_criteria:
+            break
+
+    # calculate p-value from empirical null-distribution
+    protein_pval = float(null_graph_entropy_ct) / (i+1)
+
+    return protein_pval
+
+
 def effect_permutation(context_counts,
                        context_to_mut,
                        seq_context,
