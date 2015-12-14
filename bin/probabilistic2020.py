@@ -10,7 +10,7 @@ import prob2020
 import prob2020.python.utils as utils
 import prob2020.python.p_value as mypval
 import prob2020.python.indel as indel
-import permutation_test as pt
+import randomization_test as rt
 
 import argparse
 import pandas as pd
@@ -217,7 +217,7 @@ def main(opts,
     opts['output'] = ''
 
     # perform randomization-based test
-    result_df = pt.main(opts, mutation_df)
+    result_df = rt.main(opts, mutation_df)
 
     # clean up p-values for combined p-value calculation
     if opts['kind'] == 'tsg':
