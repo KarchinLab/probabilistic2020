@@ -65,10 +65,6 @@ def parse_arguments():
         parser.add_argument('-b', '--bed',
                             type=str, required=True,
                             help=help_str)
-        help_str = 'Directory containing score information in pickle files (Default: None).'
-        parser.add_argument('-s', '--score-dir',
-                            type=str, default=None,
-                            help=help_str)
         help_str = ('Number of processes to use. 0 indicates using a single '
                     'process without using a multiprocessing pool '
                     '(more means Faster, default: 0).')
@@ -116,6 +112,10 @@ def parse_arguments():
             parser.add_argument('-f', '--fraction',
                                 type=float, default=.02,
                                 help=help_str)
+            help_str = 'Directory containing VEST score information in pickle files (Default: None).'
+            parser.add_argument('-s', '--score-dir',
+                                type=str, default=None,
+                                help=help_str)
         elif i == 1:
             help_str = 'Frameshift counts from count_frameshifts.py'
             parser.add_argument('-fc', '--frameshift-counts',
@@ -151,7 +151,7 @@ def parse_arguments():
                                 type=int, default=1,
                                 help=help_str)
         elif i == 2:
-            help_str = 'Directory containing neighbor graph information in pickle files (Default: None).'
+            help_str = 'Directory containing codon neighbor graph information in pickle files (Default: None).'
             parser.add_argument('-ng', '--neighbor-graph-dir',
                                 type=str, required=True,
                                 help=help_str)
@@ -173,7 +173,7 @@ def parse_arguments():
         parser.add_argument('-seed', '--seed',
                             type=int, default=None,
                             help=help_str)
-        help_str = 'Output of probabilistic 20/20 results'
+        help_str = 'Output text file of probabilistic 20/20 results'
         parser.add_argument('-o', '--output',
                             type=str, required=True,
                             help=help_str)
