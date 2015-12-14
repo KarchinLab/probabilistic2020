@@ -103,6 +103,13 @@ def singleprocess_permutation(info):
                                                          opts['seed'])
             result.append(tmp_result + [num_mapped_muts, unmapped_muts])
                                         #fs_ct, fs_unmapped])
+        elif opts['kind'] == 'protein':
+            tmp_result = mypval.calc_protein_p_value(mut_info, unmapped_mut_info,
+                                                     sc, gs, bed,
+                                                     opts['neighbor_graph_dir'],
+                                                     num_permutations,
+                                                     opts['stop_criteria'])
+            result.append(tmp_result + [total_mut, unmapped_muts])
         else:
             # calc results for entropy-on-effect permutation test
             tmp_result = mypval.calc_effect_p_value(mut_info, unmapped_mut_info,
@@ -374,7 +381,8 @@ def main(opts, mut_df=None, frameshift_df=None):
                                                       frameshift_df, p_inactivating)
         permutation_df = pr.handle_tsg_results(permutation_result)
     elif opts['kind'] == 'protein':
-        pass
+        permutation_result = multiprocess_permutation(bed_dict, mut_df, opts)
+        # create post-processing code here
     elif opts['kind'] == 'effect':
         permutation_result = multiprocess_permutation(bed_dict, mut_df, opts)
         permutation_df = pr.handle_effect_results(permutation_result)

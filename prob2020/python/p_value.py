@@ -98,7 +98,7 @@ def calc_deleterious_p_value(mut_info,
     seed : int (Default: None)
         seed number to random number generator (None to be randomly set)
     """
-    prng = np.random.RandomState(seed)
+    #prng = np.random.RandomState(seed)
     if len(mut_info) > 0:
         mut_info['Coding Position'] = mut_info['Coding Position'].astype(int)
         mut_info['Context'] = mut_info['Coding Position'].apply(lambda x: sc.pos2context[x])
@@ -230,6 +230,93 @@ def calc_position_p_value(mut_info,
         #ent_p_value = entropy_num_nulls / float(num_permutations)
         #delta_ent_p_value = delta_entropy_num_nulls / float(num_permutations)
         #vest_p_value = vest_num_nulls / float(num_permutations)
+    else:
+        num_recurrent = 0
+        pos_ent = 0
+        delta_pos_ent = 0
+        vest_score = 0.0
+        recur_p_value = 1.0
+        ent_p_value = 1.0
+        delta_ent_p_value = 1.0
+        vest_p_value = 1.0
+    result = [bed.gene_name, num_recurrent, pos_ent, delta_pos_ent, vest_score,
+              recur_p_value, ent_p_value, delta_ent_p_value, vest_p_value]
+    return result
+
+
+def calc_protein_p_value(mut_info,
+                         unmapped_mut_info,
+                         sc,
+                         gs,
+                         bed,
+                         graph_dir,
+                         num_permutations,
+                         stop_thresh):
+    """Computes the p-value for clustering on a neighbor graph composed
+    of codons connected with edges if they are spatially near in 3D protein
+    structure.
+
+    Parameters
+    ----------
+
+
+    Returns
+    -------
+
+    """
+    if len(mut_info) > 0:
+        mut_info['Coding Position'] = mut_info['Coding Position'].astype(int)
+        mut_info['Context'] = mut_info['Coding Position'].apply(lambda x: sc.pos2context[x])
+
+        # group mutations by context
+        cols = ['Context', 'Tumor_Allele']
+        unmapped_mut_df = pd.DataFrame(unmapped_mut_info)
+        tmp_df = pd.concat([mut_info[cols], unmapped_mut_df[cols]])
+        context_cts = tmp_df['Context'].value_counts()
+        context_to_mutations = dict((name, group['Tumor_Allele'])
+                                    for name, group in tmp_df.groupby('Context'))
+
+        # get vest scores for gene if directory provided
+        if graph_dir:
+            gene_vest = scores.read_vest_pickle(bed.gene_name, graph_dir)
+            if gene_vest is None:
+                logger.warning('Could not find VEST scores for {0}, skipping . . .'.format(bed.gene_name))
+        else:
+            gene_vest = None
+
+        # get recurrent info for actual mutations
+        aa_mut_info = mc.get_aa_mut_info(mut_info['Coding Position'],
+                                         mut_info['Tumor_Allele'].tolist(),
+                                         gs)
+        codon_pos = aa_mut_info['Codon Pos'] + unmapped_mut_info['Codon Pos']
+        ref_aa = aa_mut_info['Reference AA'] + unmapped_mut_info['Reference AA']
+        somatic_aa = aa_mut_info['Somatic AA'] + unmapped_mut_info['Somatic AA']
+        num_recurrent, pos_ent, delta_pos_ent, pos_ct = cutils.calc_pos_info(codon_pos,
+                                                                     ref_aa,
+                                                                     somatic_aa,
+                                                                     min_frac=min_fraction,
+                                                                     min_recur=min_recurrent)
+        # get vest score for actual mutations
+        vest_score = scores.compute_vest_stat(gene_vest,
+                                              aa_mut_info['Reference AA'],
+                                              aa_mut_info['Somatic AA'],
+                                              aa_mut_info['Codon Pos'])
+
+        # perform simulations to get p-value
+        observed_stats = (num_recurrent, pos_ent, delta_pos_ent, vest_score)
+        permutation_result = pm.position_permutation(observed_stats,
+                                                     context_cts,
+                                                     context_to_mutations,
+                                                     sc,  # sequence context obj
+                                                     gs,  # gene sequence obj
+                                                     gene_vest,
+                                                     num_permutations,
+                                                     stop_thresh,
+                                                     pseudo_count)
+        #num_recur_list, pos_entropy_list, delta_pos_entropy_list, vest_list = permutation_result  # unpack results
+        recur_p_value, ent_p_value, delta_ent_p_value, vest_p_value = permutation_result
+
+
     else:
         num_recurrent = 0
         pos_ent = 0
