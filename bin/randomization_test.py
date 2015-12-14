@@ -21,6 +21,7 @@ import pandas as pd
 import numpy as np
 from multiprocessing import Pool
 import logging
+import IPython
 
 logger = logging.getLogger(__name__)  # module logger
 
@@ -31,7 +32,7 @@ def singleprocess_permutation(info):
     bed_list, mut_df, opts, fs_cts_df, p_inactivating = info
     current_chrom = bed_list[0].chrom
     logger.info('Working on chromosome: {0} . . .'.format(current_chrom))
-    num_permutations = opts['num_permutations']
+    num_permutations = opts['num_iterations']
     gene_fa = pysam.Fastafile(opts['input'])
     gs = GeneSequence(gene_fa, nuc_context=opts['context'])
 
@@ -108,7 +109,9 @@ def singleprocess_permutation(info):
                                                      sc, gs, bed,
                                                      opts['neighbor_graph_dir'],
                                                      num_permutations,
-                                                     opts['stop_criteria'])
+                                                     opts['stop_criteria'],
+                                                     opts['recurrent'],
+                                                     opts['fraction'])
             result.append(tmp_result + [total_mut, unmapped_muts])
         else:
             # calc results for entropy-on-effect permutation test
@@ -213,7 +216,7 @@ def parse_arguments():
     help_str = ('Number of iterations for null model. p-value precision '
                 'increases with more iterations, however this will also '
                 'increase the run time (Default: 10000).')
-    parser.add_argument('-n', '--num-permutations',
+    parser.add_argument('-n', '--num-iterations',
                         type=int, default=10000,
                         help=help_str)
     help_str = ('Number of iterations more significant then the observed statistic '
@@ -374,7 +377,7 @@ def main(opts, mut_df=None, frameshift_df=None):
         permutation_result = multiprocess_permutation(bed_dict, mut_df, opts)
         permutation_df = pr.handle_oncogene_results(permutation_result,
                                                     non_tested_genes,
-                                                    opts['num_permutations'])
+                                                    opts['num_iterations'])
     elif opts['kind'] == 'tsg':
         permutation_result = multiprocess_permutation(bed_dict, mut_df, opts,
                                                       frameshift_df, p_inactivating)
