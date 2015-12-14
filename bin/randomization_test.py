@@ -332,14 +332,6 @@ def main(opts, mut_df=None, frameshift_df=None):
     logger.info('Kept {0} mutations after droping mutations with missing '
                 'information (Droped: {1})'.format(len(mut_df), orig_num_mut - len(mut_df)))
 
-    # specify genes to skip
-    if opts['kind'] == 'oncogene':
-        # find genes with tsg score above threshold to filter out for oncogene
-        # permutation test
-        non_tested_genes = utils._get_high_tsg_score(mut_df, opts['tsg_score'])
-    else:
-        # don't filter out genes for tsg permutation test
-        non_tested_genes = []
 
     # count frameshifts
     if opts['kind'] != 'oncogene':
@@ -367,7 +359,8 @@ def main(opts, mut_df=None, frameshift_df=None):
     if opts['seed'] is not None:
         logger.info('Pseudo Random Number Generator Seed: {0}'.format(opts['seed']))
 
-    # perform permutation test
+    # don't filter out genes for tsg randomization-based test
+    non_tested_genes = []
     bed_dict = utils.read_bed(opts['bed'], non_tested_genes)
 
     # Perform BH p-value adjustment and tidy up data for output
