@@ -64,10 +64,10 @@ def parse_arguments():
     parser.add_argument('-p', '--processes',
                         type=int, default=0,
                         help=help_str)
-    help_str = ('Number of permutations for null model. p-value precision '
-                'increases with more permutations, however this will also '
+    help_str = ('Number of iterations for null model. p-value precision '
+                'increases with more iterations, however this will also '
                 'increase the run time (Default: 10000).')
-    parser.add_argument('-n', '--num-permutations',
+    parser.add_argument('-n', '--num-iterations',
                         type=int, default=10000,
                         help=help_str)
     help_str = ('Number of iterations more significant then the observed statistic '
@@ -123,7 +123,7 @@ def parse_arguments():
                         type=str, default='',
                         help=help_str)
     help_str = ('Only keep unique mutations for each tumor sample.'
-                'Mutations reproted from heterogeneous sources may contain'
+                'Mutations reported from heterogeneous sources may contain'
                 ' duplicates, e.g. a tumor sample was sequenced twice.')
     parser.add_argument('--unique',
                         action='store_true',
