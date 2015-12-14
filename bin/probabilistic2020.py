@@ -48,9 +48,11 @@ def parse_arguments():
                                       'oncogene-like genes.')
     parser_tsg = subparsers.add_parser('tsg', help='Find statistically significant '
                                        'Tumor Suppressor-like genes.')
+    parser_protein = subparsers.add_parser('protein', help='Find statistically significant '
+                                           '3D clustering in genes based on protein structure.')
 
     # program arguments
-    for i, parser in enumerate([parser_og, parser_tsg]):
+    for i, parser in enumerate([parser_og, parser_tsg, parser_protein]):
         help_str = 'gene FASTA file from extract_gene_seq.py script'
         parser.add_argument('-i', '--input',
                             type=str, required=True,
@@ -114,7 +116,7 @@ def parse_arguments():
             parser.add_argument('-f', '--fraction',
                                 type=float, default=.02,
                                 help=help_str)
-        if i == 1:
+        elif i == 1:
             help_str = 'Frameshift counts from count_frameshifts.py'
             parser.add_argument('-fc', '--frameshift-counts',
                                 type=str,
@@ -147,6 +149,11 @@ def parse_arguments():
                         'at least a user specified number of deleterious mutations (default: 1)')
             parser.add_argument('-d', '--deleterious',
                                 type=int, default=1,
+                                help=help_str)
+        elif i == 2:
+            help_str = 'Directory containing neighbor graph information in pickle files (Default: None).'
+            parser.add_argument('-ng', '--neighbor-graph-dir',
+                                type=str, required=True,
                                 help=help_str)
         help_str = ('Use mutations that are not mapped to the the single reference '
                     'transcript for a gene specified in the bed file indicated by '
@@ -220,7 +227,7 @@ def main(opts,
     result_df[p_val_col] = result_df[p_val_col].fillna(1)
     result_df[q_val_col] = result_df[q_val_col].fillna(1)
 
-    if opts['kind'] != 'oncogene':
+    if opts['kind'] == 'tsg':
         logger.info('Working on Frameshift Mutations . . .')
         import prob2020.python.count_frameshifts as cf
         import rpy2.robjects as ro
