@@ -339,7 +339,6 @@ def main(opts, mut_df=None, frameshift_df=None):
     logger.info('Kept {0} mutations after droping mutations with missing '
                 'information (Droped: {1})'.format(len(mut_df), orig_num_mut - len(mut_df)))
 
-
     # count frameshifts
     if opts['kind'] != 'oncogene':
         if frameshift_df is None:
@@ -382,7 +381,7 @@ def main(opts, mut_df=None, frameshift_df=None):
         permutation_df = pr.handle_tsg_results(permutation_result)
     elif opts['kind'] == 'protein':
         permutation_result = multiprocess_permutation(bed_dict, mut_df, opts)
-        # create post-processing code here
+        permutation_df = pr.handle_protein_results(permutation_result)
     elif opts['kind'] == 'effect':
         permutation_result = multiprocess_permutation(bed_dict, mut_df, opts)
         permutation_df = pr.handle_effect_results(permutation_result)
