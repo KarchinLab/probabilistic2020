@@ -118,7 +118,7 @@ def handle_protein_results(permutation_result):
         formatted output suitable to save
     """
     mycols = ['gene', 'normalized graph-smoothed position entropy',
-              'normalized graph-smoothed postion entropy p-value', 'Total Mutations', 'Unmapped to Ref Tx']
+              'normalized graph-smoothed position entropy p-value', 'Total Mutations', 'Unmapped to Ref Tx']
     permutation_df = pd.DataFrame(permutation_result, columns=mycols)
 
     # get benjamani hochberg adjusted p-values

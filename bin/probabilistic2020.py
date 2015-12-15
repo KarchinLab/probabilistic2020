@@ -235,6 +235,9 @@ def main(opts,
     elif opts['kind'] == 'oncogene':
         p_val_col = 'entropy p-value'
         q_val_col = 'entropy BH q-value'
+    elif opts['kind'] == 'protein':
+        p_val_col = 'normalized graph-smoothed position entropy p-value'
+        q_val_col = 'normalized graph-smoothed position entropy BH q-value'
     result_df[p_val_col] = result_df[p_val_col].fillna(1)
     result_df[q_val_col] = result_df[q_val_col].fillna(1)
 
