@@ -358,8 +358,8 @@ def main(opts):
     mut_df = pd.read_csv(opts['mutations'], sep='\t')
     orig_num_mut = len(mut_df)
     indel_df = indel.keep_indels(mut_df)  # return indels only
-    indel_df['Start_Position'] = indel_df['Start_Position'] - 1  # convert to 0-based
-    indel_df['indel len'] = indel_df['indel len'] + 1
+    indel_df.loc[:,'Start_Position'] = indel_df['Start_Position'] - 1  # convert to 0-based
+    indel_df.loc[:,'indel len'] = indel_df['indel len'] + 1
     logger.info('There were {0} indels identified.'.format(len(indel_df)))
     mut_df = mut_df.dropna(subset=['Tumor_Allele', 'Start_Position', 'Chromosome'])
     logger.info('Kept {0} mutations after droping mutations with missing '
