@@ -297,7 +297,11 @@ def compute_ng_stat(gene_graph, pos_ct, alpha=.5):
         codon_vals[pos] += (1-alpha)*mut_count
 
     # compute the normalized entropy
-    total_cts = float(np.count_nonzero(codon_vals))
-    graph_score = mymath.normalized_mutation_entropy(codon_vals, total_cts=total_cts)
+    #total_cts = float(np.count_nonzero(codon_vals))
+    #graph_score = mymath.normalized_mutation_entropy(codon_vals, total_cts=total_cts)
+
+    # compute regular entropy
+    p = codon_vals / np.sum(codon_vals)
+    graph_score = mymath.shannon_entropy(p)
 
     return graph_score
