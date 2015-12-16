@@ -280,7 +280,13 @@ def compute_ng_stat(gene_graph, pos_ct, alpha=.5):
     -------
     graph_score : float
         score measuring the clustering of missense mutations in the graph
+    coverage : int
+        number of nodes that received non-zero weight
     """
+    # skip if there are no missense mutations
+    if not len(pos_ct):
+        return 1.0, 0
+
     max_pos = max(gene_graph)
     codon_vals = np.zeros(max_pos+1)
 
@@ -304,4 +310,7 @@ def compute_ng_stat(gene_graph, pos_ct, alpha=.5):
     p = codon_vals / np.sum(codon_vals)
     graph_score = mymath.shannon_entropy(p)
 
-    return graph_score
+    # get coverage
+    coverage = np.count_nonzero(p)
+
+    return graph_score, coverage

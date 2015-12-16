@@ -9,6 +9,9 @@ import prob2020.python.scores as scores
 import numpy as np
 import pandas as pd
 import scipy.stats as stats
+import IPython
+import traceback
+import sys
 
 import logging
 logger = logging.getLogger(__name__)  # module logger
@@ -300,26 +303,31 @@ def calc_protein_p_value(mut_info,
                                                                              min_recur=min_recurrent)
         try:
             # get vest score for actual mutations
-            graph_score = scores.compute_ng_stat(gene_graph, pos_ct)
+            graph_score, coverage = scores.compute_ng_stat(gene_graph, pos_ct)
 
             # perform simulations to get p-value
-            protein_p_value = pm.protein_permutation(graph_score,
-                                                    context_cts,
-                                                    context_to_mutations,
-                                                    sc,  # sequence context obj
-                                                    gs,  # gene sequence obj
-                                                    gene_graph,
-                                                    num_permutations,
-                                                    stop_thresh)
-        except:
-            graph_score = 0.0
+            protein_p_value, norm_graph_score = pm.protein_permutation(graph_score,
+                                                     len(pos_ct),
+                                                     context_cts,
+                                                     context_to_mutations,
+                                                     sc,  # sequence context obj
+                                                     gs,  # gene sequence obj
+                                                     gene_graph,
+                                                     num_permutations,
+                                                     stop_thresh)
+        except Exception, err:
+            exc_info = sys.exc_info()
+            norm_graph_score = 0.0
             protein_p_value = 1.0
             logger.warning('Codon numbering problem with '+bed.gene_name)
 
     else:
-        graph_score = 0.0
+        norm_graph_score = 0.0
         protein_p_value = 1.0
-    result = [bed.gene_name, graph_score, protein_p_value]
+    if norm_graph_score <0:
+        IPython.embed()
+        raise
+    result = [bed.gene_name, norm_graph_score, protein_p_value]
     return result
 
 

@@ -3,6 +3,7 @@ import prob2020.python.utils as utils
 from ..cython import cutils
 import prob2020.python.mutation_context as mc
 import prob2020.python.scores as scores
+import IPython
 
 
 def deleterious_permutation(obs_del,
@@ -185,6 +186,7 @@ def position_permutation(obs_stat,
 
 
 def protein_permutation(graph_score,
+                        num_codons_obs,
                         context_counts,
                         context_to_mut,
                         seq_context,
@@ -193,13 +195,15 @@ def protein_permutation(graph_score,
                         num_permutations=10000,
                         stop_criteria=100,
                         pseudo_count=0):
-    """Performs null-permutations for position-based mutation statistics
+    """Performs null-simulations for position-based mutation statistics
     in a single gene.
 
     Parameters
     ----------
     graph_score : float
         clustering score for observed data
+    num_codons_obs : int
+        number of codons with missense mutation in observed data
     context_counts : pd.Series
         number of mutations for each context
     context_to_mut : dict
@@ -236,7 +240,29 @@ def protein_permutation(graph_score,
 
     # calculate position-based statistics as a result of random positions
     null_graph_entropy_ct = 0
+    coverage_list = []
+    num_mut_list = []
+    graph_entropy_list = []
     for i, row in enumerate(tmp_mut_pos):
+        # calculate the expected value of the relative increase in coverage
+        if i == stop_criteria-1:
+            rel_inc = [coverage_list[k] / float(num_mut_list[k])
+                       for k in range(stop_criteria-1)
+                       if coverage_list[k]]
+            exp_rel_inc = np.mean(rel_inc)
+
+            # calculate observed statistic
+            if num_codons_obs:
+                obs_stat = graph_score / np.log2(exp_rel_inc*num_codons_obs)
+            else:
+                obs_stat = 1.0
+
+            # calculate statistics for simulated data
+            sim_stat_list = [ent / np.log2(exp_rel_inc*num_mut_list[l])
+                             for l, ent in enumerate(graph_entropy_list)]
+            null_graph_entropy_ct = len([s for s in sim_stat_list
+                                         if s-utils.epsilon <= obs_stat])
+
         # get info about mutations
         tmp_mut_info = mc.get_aa_mut_info(row,
                                           somatic_base,
@@ -250,11 +276,30 @@ def protein_permutation(graph_score,
                                          is_obs=0)
         _, _, _, tmp_pos_ct = tmp_tuple
 
+        # record num of mut codons
+        if i < stop_criteria-1:
+            tmp_num_mut_codons = len(tmp_pos_ct)
+            num_mut_list.append(tmp_num_mut_codons)
+
         # get entropy on graph-smoothed probability distribution
-        tmp_graph_entropy = scores.compute_ng_stat(gene_graph, tmp_pos_ct)
+        tmp_graph_entropy, tmp_coverage = scores.compute_ng_stat(gene_graph, tmp_pos_ct)
+
+        # record the "coverage" in the graph
+        if i < stop_criteria-1:
+            coverage_list.append(tmp_coverage)
+            graph_entropy_list.append(tmp_graph_entropy)
 
         # update empirical null distribution counts
-        if tmp_graph_entropy-utils.epsilon <= graph_score: null_graph_entropy_ct += 1
+        if i >= stop_criteria:
+            #if tmp_graph_entropy-utils.epsilon <= graph_score:
+            if tmp_num_mut_codons:
+                sim_stat = tmp_graph_entropy / np.log2(exp_rel_inc*tmp_num_mut_codons)
+            else:
+                sim_stat = 1.0
+
+            # add count
+            if sim_stat-utils.epsilon <= obs_stat:
+                null_graph_entropy_ct += 1
 
         # stop iterations if reached sufficient precision
         if null_graph_entropy_ct >= stop_criteria:
@@ -263,7 +308,7 @@ def protein_permutation(graph_score,
     # calculate p-value from empirical null-distribution
     protein_pval = float(null_graph_entropy_ct) / (i+1)
 
-    return protein_pval
+    return protein_pval, obs_stat
 
 
 def effect_permutation(context_counts,
