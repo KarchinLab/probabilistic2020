@@ -306,15 +306,13 @@ def calc_protein_p_value(mut_info,
             graph_score, coverage = scores.compute_ng_stat(gene_graph, pos_ct)
 
             # perform simulations to get p-value
-            protein_p_value, norm_graph_score = pm.protein_permutation(graph_score,
-                                                     len(pos_ct),
-                                                     context_cts,
-                                                     context_to_mutations,
-                                                     sc,  # sequence context obj
-                                                     gs,  # gene sequence obj
-                                                     gene_graph,
-                                                     num_permutations,
-                                                     stop_thresh)
+            protein_p_value, norm_graph_score = pm.protein_permutation(
+                graph_score, len(pos_ct), context_cts,
+                context_to_mutations,
+                sc,  # sequence context obj
+                gs,  # gene sequence obj
+                gene_graph, num_permutations, stop_thresh
+            )
         except Exception, err:
             exc_info = sys.exc_info()
             norm_graph_score = 0.0
@@ -324,10 +322,8 @@ def calc_protein_p_value(mut_info,
     else:
         norm_graph_score = 0.0
         protein_p_value = 1.0
-    if norm_graph_score <0:
-        IPython.embed()
-        raise
-    result = [bed.gene_name, norm_graph_score, protein_p_value]
+
+    result = [bed.gene_name, num_recurrent, norm_graph_score, protein_p_value]
     return result
 
 
