@@ -17,6 +17,7 @@ def test_sim_summary():
             'maf': True,
             'use_unmapped': False,
             'genome': '',
+            'score_dir': None,  # just skip using scores
             'output': os.path.join(file_dir, 'output/sim_summary_maf.txt')
             }
     sm.main(opts)

@@ -16,4 +16,4 @@ def test_tp53_main():
            }
     fs_df = cf.main(opts)
 
-    assert fs_df['1'] == 295, "Number of frameshifts should equal to 295"
+    assert fs_df.loc['TP53', '1'] == 295, "Number of frameshifts should equal to 295"

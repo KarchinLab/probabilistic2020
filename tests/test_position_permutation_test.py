@@ -26,6 +26,7 @@ def test_ctnnb1_main():
             'num_permutations': 10000,
             'stop_criteria': 100,
             'recurrent_pseudo_count': 0,
+            'unique': 0,
             'seed': None,
             'kind': 'oncogene'}
     # single nucleotide context
@@ -87,6 +88,7 @@ def test_100genes_main():
             'stop_criteria': 100,
             'score_dir': os.path.join(file_dir, '../data/scores'),
             'recurrent_pseudo_count': 0,
+            'unique': False,
             'seed': None,
             'kind': 'oncogene'}
     # single nucleotide context

@@ -29,7 +29,7 @@ def handle_tsg_results(permutation_result):
 
     # get benjamani hochberg adjusted p-values
     permutation_df['inactivating BH q-value'] = np.nan
-    permutation_df['inactivating BH q-value'][tmp_df.index] = mypval.bh_fdr(tmp_df['inactivating p-value'])
+    permutation_df.loc[tmp_df.index, 'inactivating BH q-value'] = mypval.bh_fdr(tmp_df['inactivating p-value'])
 
     # sort output by p-value. due to no option to specify NaN order in
     # sort, the df needs to sorted descendingly and then flipped

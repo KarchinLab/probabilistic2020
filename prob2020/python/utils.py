@@ -319,8 +319,8 @@ def _get_high_tsg_score(mutation_df, tsg_score_thresh):
     mutation_df['indicator'] = 1
     table = pd.pivot_table(mutation_df,
                            values='indicator',
-                           cols='Variant_Classification',
-                           rows='Gene',
+                           columns='Variant_Classification',
+                           index='Gene',
                            aggfunc=np.sum)
     mut_type_frac = table.div(table.sum(axis=1).astype(float), axis=0).fillna(0.0)
     for c in ['Nonsense_Mutation', 'Frame_Shift_Indel', 'Splice_Site', 'Nonstop_Mutation']:
