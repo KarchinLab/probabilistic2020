@@ -55,7 +55,8 @@ def singleprocess_permutation(info):
 
         # fix nucleotide letter if gene is on - strand
         if bed.strand == '-':
-            mut_info['Tumor_Allele'] = mut_info['Tumor_Allele'].map(lambda x: utils.rev_comp(x))
+            rc = mut_info['Tumor_Allele'].map(lambda x: utils.rev_comp(x))
+            mut_info.loc[:, 'Tumor_Allele'] = rc
 
         # get coding positions, mutations unmapped to the reference tx will have
         # NA for a coding position
@@ -63,7 +64,7 @@ def singleprocess_permutation(info):
         for ix, row in mut_info.iterrows():
             coding_pos = bed.query_position(bed.strand, row['Chromosome'], row['Start_Position'])
             pos_list.append(coding_pos)
-        mut_info['Coding Position'] = pos_list
+        mut_info.loc[:, 'Coding Position'] = pos_list
 
         # recover mutations that could not be mapped to the reference transcript
         # for a gene before being dropped (next step)

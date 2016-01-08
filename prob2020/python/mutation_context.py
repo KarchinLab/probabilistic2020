@@ -339,7 +339,7 @@ def is_nonsilent(mut_df, bed_dict, opts):
     # record indels and get only snvs
     mut_df['is_nonsilent'] = 0
     indel_flag = indel.is_indel_annotation(mut_df)
-    mut_df['is_nonsilent'][indel_flag] = 1
+    mut_df.loc[indel_flag, 'is_nonsilent'] = 1
     snv_df = mut_df[~indel_flag]
 
     # iterate over each gene
@@ -366,7 +366,7 @@ def is_nonsilent(mut_df, bed_dict, opts):
             # detect if non-silent snv
             is_nonsilent_snv = [1 if (x in non_silent_snv) else 0
                                 for x in var_class]
-            mut_df['is_nonsilent'][tmp_df.index] = is_nonsilent_snv
+            mut_df.loc[tmp_df.index, 'is_nonsilent'] = is_nonsilent_snv
 
     # return a pandas series indicating nonsilent status
     is_nonsilent_series = mut_df['is_nonsilent'].copy()

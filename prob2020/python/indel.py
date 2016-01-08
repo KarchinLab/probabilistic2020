@@ -165,14 +165,14 @@ def keep_indels(mut_df,
 
     if indel_len_col:
         # calculate length
-        mut_df['indel len'] = compute_indel_length(mut_df)
+        mut_df.loc[:, 'indel len'] = compute_indel_length(mut_df)
 
     if indel_type_col:
         is_ins = mut_df['Reference_Allele']=='-'
         is_del = mut_df['Tumor_Allele']=='-'
         mut_df['indel type'] = ''
-        mut_df['indel type'][is_ins] = 'INS'
-        mut_df['indel type'][is_del] = 'DEL'
+        mut_df.loc[is_ins, 'indel type'] = 'INS'
+        mut_df.loc[is_del, 'indel type'] = 'DEL'
 
     return mut_df
 
@@ -202,7 +202,7 @@ def keep_frameshifts(mut_df,
 
     if indel_len_col:
         # calculate length
-        mut_df['indel len'] = compute_indel_length(mut_df)
+        mut_df.loc[:, 'indel len'] = compute_indel_length(mut_df)
     return mut_df
 
 
