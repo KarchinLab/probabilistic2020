@@ -222,7 +222,7 @@ def singleprocess_permutation(info):
 
 def parse_arguments():
     # make a parser
-    info = 'Simulates by randomly permuting mutation positions. Saves results to file'
+    info = 'Either simulates or summarizes mutation data. Saves results to file'
     parser = argparse.ArgumentParser(description=info)
 
     # logging arguments
@@ -265,10 +265,10 @@ def parse_arguments():
     parser.add_argument('-p', '--processes',
                         type=int, default=0,
                         help=help_str)
-    help_str = ('Number of permutations for null model simulations. If zero is '
+    help_str = ('Number of iterations for null model simulations. If zero is '
                 'specified then output represents actually observed summary, '
                 'otherwise a simmulation summary. (Default: 1).')
-    parser.add_argument('-n', '--num-permutations',
+    parser.add_argument('-n', '--num-iterations',
                         type=int, default=1,
                         help=help_str)
     help_str = ('Number of DNA bases to use as context. 0 indicates no context. '
