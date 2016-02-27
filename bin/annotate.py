@@ -41,7 +41,7 @@ def multiprocess_permutation(bed_dict, mut_df, opts, indel_df=None):
         num_processes = 1
     file_handle = open(opts['output'], 'w')
     mywriter = csv.writer(file_handle, delimiter='\t', lineterminator='\n')
-    if opts['maf'] and opts['num_permutations']:
+    if opts['maf'] and opts['num_iterations']:
         header = ['Gene', 'strand', 'Chromosome', 'Start_Position',
                   'End_Position', 'Reference_Allele', 'Tumor_Allele',
                   'Context', 'DNA_Change', 'Protein_Change', 'Variant_Classification']
@@ -60,13 +60,13 @@ def multiprocess_permutation(bed_dict, mut_df, opts, indel_df=None):
         # add indel columns
         header += ['frameshift indel', 'inframe indel', 'normalized mutation entropy']
     mywriter.writerow(header)
-    num_permutations = opts['num_permutations']
+    num_iterations = opts['num_iterations']
 
     # simulate indel counts
-    if opts['summary'] and num_permutations:
+    if opts['summary'] and num_iterations:
         fs_cts, inframe_cts, gene_names = indel.simulate_indel_counts(indel_df,
                                                                       bed_dict,
-                                                                      num_permutations)
+                                                                      num_iterations)
         name2ix = {gene_names[z]: z for z in range(len(gene_names))}
     # just count observed indels
     elif opts['summary']:
@@ -159,7 +159,7 @@ def singleprocess_permutation(info):
     bed_list, mut_df, opts = info
     current_chrom = bed_list[0].chrom
     logger.info('Working on chromosome: {0} . . .'.format(current_chrom))
-    num_permutations = opts['num_permutations']
+    num_iterations = opts['num_iterations']
     gene_fa = pysam.Fastafile(opts['input'])
     gs = GeneSequence(gene_fa, nuc_context=opts['context'])
 
@@ -172,7 +172,7 @@ def singleprocess_permutation(info):
 
         if context_to_mutations:
             ## get information about observed non-silent counts
-            if opts['summary'] and not num_permutations:
+            if opts['summary'] and not num_iterations:
                 tmp_mut_info = mc.get_aa_mut_info(mutations_df['Coding Position'],
                                                   mutations_df['Tumor_Allele'].tolist(),
                                                   gs)
@@ -186,7 +186,7 @@ def singleprocess_permutation(info):
                                                       min_recur=opts['recurrent'])
                 tmp_result = [[bed.gene_name, 'NA', bed.cds_len] + tmp_result]
             ## Just record protein changes in MAF
-            elif opts['maf'] and not num_permutations:
+            elif opts['maf'] and not num_iterations:
                 # input code for just annotating genes mutations
                 tmp_result = anot.annotate_maf(mutations_df['Coding Position'],
                                                mutations_df['Tumor_Allele'].tolist(),
@@ -203,7 +203,7 @@ def singleprocess_permutation(info):
                                                 context_to_mutations,
                                                 sc,
                                                 gs,
-                                                num_permutations)
+                                                num_iterations)
             else:
                 # Summarized results for feature for each simulation for each
                 # gene
@@ -212,7 +212,7 @@ def singleprocess_permutation(info):
                                                     sc,  # sequence context obj
                                                     gs,  # gene sequence obj
                                                     opts['score_dir'],
-                                                    num_permutations)
+                                                    num_iterations)
             result += tmp_result
 
     gene_fa.close()
@@ -222,7 +222,7 @@ def singleprocess_permutation(info):
 
 def parse_arguments():
     # make a parser
-    info = 'Either simulates or summarizes mutation data. Saves results to file'
+    info = 'Either simulates or summarizes observed mutation data.'
     parser = argparse.ArgumentParser(description=info)
 
     # logging arguments
@@ -379,7 +379,7 @@ def main(opts):
         with open(opts['output'], 'a') as handle:
             mywriter = csv.writer(handle, delimiter='\t')
             for maf_lines in indel.simulate_indel_maf(indel_df, bed_dict,
-                                                      opts['num_permutations']):
+                                                      opts['num_iterations']):
                 mywriter.writerows(maf_lines)
 
 
