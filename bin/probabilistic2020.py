@@ -65,7 +65,7 @@ def parse_arguments():
         parser.add_argument('-b', '--bed',
                             type=str, required=True,
                             help=help_str)
-        help_str = ('Number of processes to use. 0 indicates using a single '
+        help_str = ('Number of processes to use for parallelization. 0 indicates using a single '
                     'process without using a multiprocessing pool '
                     '(more means Faster, default: 0).')
         parser.add_argument('-p', '--processes',
@@ -329,8 +329,8 @@ def main(opts,
         # combine p-values
         result_df['tmp entropy p-value'] = result_df['entropy p-value']
         result_df['tmp vest p-value'] = result_df['vest p-value']
-        result_df.loc[result_df['entropy p-value']==0, 'tmp entropy p-value'] = 1. / opts['num_permutations']
-        result_df.loc[result_df['vest p-value']==0, 'tmp vest p-value'] = 1. / opts['num_permutations']
+        result_df.loc[result_df['entropy p-value']==0, 'tmp entropy p-value'] = 1. / opts['num_iterations']
+        result_df.loc[result_df['vest p-value']==0, 'tmp vest p-value'] = 1. / opts['num_iterations']
         result_df['combined p-value'] = result_df[['tmp entropy p-value', 'tmp vest p-value']].apply(mypval.fishers_method, axis=1)
         result_df['combined BH q-value'] = mypval.bh_fdr(result_df['combined p-value'])
         del result_df['tmp vest p-value']
