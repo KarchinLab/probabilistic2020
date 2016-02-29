@@ -4,7 +4,7 @@ import sys
 file_dir = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(file_dir, '../bin/'))
 
-import permutation_test as pt
+import randomization_test as pt
 import numpy as np
 
 
@@ -17,7 +17,7 @@ def test_tp53_main():
             'use_unmapped': False,
             'deleterious': 5,
             'processes': 0,
-            'num_permutations': 10000,
+            'num_iterations': 10000,
             'stop_criteria': 100,
             'deleterious_pseudo_count': 0,
             'unique': False,
@@ -47,7 +47,7 @@ def test_100genes_main():
             'use_unmapped': False,
             'deleterious': 5,
             'processes': 0,
-            'num_permutations': 1000,
+            'num_iterations': 1000,
             'stop_criteria': 100,
             'deleterious_pseudo_count': 0,
             'unique': False,

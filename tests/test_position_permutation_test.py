@@ -5,7 +5,7 @@ file_dir = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(file_dir, '../bin/'))
 sys.path.append(os.path.join(file_dir, '..'))
 
-import permutation_test as pt
+import randomization_test as pt
 import prob2020.python.utils as utils
 import prob2020.python.mutation_context as mc
 import numpy as np
@@ -23,7 +23,7 @@ def test_ctnnb1_main():
             'fraction': .02,
             'score_dir': os.path.join(file_dir, '../data/scores'),
             'processes': 0,
-            'num_permutations': 10000,
+            'num_iterations': 10000,
             'stop_criteria': 100,
             'recurrent_pseudo_count': 0,
             'unique': 0,
@@ -84,7 +84,7 @@ def test_100genes_main():
             'fraction': .02,
             'use_unmapped': False,
             'processes': 0,
-            'num_permutations': 1000,
+            'num_iterations': 1000,
             'stop_criteria': 100,
             'score_dir': os.path.join(file_dir, '../data/scores'),
             'recurrent_pseudo_count': 0,
