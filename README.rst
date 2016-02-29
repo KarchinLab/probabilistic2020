@@ -62,8 +62,7 @@ Local installation is a good option if you do not have privilege to install a py
 
 * numpy
 * scipy
-* matplotlib (optional, for simulations)
-* pandas==0.12.0
+* pandas>=0.17.0
 * pysam
 
 If you don't have the above required packages, you will need to install them. For the following commands to work you will need `pip <http://pip.readthedocs.org/en/latest/installing.html>`_. If you are using a system wide python, you will need to use `sudo` before the pip command.
