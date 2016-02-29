@@ -167,7 +167,7 @@ def multiprocess_permutation(bed_dict, mut_df, opts,
 
 def parse_arguments():
     # make a parser
-    info = 'Performs a permutation test on the oncogene and TSG score'
+    info = 'Performs a randomization-based test on the oncogene and TSG score'
     parser = argparse.ArgumentParser(description=info)
 
     # logging arguments
@@ -222,9 +222,9 @@ def parse_arguments():
                         help=help_str)
     help_str = ('Number of iterations more significant then the observed statistic '
                 'to stop further computations. This decreases compute time spent in resolving '
-                'p-values for non-significant genes. (Default: 100).')
+                'p-values for non-significant genes. (Default: 1000).')
     parser.add_argument('-sc', '--stop-criteria',
-                        type=int, default=100,
+                        type=int, default=1000,
                         help=help_str)
     help_str = ('Kind of permutation test to perform ("oncogene" or "tsg"). "position-based" permutation '
                 'test is intended to find oncogenes using position based statistics. '

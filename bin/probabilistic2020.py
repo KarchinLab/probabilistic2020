@@ -79,9 +79,9 @@ def parse_arguments():
                             help=help_str)
         help_str = ('Number of iterations more significant then the observed statistic '
                     'to stop further computations. This decreases compute time spent in resolving '
-                    'p-values for non-significant genes. (Default: 100).')
+                    'p-values for non-significant genes. (Default: 1000).')
         parser.add_argument('-sc', '--stop-criteria',
-                            type=int, default=100,
+                            type=int, default=1000,
                             help=help_str)
         help_str = ('Number of DNA bases to use as context. 0 indicates no context. '
                     '1 indicates only use the mutated base.  1.5 indicates using '
