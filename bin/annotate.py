@@ -212,7 +212,9 @@ def singleprocess_permutation(info):
                                                     sc,  # sequence context obj
                                                     gs,  # gene sequence obj
                                                     opts['score_dir'],
-                                                    num_iterations)
+                                                    num_iterations,
+                                                    min_frac=opts['fraction'],
+                                                    min_recur=opts['recurrent'])
             result += tmp_result
 
     gene_fa.close()

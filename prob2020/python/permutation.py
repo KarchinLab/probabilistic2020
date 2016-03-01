@@ -148,10 +148,10 @@ def position_permutation(obs_stat,
 
         # calculate position info
         tmp_recur_ct, tmp_entropy, tmp_delta_entropy, _ = cutils.calc_pos_info(tmp_mut_info['Codon Pos'],
-                                                                            tmp_mut_info['Reference AA'],
-                                                                            tmp_mut_info['Somatic AA'],
-                                                                            pseudo_count=pseudo_count,
-                                                                            is_obs=0)
+                                                                               tmp_mut_info['Reference AA'],
+                                                                               tmp_mut_info['Somatic AA'],
+                                                                               pseudo_count=pseudo_count,
+                                                                               is_obs=0)
         # get vest scores
         if gene_vest:
             tmp_vest = scores.compute_vest_stat(gene_vest,
