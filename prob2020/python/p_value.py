@@ -322,6 +322,7 @@ def calc_protein_p_value(mut_info,
     else:
         norm_graph_score = 0.0
         protein_p_value = 1.0
+        num_recurrent = 0
 
     result = [bed.gene_name, num_recurrent, norm_graph_score, protein_p_value]
     return result
