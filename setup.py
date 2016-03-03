@@ -1,4 +1,5 @@
-from distutils.core import setup
+#from distutils.core import setup
+from setuptools import setup
 from distutils.extension import Extension
 import sys
 
@@ -51,7 +52,9 @@ else:
     EMAIL = 'fake@gmail.com'
     URL = 'https://github.com/ctokheim/probabilistic2020'
     DESCRIPTION = 'Probabilistic 20/20'
-    PACKAGES = [SRC_DIR, SRC_DIR + '.python', SRC_DIR + '.cython', SRC_DIR + '.cpp']
+    PACKAGES = [SRC_DIR, SRC_DIR + '.python',
+                SRC_DIR + '.cython', SRC_DIR + '.cpp',
+                SRC_DIR + '.console']
     setup(name='probabilistic2020',
           version=version,
           description=DESCRIPTION,
@@ -60,12 +63,19 @@ else:
           url=URL,
           packages=PACKAGES,
           install_requires=['numpy', 'scipy', 'pandas', 'pysam'],
-          scripts=['bin/permutation_test.py', 'bin/extract_gene_seq.py',
-                   'bin/simulate_consistency.py', 'bin/simulate_performance.py',
-                   'bin/check_mutations.py', 'bin/probabilistic2020.py',
-                   'bin/simulate_non_silent_ratio.py', 'bin/frameshift_binomial_test.py',
-                   'bin/count_frameshifts.py', 'bin/count_mutations.py',
-                   'bin/simulate_summary.py', 'bin/mutation_binomial_test.py'],
+          #scripts=['bin/randomization_test.py', 'bin/extract_gene_seq.py',
+                   #'bin/check_mutations.py', 'bin/probabilistic2020.py',
+                   #'bin/simulate_non_silent_ratio.py', 'bin/frameshift_lrt.R',
+                   #'bin/count_frameshifts.py',
+                   #'bin/annotate.py',],
+          entry_points={
+              'console_scripts':[
+                  'probabilistic2020 = prob2020.console.probabilistic2020:cli_main',
+                  'mut_annotate = prob2020.console.annotate:cli_main',
+                  'extract_gene_seq = prob2020.console.extract_gene_seq:cli_main',
+                  'simulate_non_silent_ratio = prob2020.console.simulate_non_silent_ratio:cli_main'
+              ]
+          },
           long_description=open('README.rst').read(),
           classifiers=['Topic :: Scientific/Engineering :: Bio-Informatics',
                        'Environment :: Console',
