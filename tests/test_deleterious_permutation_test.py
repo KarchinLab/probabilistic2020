@@ -2,9 +2,9 @@
 import os
 import sys
 file_dir = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(os.path.join(file_dir, '../bin/'))
+sys.path.append(os.path.join(file_dir, '../'))
 
-import randomization_test as pt
+import prob2020.console.randomization_test as pt
 import numpy as np
 
 

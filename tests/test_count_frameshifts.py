@@ -2,9 +2,9 @@
 import os
 import sys
 file_dir = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(os.path.join(file_dir, '../bin/'))
+sys.path.append(os.path.join(file_dir, '../'))
 
-import count_frameshifts as cf
+import prob2020.console.count_frameshifts as cf
 
 def test_tp53_main():
     opts = {'mutations': os.path.join(file_dir, 'data/tp53_fs_mutations.txt'),
