@@ -63,6 +63,9 @@ else:
           url=URL,
           packages=PACKAGES,
           install_requires=['numpy', 'scipy', 'pandas', 'pysam'],
+          package_data={
+              SRC_DIR+'.console': ['*.R']
+          },
           #scripts=['bin/randomization_test.py', 'bin/extract_gene_seq.py',
                    #'bin/check_mutations.py', 'bin/probabilistic2020.py',
                    #'bin/simulate_non_silent_ratio.py', 'bin/frameshift_lrt.R',

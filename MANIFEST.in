@@ -1,2 +1,3 @@
 include README.rst
 include prob2020/cpp/permutation.hpp
+include prob2020/console/frameshift_lrt.R
