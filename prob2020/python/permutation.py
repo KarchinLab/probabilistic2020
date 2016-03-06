@@ -3,7 +3,6 @@ import prob2020.python.utils as utils
 from ..cython import cutils
 import prob2020.python.mutation_context as mc
 import prob2020.python.scores as scores
-import IPython
 
 
 def deleterious_permutation(obs_del,

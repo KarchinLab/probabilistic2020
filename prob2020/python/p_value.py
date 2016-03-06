@@ -9,7 +9,6 @@ import prob2020.python.scores as scores
 import numpy as np
 import pandas as pd
 import scipy.stats as stats
-import IPython
 import traceback
 import sys
 

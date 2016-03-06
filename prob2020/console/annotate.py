@@ -25,7 +25,6 @@ import argparse
 import logging
 import copy
 import itertools as it
-import IPython
 
 logger = logging.getLogger(__name__)  # module logger
 

@@ -21,7 +21,6 @@ import pandas as pd
 import numpy as np
 from multiprocessing import Pool
 import logging
-import IPython
 
 logger = logging.getLogger(__name__)  # module logger
 
