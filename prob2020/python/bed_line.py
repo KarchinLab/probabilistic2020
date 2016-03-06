@@ -216,9 +216,10 @@ class BedLine(object):
         # first check if valid
         pos = None  # initialize to invalid pos
         if chr != self.chrom:
-            logger.debug('Wrong chromosome queried. You provided {0} but gene is '
-                         'on {1}.'.format(chr, self.chrom))
+            #logger.debug('Wrong chromosome queried. You provided {0} but gene is '
+                         #'on {1}.'.format(chr, self.chrom))
             # return pos
+            pass
 
         if type(genome_coord) is list:
             # handle case for indels
