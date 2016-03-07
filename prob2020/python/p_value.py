@@ -312,7 +312,7 @@ def calc_protein_p_value(mut_info,
                 gs,  # gene sequence obj
                 gene_graph, num_permutations, stop_thresh
             )
-        except Exception, err:
+        except Exception as err:
             exc_info = sys.exc_info()
             norm_graph_score = 0.0
             protein_p_value = 1.0

@@ -132,7 +132,7 @@ def log_error_decorator(f):
             return result
         except KeyboardInterrupt:
             logger.info('Ctrl-C stopped a process.')
-        except Exception, e:
+        except Exception as e:
             logger.exception(e)
             raise
     return wrapper
