@@ -23,7 +23,7 @@ def test_rev_comp():
 
 
 def test_main():
-    opts = {'input': os.path.join(file_dir, '../data/hg19.fa'),
+    opts = {'input': os.path.join(file_dir, 'data/chrM.fa'),
             'output': os.path.join(file_dir, 'output/example_genes.fa'),
             'bed': os.path.join(file_dir, 'data/example.bed')}
     eg.main(opts)
