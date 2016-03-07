@@ -1,5 +1,0 @@
-cython
-numpy
-scipy
-pandas>=0.17.0
-pysam

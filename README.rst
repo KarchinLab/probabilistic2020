@@ -21,6 +21,9 @@ for several factors that could effect the significance of driver genes.
 Installation
 ------------
 
+.. image:: https://travis-ci.com/ctokheim/probabilistic2020.svg?token=KhnctpTdxNuuZ9Z1kcsg&branch=master
+    :target: https://travis-ci.com/ctokheim/probabilistic2020
+
 Downloading Probabilistic 20/20
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
