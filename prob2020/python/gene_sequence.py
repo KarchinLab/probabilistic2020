@@ -1,5 +1,5 @@
 """Fetches gene sequence from gene fasta created by extract_genes.py"""
-import utils
+import prob2020.python.utils as utils
 
 
 class GeneSequence(object):
