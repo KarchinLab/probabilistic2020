@@ -2,7 +2,7 @@ from prob2020.python import utils
 import prob2020.python.sequence_context
 import prob2020.python.indel as indel
 from prob2020.python.gene_sequence import GeneSequence
-from amino_acid import AminoAcid
+from prob2020.python.amino_acid import AminoAcid
 from ..cython import cutils
 import numpy as np
 import pandas as pd
