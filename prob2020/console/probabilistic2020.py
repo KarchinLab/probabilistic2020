@@ -10,7 +10,7 @@ import prob2020
 import prob2020.python.utils as utils
 import prob2020.python.p_value as mypval
 import prob2020.python.indel as indel
-import randomization_test as rt
+import prob2020.console.randomization_test as rt
 
 import argparse
 import pandas as pd
