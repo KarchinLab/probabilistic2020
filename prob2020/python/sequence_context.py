@@ -1,6 +1,6 @@
 import numpy as np
 import prob2020.python.utils as utils
-import mutation_context as mc
+import prob2020.python.mutation_context as mc
 
 
 class SequenceContext(object):
