@@ -1,5 +1,5 @@
 import numpy as np
-import utils
+import prob2020.python.utils as utils
 import mutation_context as mc
 
 

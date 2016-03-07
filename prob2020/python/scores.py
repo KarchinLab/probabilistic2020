@@ -1,7 +1,7 @@
 #from ..cython import cutils
 import numpy as np
 import os
-import mymath
+import prob2020.python.mymath as mymath
 
 # import pickle module
 try:

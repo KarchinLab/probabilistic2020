@@ -114,7 +114,7 @@ class BedLine(object):
         """
         exon_starts = [self.chrom_start + int(s)
                        for s in self.bed_tuple.blockStarts.strip(',').split(',')]
-        exon_sizes = map(int, self.bed_tuple.blockSizes.strip(',').split(','))
+        exon_sizes = list(map(int, self.bed_tuple.blockSizes.strip(',').split(',')))
 
         # get chromosome intervals
         exons = [(exon_starts[i], exon_starts[i] + exon_sizes[i])

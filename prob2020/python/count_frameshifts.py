@@ -142,6 +142,6 @@ def count_frameshift_bins(mut_df,
         fs_cts[bed.gene_name] = fs_len_cts.tolist() + info
 
     fs_cts_df = pd.DataFrame.from_dict(fs_cts, orient='index')
-    cols = map(str, fs_lens) + ['total', 'unmapped', 'gene length', 'bases at risk']
+    cols = list(map(str, fs_lens)) + ['total', 'unmapped', 'gene length', 'bases at risk']
     fs_cts_df.columns = cols
     return fs_cts_df
