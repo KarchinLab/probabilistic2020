@@ -1,5 +1,5 @@
 # normal imports
-from bed_line import BedLine
+from prob2020.python.bed_line import BedLine
 import numpy as np
 import pandas as pd
 import csv
