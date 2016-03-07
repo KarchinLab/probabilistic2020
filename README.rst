@@ -1,9 +1,10 @@
 Probabilistic 20/20
 ===================
 
-The Probabibilistic 20/20 test identifies genes with signficant oncogene-like and tumor suppressor gene-like mutational patterns. 
-Putative signficant oncogenes are found through evaluating the position of 
-missense mutations (clustered missense mutations tend to indicate actiavting mutations).
+The Probabibilistic 20/20 test identifies genes with signficant oncogene-like and tumor suppressor gene-like mutational patterns for small coding region variants. 
+Putative signficant oncogenes are found through evaluating 
+missense mutation clustering and *in silico* pathogenicity scores. Often highly clustered missense
+mutations are indicative of activating mutations.
 While statistically signficant tumor suppressor genes (TSGs) are found by abnormally high number of inactivating mutations.
 
 Probabilistic 20/20 evaluates statistical significance by employing 
@@ -16,7 +17,7 @@ for several factors that could effect the significance of driver genes.
 
 * gene length
 * mutation context
-* codon bias
+* gene sequence (e.g. codon bias)
 
 Installation
 ------------
@@ -24,42 +25,36 @@ Installation
 .. image:: https://travis-ci.com/ctokheim/probabilistic2020.svg?token=KhnctpTdxNuuZ9Z1kcsg&branch=master
     :target: https://travis-ci.com/ctokheim/probabilistic2020
 
-Downloading Probabilistic 20/20
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The source files can be cloned from github using `git <http://git-scm.com/>`_:
-
-.. code-block:: bash
-
-    $ git clone https://github.com/ctokheim/probabilistic2020.git
-
-The source files can also be manually downloaded from github at https://github.com/ctokheim/probabilistic2020.
-
-Probabilstic 20/20 can be installed either locally or into your python distribution as a package. 
 
 Python Package Installation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Using the python package installation, all the required python packages for the 20/20 permutation test will automatically be installed for you.
+Using the python package installation, all the required python packages for the probabibilistic 20/20 test will automatically be installed for you.
 
 If you are using a system wide python for installation, you will use the following command.
 
 .. code-block:: bash
 
-    $ sudo pip install probabilistic2020-0.1.0.tar.gz
+    $ sudo pip install https://github.com/KarchinLab/probabilistic2020/archive/v1.0.0.tar.gz 
 
 If your python is locally installed then you do not need to use `sudo`.
 
 .. code-block:: bash
 
-    $ pip install probabilistic2020-0.1.0.tar.gz
+    $ pip install https://github.com/KarchinLab/probabilistic2020/archive/v1.0.0.tar.gz 
 
-The scripts for Probabilstic 20/20 can then be found in `Your_Python_Root_Dir/bin`.
+The scripts for Probabilstic 20/20 can then be found in `Your_Python_Root_Dir/bin`. You can
+check the installation with the following:
+
+.. code-block:: bash
+
+    $ which probabilistic2020
+    $ probabibilistic2020 --help
 
 Local installation
 ~~~~~~~~~~~~~~~~~~
 
-Local installation is a good option if you do not have privilege to install a python package and already have the required packages.
+Local installation is a good option if you do not have privilege to install a python package and already have the required packages.  The source files can also be manually downloaded from github at https://github.com/KarchinLab/probabilistic2020/releases.
 
 **Required packages:**
 
@@ -81,30 +76,8 @@ Next you will need to build the Probabilistic 20/20 source files. This is can be
 
     $ make build
 
-Once finished building you can then use the scripts in the `probabilstic2020/bin` directory.
+Once finished building you can then use the scripts in the `probabilstic2020/prob2020/console` directory. You can check the build worked by the following:
 
-Identifying Non-coding Indels
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. code-block:: bash
 
-Retreive gene annotations where each line in a list is an exon in BED format.
-
-Next, combine merge gene annotations with simple repeats.
-
-$ cat data/knownGene.bed data/ensembl.bed data/low_complexity_repeats.bed | sort -k1,1 -k2,2n | ~/software/bedtools/bin/mergeBed -i stdin > data/non_coding_black_list.bed
-
-BEDTOOLs mergeBed seems to provide equivalent merging within a single file as bedops:
-
-$ /projects/clonal-evolution/Mouse/src/bedops_suite/bedops --merge data/non_coding_black_list.bed > data/non_coding_black_list.merged.bed  # same "wc -l" length 
-
-Next, gzip the black list file so that it can be indexed by Tabix in pysam
-
-$ gzip data/non_coding_black_list.bed
-
-Then filter out INDELs which occur in the black list
-
-$ python scripts/non_coding_indel.py -i data/lawrence_indels.txt -b data/non_coding_black_list.bed.gz -o data/non_coding_indels.txt
-
-Calculate non-coding indel background rate:
-
-$ python scripts/calc_non_coding_frameshift_rate.py -b data/non_coding_black_list.merged.bed -g ~/software/bedtools/genomes/human.hg19.genome -i data/non_coding_indels.txt -t 10 -bins 10 -o data/non_coding_fs.background.txt 
-
+    $ python prob2020/cosole/probabibilistic2020.py --help
