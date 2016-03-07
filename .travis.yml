@@ -21,5 +21,5 @@ install:
   - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION atlas numpy scipy nose cython pandas 
   - source activate test-environment
   - pip install git+git://github.com/pysam-developers/pysam.git@v0.9.0
-  - make build
+  - make cython-build
 script: "make tests"
