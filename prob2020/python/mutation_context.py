@@ -9,6 +9,11 @@ import pandas as pd
 import pysam
 import itertools as it
 
+# hack to rename izip function
+import sys
+if sys.version_info <= (3, 0):
+    from itertools import izip as zip
+
 
 def get_all_context_names(context_num):
     if context_num == 0:
@@ -201,8 +206,8 @@ def get_aa_mut_info(coding_pos, somatic_base, gene_seq):
         return aa_info
 
     # get codon information into three lists
-    ref_codon, codon_pos, pos_in_codon, ref_nuc = it.izip(*[cutils.pos_to_codon(gene_seq, p)
-                                                            for p in coding_pos])
+    ref_codon, codon_pos, pos_in_codon, ref_nuc = zip(*[cutils.pos_to_codon(gene_seq, p)
+                                                      for p in coding_pos])
     ref_codon, codon_pos, pos_in_codon, ref_nuc = list(ref_codon), list(codon_pos), list(pos_in_codon), list(ref_nuc)
 
     # construct codons for mutations
