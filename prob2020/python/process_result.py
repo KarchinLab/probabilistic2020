@@ -21,7 +21,7 @@ def handle_tsg_results(permutation_result):
     permutation_df : pd.DataFrame
         formatted output suitable to save
     """
-    permutation_df = pd.DataFrame(sorted(permutation_result, key=lambda x: x[2]),
+    permutation_df = pd.DataFrame(sorted(permutation_result, key=lambda x: x[2] if x[2] is not None else 1.1),
                                   columns=['gene', 'inactivating count', 'inactivating p-value',
                                            'Total SNV Mutations', 'SNVs Unmapped to Ref Tx'])
     permutation_df['inactivating p-value'] = permutation_df['inactivating p-value'].astype('float')
@@ -151,7 +151,7 @@ def handle_effect_results(permutation_result):
     mycols = ['gene', 'num recurrent', 'num inactivating', 'entropy-on-effect',
               'entropy-on-effect p-value',
               'Total Mutations', 'Unmapped to Ref Tx']
-    permutation_df = pd.DataFrame(sorted(permutation_result, key=lambda x: x[4]),
+    permutation_df = pd.DataFrame(sorted(permutation_result, key=lambda x: x[4] if x[4] is not None else 1.1),
                                   columns=mycols)
 
     # get benjamani hochberg adjusted p-values
@@ -164,4 +164,3 @@ def handle_effect_results(permutation_result):
                  'num recurrent', 'num inactivating', 'entropy-on-effect',
                  'entropy-on-effect p-value', 'entropy-on-effect BH q-value']
     return permutation_df[col_order]
-
