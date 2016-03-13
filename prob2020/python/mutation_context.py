@@ -3,7 +3,7 @@ import prob2020.python.sequence_context
 import prob2020.python.indel as indel
 from prob2020.python.gene_sequence import GeneSequence
 from prob2020.python.amino_acid import AminoAcid
-from ..cython import cutils
+import prob2020.cython.cutils as cutils
 import numpy as np
 import pandas as pd
 import pysam
@@ -207,7 +207,7 @@ def get_aa_mut_info(coding_pos, somatic_base, gene_seq):
 
     # get codon information into three lists
     ref_codon, codon_pos, pos_in_codon, ref_nuc = zip(*[cutils.pos_to_codon(gene_seq, p)
-                                                      for p in coding_pos])
+                                                    for p in coding_pos])
     ref_codon, codon_pos, pos_in_codon, ref_nuc = list(ref_codon), list(codon_pos), list(pos_in_codon), list(ref_nuc)
 
     # construct codons for mutations

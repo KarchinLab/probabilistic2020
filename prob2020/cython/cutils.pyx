@@ -238,8 +238,8 @@ def get_variant_classification(germ_aa_list, somatic_aa_list, codon_pos):
     cdef:
         string na = ''
         vector[string] var_class
-        vector[string] germ_aa = [(g if g else na) for g in germ_aa_list]
-        vector[string] somatic_aa = [(s if s else na) for s in somatic_aa_list]
+        vector[string] germ_aa = [(g.encode('UTF-8') if g else na) for g in germ_aa_list]
+        vector[string] somatic_aa = [(s.encode('UTF-8') if s else na) for s in somatic_aa_list]
         int num_muts = len(somatic_aa)
         string missense = 'Missense_Mutation'
         string nonsense = 'Nonsense_Mutation'
