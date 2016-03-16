@@ -43,10 +43,16 @@ def parse_arguments():
 
     # add subparsers
     subparsers = parent_parser.add_subparsers(title='Driver Gene Type', dest='kind')
-    parser_og = subparsers.add_parser('oncogene', help='Find statistically significant '
-                                      'oncogene-like genes.')
-    parser_tsg = subparsers.add_parser('tsg', help='Find statistically significant '
-                                       'Tumor Suppressor-like genes.')
+    parser_og = subparsers.add_parser('oncogene',
+                                      help='Find statistically significant oncogene-like genes.',
+                                      description='Find statsitically significant oncogene-like genes. '
+                                      'Evaluates clustering of missense mutations and high in '
+                                      'silico pathogenicity scores for missense mutations.')
+    help_info = 'Find statistically significant Tumor Suppressor-like genes.'
+    parser_tsg = subparsers.add_parser('tsg',
+                                       help=help_info,
+                                       description=help_info + ' Evaluates for a higher proportion '
+                                       'of inactivating mutations than expected.')
     parser_protein = subparsers.add_parser('protein', help='Find statistically significant '
                                            '3D clustering in genes based on protein structure.')
 
