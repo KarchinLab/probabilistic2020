@@ -58,36 +58,41 @@ def parse_arguments():
 
     # program arguments
     for i, parser in enumerate([parser_og, parser_tsg, parser_protein]):
+        # group of parameters
+        major_parser = parser.add_argument_group(title='Major options')
+        advance_parser = parser.add_argument_group(title='Advanced options')
+
+        # set the CLI params
         help_str = 'gene FASTA file from extract_gene_seq.py script'
-        parser.add_argument('-i', '--input',
-                            type=str, required=True,
-                            help=help_str)
-        help_str = 'DNA mutations file'
-        parser.add_argument('-m', '--mutations',
-                            type=str, required=True,
-                            help=help_str)
+        major_parser.add_argument('-i', '--input',
+                                  type=str, required=True,
+                                  help=help_str)
+        help_str = 'DNA mutations file (MAF file)'
+        major_parser.add_argument('-m', '--mutations',
+                                  type=str, required=True,
+                                  help=help_str)
         help_str = 'BED file annotation of genes'
-        parser.add_argument('-b', '--bed',
-                            type=str, required=True,
-                            help=help_str)
+        major_parser.add_argument('-b', '--bed',
+                                  type=str, required=True,
+                                  help=help_str)
         help_str = ('Number of processes to use for parallelization. 0 indicates using a single '
                     'process without using a multiprocessing pool '
                     '(more means Faster, default: 0).')
-        parser.add_argument('-p', '--processes',
-                            type=int, default=0,
-                            help=help_str)
+        major_parser.add_argument('-p', '--processes',
+                                  type=int, default=0,
+                                  help=help_str)
         help_str = ('Number of iterations for null model. p-value precision '
                     'increases with more iterations, however this will also '
                     'increase the run time (Default: 10000).')
-        parser.add_argument('-n', '--num-iterations',
-                            type=int, default=10000,
-                            help=help_str)
+        major_parser.add_argument('-n', '--num-iterations',
+                                  type=int, default=10000,
+                                  help=help_str)
         help_str = ('Number of iterations more significant then the observed statistic '
                     'to stop further computations. This decreases compute time spent in resolving '
                     'p-values for non-significant genes. (Default: 1000).')
-        parser.add_argument('-sc', '--stop-criteria',
-                            type=int, default=1000,
-                            help=help_str)
+        major_parser.add_argument('-sc', '--stop-criteria',
+                                  type=int, default=1000,
+                                  help=help_str)
         help_str = ('Number of DNA bases to use as context. 0 indicates no context. '
                     '1 indicates only use the mutated base.  1.5 indicates using '
                     'the base context used in CHASM '
@@ -95,104 +100,104 @@ def parse_arguments():
                     '2 indicates using the mutated base and the upstream base. '
                     '3 indicates using the mutated base and both the upstream '
                     'and downstream bases. (Default: 1.5)')
-        parser.add_argument('-c', '--context',
-                            type=float, default=1.5,
-                            help=help_str)
-        help_str = ('Only keep unique mutations for each tumor sample. '
-                    'Mutations reported from heterogeneous sources may contain'
-                    ' duplicates, e.g. a tumor sample was sequenced twice.')
-        parser.add_argument('--unique',
-                            action='store_true',
-                            default=False,
-                            help=help_str)
+        major_parser.add_argument('-c', '--context',
+                                  type=float, default=1.5,
+                                  help=help_str)
         if i == 0:
+            help_str = 'Directory containing VEST score information in pickle files (Default: None).'
+            major_parser.add_argument('-s', '--score-dir',
+                                      type=str, default=None,
+                                      help=help_str)
             help_str = ('Minimum number of mutations at a position for it to be '
                         'considered a recurrently mutated position (Default: 3).')
-            parser.add_argument('-r', '--recurrent',
-                                type=int, default=3,
-                                help=help_str)
+            advance_parser.add_argument('-r', '--recurrent',
+                                        type=int, default=3,
+                                        help=help_str)
             help_str = ('Fraction of total mutations in a gene. This define the '
                         'minimumm number of mutations for a position to be defined '
                         'as recurrently mutated (Defaul: .02).')
-            parser.add_argument('-f', '--fraction',
-                                type=float, default=.02,
-                                help=help_str)
-            help_str = 'Directory containing VEST score information in pickle files (Default: None).'
-            parser.add_argument('-s', '--score-dir',
-                                type=str, default=None,
-                                help=help_str)
+            advance_parser.add_argument('-f', '--fraction',
+                                        type=float, default=.02,
+                                        help=help_str)
         elif i == 1:
             help_str = 'Frameshift counts from count_frameshifts.py'
-            parser.add_argument('-fc', '--frameshift-counts',
-                                type=str,
-                                default=None,
-                                help=help_str)
+            advance_parser.add_argument('-fc', '--frameshift-counts',
+                                        type=str,
+                                        default=None,
+                                        help=help_str)
             help_str = ('Number of sequenced samples. Only needed for TSG test when '
                         'neither --frameshift-counts option or Tumor_Sample column is '
                         'provided in the mutation file. (Default: Auto)')
-            parser.add_argument('-sn', '--sample-number',
-                                type=int, default=None,
-                                help=help_str)
+            advance_parser.add_argument('-sn', '--sample-number',
+                                        type=int, default=None,
+                                        help=help_str)
             help_str = ('Background non-coding rate of INDELs with lengths matching '
                         'frameshifts in --frameshift-counts option. Enter path to file '
                         'generated by calc_non_coding_frameshift_rate.py.')
-            parser.add_argument('-non-coding', '--non-coding-background',
-                                type=str,
-                                help=help_str)
+            advance_parser.add_argument('-non-coding', '--non-coding-background',
+                                        type=str,
+                                        help=help_str)
             help_str = 'Flag indicating using overdispersed model'
-            parser.add_argument('--overdispersion',
-                                action='store_true',
-                                default=False,
-                                help=help_str)
+            advance_parser.add_argument('--overdispersion',
+                                        action='store_true',
+                                        default=False,
+                                        help=help_str)
             help_str = ('Number of bins to categorize framshift lengths by. Only needed'
                         ' if path to frameshift counts (--frameshift-counts) is not '
                         'specified for predicting tumor suppressor genes. (Default: 3)')
-            parser.add_argument('-bins', '--bins',
-                                type=int, default=3,
-                                help=help_str)
+            advance_parser.add_argument('-bins', '--bins',
+                                        type=int, default=3,
+                                        help=help_str)
             help_str = ('Perform tsg randomization-based test if gene has '
                         'at least a user specified number of deleterious mutations (default: 1)')
-            parser.add_argument('-d', '--deleterious',
-                                type=int, default=1,
-                                help=help_str)
+            advance_parser.add_argument('-d', '--deleterious',
+                                        type=int, default=1,
+                                        help=help_str)
         elif i == 2:
             help_str = 'Directory containing codon neighbor graph information in pickle files (Default: None).'
-            parser.add_argument('-ng', '--neighbor-graph-dir',
-                                type=str, required=True,
-                                help=help_str)
+            major_parser.add_argument('-ng', '--neighbor-graph-dir',
+                                      type=str, required=True,
+                                      help=help_str)
             help_str = ('Minimum number of mutations at a position for it to be '
                         'considered a recurrently mutated position (Default: 3).')
-            parser.add_argument('-r', '--recurrent',
+            advance_parser.add_argument('-r', '--recurrent',
                                 type=int, default=3,
                                 help=help_str)
             help_str = ('Fraction of total mutations in a gene. This define the '
                         'minimumm number of mutations for a position to be defined '
                         'as recurrently mutated (Defaul: .02).')
-            parser.add_argument('-f', '--fraction',
-                                type=float, default=.02,
-                                help=help_str)
+            advance_parser.add_argument('-f', '--fraction',
+                                        type=float, default=.02,
+                                        help=help_str)
+        help_str = ('Only keep unique mutations for each tumor sample. '
+                    'Mutations reported from heterogeneous sources may contain'
+                    ' duplicates, e.g. a tumor sample was sequenced twice.')
+        advance_parser.add_argument('--unique',
+                                    action='store_true',
+                                    default=False,
+                                    help=help_str)
         help_str = ('Use mutations that are not mapped to the the single reference '
                     'transcript for a gene specified in the bed file indicated by '
                     'the -b option.')
-        parser.add_argument('-u', '--use-unmapped',
-                            action='store_true',
-                            default=False,
-                            help=help_str)
+        advance_parser.add_argument('-u', '--use-unmapped',
+                                    action='store_true',
+                                    default=False,
+                                    help=help_str)
         help_str = ('Path to the genome fasta file. Required if --use-unmapped flag '
                     'is used. (Default: None)')
-        parser.add_argument('-g', '--genome',
-                            type=str, default='',
-                            help=help_str)
+        advance_parser.add_argument('-g', '--genome',
+                                    type=str, default='',
+                                    help=help_str)
         help_str = ('Specify the seed for the pseudo random number generator. '
                     'By default, the seed is randomly chosen. The seed will '
                     'be used for the monte carlo simulations.')
-        parser.add_argument('-seed', '--seed',
-                            type=int, default=None,
-                            help=help_str)
+        advance_parser.add_argument('-seed', '--seed',
+                                    type=int, default=None,
+                                    help=help_str)
         help_str = 'Output text file of probabilistic 20/20 results'
-        parser.add_argument('-o', '--output',
-                            type=str, required=True,
-                            help=help_str)
+        major_parser.add_argument('-o', '--output',
+                                  type=str, required=True,
+                                  help=help_str)
     args = parent_parser.parse_args()
 
     # handle logging
