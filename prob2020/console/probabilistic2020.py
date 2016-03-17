@@ -190,9 +190,9 @@ def parse_arguments():
                                     help=help_str)
         help_str = ('Specify the seed for the pseudo random number generator. '
                     'By default, the seed is randomly chosen. The seed will '
-                    'be used for the monte carlo simulations.')
+                    'be used for the monte carlo simulations (Default: 101).')
         advance_parser.add_argument('-seed', '--seed',
-                                    type=int, default=None,
+                                    type=int, default=101,
                                     help=help_str)
         help_str = 'Output text file of probabilistic 20/20 results'
         major_parser.add_argument('-o', '--output',

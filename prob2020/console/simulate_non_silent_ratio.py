@@ -429,7 +429,6 @@ def main(opts):
     return non_silent_ratio_df
 
 
-
 def cli_main():
     opts = parse_arguments()
     main(opts)

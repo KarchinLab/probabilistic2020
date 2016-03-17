@@ -248,7 +248,7 @@ def parse_arguments():
     parser.add_argument('-i', '--input',
                         type=str, required=True,
                         help=help_str)
-    help_str = 'DNA mutations file'
+    help_str = 'DNA mutations file (MAF file)'
     parser.add_argument('-m', '--mutations',
                         type=str, required=True,
                         help=help_str)
@@ -316,9 +316,9 @@ def parse_arguments():
                         help=help_str)
     help_str = ('Specify the seed for the pseudo random number generator. '
                 'By default, the seed is randomly chosen based. The seed will '
-                'be used for the monte carlo simulations.')
+                'be used for the monte carlo simulations (Default: 101).')
     parser.add_argument('-seed', '--seed',
-                        type=int, default=None,
+                        type=int, default=101,
                         help=help_str)
     help_str = 'Output text file of results'
     parser.add_argument('-o', '--output',
