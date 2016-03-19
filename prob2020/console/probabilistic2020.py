@@ -83,9 +83,9 @@ def parse_arguments():
                                   help=help_str)
         help_str = ('Number of iterations for null model. p-value precision '
                     'increases with more iterations, however this will also '
-                    'increase the run time (Default: 10000).')
+                    'increase the run time (Default: 100,000).')
         major_parser.add_argument('-n', '--num-iterations',
-                                  type=int, default=10000,
+                                  type=int, default=100000,
                                   help=help_str)
         help_str = ('Number of iterations more significant then the observed statistic '
                     'to stop further computations. This decreases compute time spent in resolving '
