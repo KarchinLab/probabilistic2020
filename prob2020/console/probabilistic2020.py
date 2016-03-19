@@ -67,7 +67,8 @@ def parse_arguments():
         major_parser.add_argument('-i', '--input',
                                   type=str, required=True,
                                   help=help_str)
-        help_str = 'DNA mutations file (MAF file)'
+        help_str = ('DNA mutations file (MAF file). Columns can be in any order, '
+                    'but should contain the correct column header names.')
         major_parser.add_argument('-m', '--mutations',
                                   type=str, required=True,
                                   help=help_str)
