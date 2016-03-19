@@ -6,6 +6,12 @@
 Probabilistic 20/20
 ===================
 
+:Author: Collin Tokheim
+:Contact: ctokheim@jhu.edu
+:License: To be Decided
+:Source code: `GitHub <https://github.com/ctokheim/probabilistic2020>`_
+:Q&A: `Biostars <https://www.biostars.org/t/prob2020/>`_ 
+
 The Probabibilistic 20/20 test identifies genes with signficant oncogene-like and tumor suppressor gene-like mutational patterns for small coding region variants. 
 Putative signficant oncogenes are found through evaluating 
 missense mutation clustering and *in silico* pathogenicity scores. Often highly clustered missense
