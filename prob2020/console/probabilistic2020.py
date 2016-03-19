@@ -90,9 +90,9 @@ def parse_arguments():
         help_str = ('Number of iterations more significant then the observed statistic '
                     'to stop further computations. This decreases compute time spent in resolving '
                     'p-values for non-significant genes. (Default: 1000).')
-        major_parser.add_argument('-sc', '--stop-criteria',
-                                  type=int, default=1000,
-                                  help=help_str)
+        advance_parser.add_argument('-sc', '--stop-criteria',
+                                    type=int, default=1000,
+                                    help=help_str)
         help_str = ('Number of DNA bases to use as context. 0 indicates no context. '
                     '1 indicates only use the mutated base.  1.5 indicates using '
                     'the base context used in CHASM '
