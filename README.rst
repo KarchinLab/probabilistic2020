@@ -10,7 +10,9 @@ While statistically signficant tumor suppressor genes (TSGs) are found by abnorm
 Probabilistic 20/20 evaluates statistical significance by employing 
 monte carlo simulations, which incorporates observed mutation context. Monte carlo
 simulations are performed within the same gene and thus avoid building a background
-distribution based on other genes.  
+distribution based on other genes. This means that the statistical test can be applied 
+to either all genes in the exome from exome sequencing or to a certain target set of genes
+from targeted sequencing.
 
 The Probabilistic 20/20 test has nice properties since it accounts
 for several factors that could effect the significance of driver genes.
