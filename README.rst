@@ -5,7 +5,7 @@ The Probabibilistic 20/20 test identifies genes with signficant oncogene-like an
 Putative signficant oncogenes are found through evaluating 
 missense mutation clustering and *in silico* pathogenicity scores. Often highly clustered missense
 mutations are indicative of activating mutations.
-While statistically signficant tumor suppressor genes (TSGs) are found by abnormally high number of inactivating mutations.
+While statistically signficant tumor suppressor genes (TSGs) are found by abnormally high proportion of inactivating mutations.
 
 Probabilistic 20/20 evaluates statistical significance by employing 
 monte carlo simulations, which incorporates observed mutation context. Monte carlo
