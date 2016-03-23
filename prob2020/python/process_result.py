@@ -60,16 +60,12 @@ def handle_oncogene_results(permutation_result, non_tested_genes, num_permutatio
         formatted output suitable to save
     """
     mycols = ['gene', 'num recurrent', 'position entropy',
-              'delta position entropy', 'mean vest score',
-              'recurrent p-value', 'entropy p-value',
-              'delta entropy p-value', 'vest p-value',
-              'Total Mutations', 'Unmapped to Ref Tx']
+              'mean vest score', 'entropy p-value',
+              'vest p-value', 'Total Mutations', 'Unmapped to Ref Tx']
     permutation_df = pd.DataFrame(permutation_result, columns=mycols)
 
     # get benjamani hochberg adjusted p-values
-    permutation_df['recurrent BH q-value'] = mypval.bh_fdr(permutation_df['recurrent p-value'])
     permutation_df['entropy BH q-value'] = mypval.bh_fdr(permutation_df['entropy p-value'])
-    permutation_df['delta entropy BH q-value'] = mypval.bh_fdr(permutation_df['delta entropy p-value'])
     permutation_df['vest BH q-value'] = mypval.bh_fdr(permutation_df['vest p-value'])
 
     # combine p-values
@@ -82,23 +78,14 @@ def handle_oncogene_results(permutation_result, non_tested_genes, num_permutatio
     del permutation_df['tmp vest p-value']
     del permutation_df['tmp entropy p-value']
 
-    # include non-tested genes in the result
-    #no_test_df = pd.DataFrame(index=range(len(non_tested_genes)))
-    #no_test_df['Performed Recurrency Test'] = 0
-    #no_test_df['gene'] = non_tested_genes
-    #permutation_df = pd.concat([permutation_df, no_test_df])
-    #permutation_df['Performed Recurrency Test'] = permutation_df['Performed Recurrency Test'].fillna(1).astype(int)
-
     # order output
     permutation_df = permutation_df.set_index('gene', drop=False)  # make sure genes are indices
     permutation_df['num recurrent'] = permutation_df['num recurrent'].fillna(-1).astype(int)  # fix dtype isssue
     col_order = ['gene', 'Total Mutations', 'Unmapped to Ref Tx',
                  'num recurrent', 'position entropy',
-                 'delta position entropy', 'mean vest score',
-                 'recurrent p-value', 'recurrent BH q-value', 'entropy p-value',
-                 'vest p-value', 'combined p-value', 'entropy BH q-value', 'delta entropy p-value',
-                 'delta entropy BH q-value', 'vest BH q-value', 'combined BH q-value']
-                 #'Performed Recurrency Test']
+                 'mean vest score', 'entropy p-value',
+                 'vest p-value', 'combined p-value', 'entropy BH q-value',
+                 'vest BH q-value', 'combined BH q-value']
     permutation_df = permutation_df.sort(columns=['combined p-value'])
     return permutation_df[col_order]
 

@@ -161,27 +161,18 @@ def position_permutation(obs_stat,
             tmp_vest = 0.0
 
         # update empirical null distribution counts
-        if tmp_recur_ct >= obs_recur: null_num_recur_ct += 1
         if tmp_entropy-utils.epsilon <= obs_ent: null_entropy_ct += 1
-        if tmp_delta_entropy+utils.epsilon >= obs_delta_ent: null_delta_entropy_ct += 1
         if tmp_vest+utils.epsilon >= obs_vest: null_vest_ct += 1
-        #num_recur_list.append(tmp_recur_ct)
-        #entropy_list.append(tmp_entropy)
-        #delta_entropy_list.append(tmp_delta_entropy)
-        #vest_list.append(tmp_vest)
 
         # stop iterations if reached sufficient precision
         if null_vest_ct >= stop_criteria and null_entropy_ct >= stop_criteria:
             break
 
     # calculate p-value from empirical null-distribution
-    recur_pval = float(null_num_recur_ct) / (i+1)
     ent_pval = float(null_entropy_ct) / (i+1)
-    delta_ent_pval = float(null_delta_entropy_ct) / (i+1)
     vest_pval = float(null_vest_ct) / (i+1)
 
-    #return num_recur_list, entropy_list, delta_entropy_list, vest_list
-    return recur_pval, ent_pval, delta_ent_pval, vest_pval
+    return ent_pval, vest_pval
 
 
 def protein_permutation(graph_score,

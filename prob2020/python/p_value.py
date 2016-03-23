@@ -215,34 +215,15 @@ def calc_position_p_value(mut_info,
                                                      num_permutations,
                                                      stop_thresh,
                                                      pseudo_count)
-        #num_recur_list, pos_entropy_list, delta_pos_entropy_list, vest_list = permutation_result  # unpack results
-        recur_p_value, ent_p_value, delta_ent_p_value, vest_p_value = permutation_result
-
-
-        # calculate permutation p-value
-        #recur_num_nulls = sum([1 for null_recur in num_recur_list
-                               #if null_recur+utils.epsilon >= num_recurrent])
-        #entropy_num_nulls = sum([1 for null_ent in pos_entropy_list
-                                 #if null_ent-utils.epsilon <= pos_ent])
-        #delta_entropy_num_nulls = sum([1 for null_ent in delta_pos_entropy_list
-                                       #if null_ent+utils.epsilon >= delta_pos_ent])
-        #vest_num_nulls = sum([1 for null_vest in vest_list
-                              #if null_vest+utils.epsilon >= vest_score])
-        #recur_p_value = recur_num_nulls / float(num_permutations)
-        #ent_p_value = entropy_num_nulls / float(num_permutations)
-        #delta_ent_p_value = delta_entropy_num_nulls / float(num_permutations)
-        #vest_p_value = vest_num_nulls / float(num_permutations)
+        ent_p_value, vest_p_value = permutation_result
     else:
         num_recurrent = 0
         pos_ent = 0
-        delta_pos_ent = 0
         vest_score = 0.0
-        recur_p_value = 1.0
         ent_p_value = 1.0
-        delta_ent_p_value = 1.0
         vest_p_value = 1.0
-    result = [bed.gene_name, num_recurrent, pos_ent, delta_pos_ent, vest_score,
-              recur_p_value, ent_p_value, delta_ent_p_value, vest_p_value]
+    result = [bed.gene_name, num_recurrent, pos_ent, vest_score,
+              ent_p_value, vest_p_value]
     return result
 
 
