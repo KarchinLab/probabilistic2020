@@ -28,9 +28,44 @@ example.
    $ wget /path/to/score_dir
    $ tar xvzf path_to_score_tarball
 
-Running oncogene sub-command
+Running the statistical test
 ----------------------------
 
+The statistical tests account for gene sequence and mutational context.
+Each gene is represented by a single reference transcript (above is longest CDS SNVBox transcript).
+By default the relevant sequence context for mutations are utilized from
+chasm paper (denoted by **-c 1.5** parameter). This includes some common dinucletoide contexts
+like CpG, and otherwise just a single base.
+
+**Technical detail:** Running on the obtained pan-cancer data may take several hours to run on a single
+core. Specifying the **-p** parameter to use multiple processors will speed up run time if available.
+
+Running oncogene sub-command
+++++++++++++++++++++++++++++
+
+The oncogene sub-command examines missense position clustering (by codon) and elevated
+*in silico* pathogenicity scores (VEST).
+
+
+.. code-block:: bash
+
+   $ probabilistic2020 oncogene \
+        -i genes.fa \
+        -b genes.bed \
+        -s score_dir \
+        -c 1.5
+        -p 10 \
+        -o oncogene_output.txt
 
 Running tsg sub-command
------------------------
++++++++++++++++++++++++
+
+.. code-block:: bash
+
+   $ probabilistic2020 tsg \
+        -i genes.fa \
+        -b genes.bed \
+        -p 10 \
+        -c 1.5 \
+        -o tsg_output.txt
+
