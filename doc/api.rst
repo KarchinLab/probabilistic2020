@@ -81,7 +81,7 @@ Performing simulation
 
    # specify options
    opts = {
-       'seed': None,  # use random seed for simulation
+       'seed': 101,  # set seed to 101
    }
 
    # determine number of random permutations to perform
