@@ -36,9 +36,8 @@ Contents:
    :maxdepth: 2
 
    installation
-   introduction
+   quickstart
    tutorial
-   user_doc
    dev_doc
       api
    faq

@@ -10,13 +10,7 @@ Python Package Installation
 
 Using the python package installation, all the required python packages for the probabibilistic 20/20 test will automatically be installed for you.
 
-If you are using a system wide python for installation, you will use the following command.
-
-.. code-block:: bash
-
-    $ sudo pip install https://github.com/KarchinLab/probabilistic2020/archive/v1.0.0.tar.gz 
-
-If your python is locally installed then you do not need to use `sudo`.
+To install the package into python you can use `pip`. If you are installing to a system wide python then you may need to use `sudo` before the pip command.
 
 .. code-block:: bash
 
