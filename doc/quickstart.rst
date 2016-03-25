@@ -1,9 +1,8 @@
 Quick Start
 ===========
 
-This provides a quick start to running probabilistic2020 to setup
-the minimum number of steps to execute probabilistic 20/20 statistical test.
-
+This provides a quick start to running probabilistic2020 with
+the minimum number of steps to execute the statistical test.
 
 Installation
 ------------
@@ -43,9 +42,9 @@ Running an Example
 ------------------
 
 To execute the statistical test for TSG-like genes by examining elevated proportion 
-of inactivating mutations, the `tsg` sub-command  for `probabilistic2020` is used.
+of inactivating mutations, the **tsg** sub-command  for **probabilistic2020** is used.
 To limit the run time for this example, you can limit the number of iterations to
-10,000 with the `-n` parameter.
+10,000 with the **-n** parameter.
 
 .. code-block:: bash
 
