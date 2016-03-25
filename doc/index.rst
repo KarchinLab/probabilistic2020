@@ -33,12 +33,12 @@ for several factors that could effect the significance of driver genes.
 Contents:
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    installation
    quickstart
    tutorial
-   dev_doc
+   advanced_doc
       api
    faq
 

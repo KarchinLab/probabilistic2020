@@ -1,5 +1,7 @@
-Developer Documentation
-=======================
+Advanced 
+========
+
+
 
 Creating the gene annotation (BED file)
 ---------------------------------------
@@ -40,14 +42,17 @@ The output was saved as output/gene_bed/ucsc_table_browser_output.bed. The outpu
 NOTE: Any transcripts from the table browser that had multiple positions (eg on chrX 
 and chrY) along with their corresponding gene were not saved in the final output. To prevent genes from not being used because of duplicate positions but on say non-canonical chromosome names, use the -i option to filter out those issues.
 
-Creating Gene FASTA
--------------------
+Creating your own Gene FASTA
+----------------------------
 
 Gene sequences are extracted from a genome FASTA file. To do this, you need
 a BED file with names corresponding to genes, and a genome FASTA (e.g. hg19).
 Obtaining a BED file can be done using the above steps. Creating the gene
-sequence FASTA is then done by the `bin/extract_gene_seq.py` script:
+sequence FASTA is then done by the `extract_gene_seq` script:
 
 .. code-block:: bash
 
-    $ python bin/extract_gene_seq.py --log-level=DEBUG -i data/hg19.fa -b data/snvboxGenes.bed -o data/snvboxGenes.fa
+    $ extract_gene_seq -i mygenome.fa -b mygenes.bed -o mygenes.fa
+
+Where mygenome.fa is the genome FASTA file, mygenes.bed contains a single reference transcript for each gene (with gene names not transcript names), and mygenes.fa is the FASTA
+file separated out by genes.
