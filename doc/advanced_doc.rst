@@ -1,10 +1,19 @@
 Advanced 
 ========
 
+If you need to run on different genomes (e.g. mouse) or different reference transcripts, this will
+require creating correct input files.
+
+* gene annotations (BED file) 
+* gene sequence (FASTA file)
+* conservation/vest scores
+* Needed for 20/20+
+  * generating gene features (observed and simulated)
+  * generating simulated MAF files
 
 
-Creating the gene annotation (BED file)
----------------------------------------
+Creating the gene annotation (BED file) from SNVBox
+---------------------------------------------------
 
 To perform permutations, the gene structure (ie position of exon, coding region) needs to 
 be defined. For each gene, only one transcript is used. The list of genes utilized and
@@ -56,3 +65,15 @@ sequence FASTA is then done by the `extract_gene_seq` script:
 
 Where mygenome.fa is the genome FASTA file, mygenes.bed contains a single reference transcript for each gene (with gene names not transcript names), and mygenes.fa is the FASTA
 file separated out by genes.
+
+Extracting conservation and VEST scores
+---------------------------------------
+
+Needed for 20/20+
+-----------------
+
+Generating gene features
+++++++++++++++++++++++++
+
+Generating simulated MAF file
++++++++++++++++++++++++++++++
