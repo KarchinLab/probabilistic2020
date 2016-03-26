@@ -8,6 +8,7 @@ require creating correct input files.
 * gene sequence (FASTA file)
 * conservation/vest scores
 * Needed for 20/20+
+
   * generating gene features (observed and simulated)
   * generating simulated MAF files
 

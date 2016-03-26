@@ -35,17 +35,20 @@ The statistical tests account for gene sequence and mutational context.
 Each gene is represented by a single reference transcript (above is longest CDS SNVBox transcript).
 By default the relevant sequence context for mutations are utilized from
 chasm paper (denoted by **-c 1.5** parameter). This includes some common dinucletoide contexts
-like CpG, and otherwise just a single base.
+like CpG, and otherwise just a single base. Ultimately a multiple testing corrected q-value
+is reported using the Benjamini-Hochberg (BH) method.
 
 **Technical detail:** Running on the obtained pan-cancer data may take several hours to run on a single
 core. Specifying the **-p** parameter to use multiple processors will speed up run time if available.
+Lowering the number of iterations (default: 100,000) will decrease run time, but also decrease the resolution
+of p-values.
 
 Running oncogene sub-command
 ++++++++++++++++++++++++++++
 
 The oncogene sub-command examines missense position clustering (by codon) and elevated
-*in silico* pathogenicity scores (VEST).
-
+*in silico* pathogenicity scores (VEST). The p-values will be combined using fischer's method
+to report a single p-value with a BH FDR.
 
 .. code-block:: bash
 
@@ -60,6 +63,9 @@ The oncogene sub-command examines missense position clustering (by codon) and el
 Running tsg sub-command
 +++++++++++++++++++++++
 
+Evaluating for elevated proportion of inactivating point mutations to find TSG-like genes,
+can be done using the **tsg** sub-command.
+
 .. code-block:: bash
 
    $ probabilistic2020 tsg \
@@ -68,4 +74,3 @@ Running tsg sub-command
         -p 10 \
         -c 1.5 \
         -o tsg_output.txt
-
