@@ -15,7 +15,7 @@ Gene BED annotation
 BED gene annotation files should contain a single reference transcript per gene. 
 The name field in the BED file should contain the gene name (not the transcript).
 An example BED file containg the annotations for the largest transcripts in SNVBox 
-can be obtained `here <>`_. The 
+can be obtained `here <>`_. 
 
 Creating Gene FASTA
 -------------------
