@@ -358,6 +358,16 @@ def main(opts):
     # Get Mutations
     mut_df = pd.read_csv(opts['mutations'], sep='\t')
     orig_num_mut = len(mut_df)
+
+    # rename columns to fit my internal column names
+    rename_dict = {
+        'Hugo_Symbol': 'Gene',
+        'Tumor_Sample_Barcode': 'Tumor_Sample',
+        'Tumor_Seq_Allele1' : 'Tumor_Allele'
+    }
+    mut_df.rename(columns=rename_dict, inplace=True)
+
+    # process indels
     indel_df = indel.keep_indels(mut_df)  # return indels only
     indel_df.loc[:, 'Start_Position'] = indel_df['Start_Position'] - 1  # convert to 0-based
     indel_df.loc[:, 'indel len'] = indel_df['indel len'] + 1
