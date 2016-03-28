@@ -10,18 +10,20 @@ Probabilistic 20/20
 :Contact: ctokheim@jhu.edu
 :License: To be Decided
 :Source code: `GitHub <https://github.com/ctokheim/probabilistic2020>`_
-:Q&A: `Biostars <https://www.biostars.org/t/prob2020/>`_ 
+:Q&A: `Biostars (tag: prob2020) <https://www.biostars.org/t/prob2020/>`_ 
 
 The Probabibilistic 20/20 test identifies genes with signficant oncogene-like and tumor suppressor gene-like mutational patterns for small coding region variants. 
 Putative signficant oncogenes are found through evaluating 
 missense mutation clustering and *in silico* pathogenicity scores. Often highly clustered missense
 mutations are indicative of activating mutations.
-While statistically signficant tumor suppressor genes (TSGs) are found by abnormally high number of inactivating mutations.
+While statistically signficant tumor suppressor genes (TSGs) are found by abnormally high proportion of inactivating mutations.
 
 Probabilistic 20/20 evaluates statistical significance by employing 
 monte carlo simulations, which incorporates observed mutation context. Monte carlo
 simulations are performed within the same gene and thus avoid building a background
-distribution based on other genes.  
+distribution based on other genes. This means that the statistical test can be applied 
+to either all genes in the exome from exome sequencing or to a certain target set of genes
+from targeted sequencing.
 
 The Probabilistic 20/20 test has nice properties since it accounts
 for several factors that could effect the significance of driver genes.
