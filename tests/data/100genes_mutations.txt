@@ -1,4 +1,4 @@
-Gene	Tumor_Sample	Tumor_Type	Chromosome	Start_Position	End_Position	Variant_Classification	Reference_Allele	Tumor_Allele	Protein_Change	DNA_Change
+Hugo_Symbol	Tumor_Sample_Barcode	Tumor_Type	Chromosome	Start_Position	End_Position	Variant_Classification	Reference_Allele	Tumor_Seq_Allele1	Protein_Change	DNA_Change
 ABCA12	BR-0004	Breast Adenocarcinoma	chr2	215866406	215866406	Silent	T	G	p.T913T	c.?
 ABAT	BR-0005	Breast Adenocarcinoma	chr16	8873407	8873407	Missense_Mutation	T	G	p.D447E	c.?
 ABCB11	BR-0008	Breast Adenocarcinoma	chr2	169814522	169814522	Silent	G	A	p.N765N	c.?
