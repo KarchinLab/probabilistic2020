@@ -33,7 +33,7 @@ def handle_tsg_results(permutation_result):
 
     # sort output by p-value. due to no option to specify NaN order in
     # sort, the df needs to sorted descendingly and then flipped
-    permutation_df = permutation_df.sort(columns='inactivating p-value', ascending=False)
+    permutation_df = permutation_df.sort_values(by='inactivating p-value', ascending=False)
     permutation_df = permutation_df.reindex(index=permutation_df.index[::-1])
 
     # order result
@@ -86,7 +86,7 @@ def handle_oncogene_results(permutation_result, non_tested_genes, num_permutatio
                  'mean vest score', 'entropy p-value',
                  'vest p-value', 'combined p-value', 'entropy BH q-value',
                  'vest BH q-value', 'combined BH q-value']
-    permutation_df = permutation_df.sort(columns=['combined p-value'])
+    permutation_df = permutation_df.sort_values(by=['combined p-value'])
     return permutation_df[col_order]
 
 
@@ -119,7 +119,7 @@ def handle_protein_results(permutation_result):
                  'normalized graph-smoothed position entropy',
                  'normalized graph-smoothed position entropy p-value',
                  'normalized graph-smoothed position entropy BH q-value']
-    permutation_df = permutation_df.sort(columns=['normalized graph-smoothed position entropy p-value'])
+    permutation_df = permutation_df.sort_values(by=['normalized graph-smoothed position entropy p-value'])
     return permutation_df[col_order]
 
 
