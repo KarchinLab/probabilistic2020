@@ -4,6 +4,7 @@ import sys
 import os
 file_dir = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(file_dir, '../'))
+sys.path.append(os.path.join(file_dir, '../../'))
 
 # package import
 import prob2020.python.utils as utils
