@@ -20,6 +20,7 @@ def test_sim_summary():
             'score_dir': None,  # just skip using scores
             'fraction': .02,
             'recurrent': 3,
+            'seed': 101,
             'output': os.path.join(file_dir, 'output/sim_summary_maf.txt')
             }
     sm.main(opts)
