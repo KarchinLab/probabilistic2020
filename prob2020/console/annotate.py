@@ -66,7 +66,8 @@ def multiprocess_permutation(bed_dict, mut_df, opts, indel_df=None):
     if opts['summary'] and num_iterations:
         fs_cts, inframe_cts, gene_names = indel.simulate_indel_counts(indel_df,
                                                                       bed_dict,
-                                                                      num_iterations)
+                                                                      num_iterations,
+                                                                      opts['seed'])
         name2ix = {gene_names[z]: z for z in range(len(gene_names))}
     # just count observed indels
     elif opts['summary']:
@@ -391,7 +392,8 @@ def main(opts):
         with open(opts['output'], 'a') as handle:
             mywriter = csv.writer(handle, delimiter='\t')
             for maf_lines in indel.simulate_indel_maf(indel_df, bed_dict,
-                                                      opts['num_iterations']):
+                                                      opts['num_iterations'],
+                                                      opts['seed']):
                 mywriter.writerows(maf_lines)
 
 

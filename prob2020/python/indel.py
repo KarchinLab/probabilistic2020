@@ -7,7 +7,9 @@ import prob2020.python.utils as utils
 import numpy as np
 import pandas as pd
 
-def simulate_indel_counts(indel_df, bed_dict, num_permutations=1):
+def simulate_indel_counts(indel_df, bed_dict,
+                          num_permutations=1,
+                          seed=None):
     # count indels
     bed_genes = [mybed
                  for chrom in bed_dict
@@ -25,7 +27,7 @@ def simulate_indel_counts(indel_df, bed_dict, num_permutations=1):
     indel_lens = indel_df['indel len'].copy().values
     is_fs = (indel_lens % 3) > 0
     indel_ixs = np.arange(len(indel_lens))
-    prng = np.random.RandomState(seed=None)
+    prng = np.random.RandomState(seed=seed)
 
     # randomly reassign indels
     mygene_cts = prng.multinomial(len(indel_lens), gene_prob, size=num_permutations)
@@ -48,7 +50,9 @@ def simulate_indel_counts(indel_df, bed_dict, num_permutations=1):
     return mygene_cts, inframe_cts, gene_lengths.index
 
 
-def simulate_indel_maf(indel_df, bed_dict, num_permutations=1):
+def simulate_indel_maf(indel_df, bed_dict,
+                       num_permutations=1,
+                       seed=None):
     # count indels
     bed_genes = [mybed
                 for chrom in bed_dict
@@ -66,7 +70,7 @@ def simulate_indel_maf(indel_df, bed_dict, num_permutations=1):
     indel_lens = indel_df['indel len'].copy().values
     indel_types = indel_df['indel type'].copy().values
     indel_ixs = np.arange(len(indel_lens))
-    prng = np.random.RandomState(seed=None)
+    prng = np.random.RandomState(seed=seed)
 
     for i in range(num_permutations):
         # randomly reassign indels
