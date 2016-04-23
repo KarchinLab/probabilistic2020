@@ -54,11 +54,11 @@ def parse_arguments():
                                        help=help_info,
                                        description=help_info + ' Evaluates for a higher proportion '
                                        'of inactivating mutations than expected.')
-    parser_protein = subparsers.add_parser('protein', help='Find statistically significant '
-                                           '3D clustering in genes based on protein structure.')
+    #parser_protein = subparsers.add_parser('protein', help='Find statistically significant '
+                                           #'3D clustering in genes based on protein structure.')
 
     # program arguments
-    for i, parser in enumerate([parser_og, parser_tsg, parser_protein]):
+    for i, parser in enumerate([parser_og, parser_tsg]):
         # group of parameters
         major_parser = parser.add_argument_group(title='Major options')
         advance_parser = parser.add_argument_group(title='Advanced options')
