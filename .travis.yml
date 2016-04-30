@@ -27,6 +27,6 @@ install:
   - pip install git+git://github.com/pysam-developers/pysam.git@v0.9.0
   - make cython-build
   - pip install coveralls
-script: nosetests --nologcapture --with-coverage --cover-package=probabilistic2020 --cov-config .coveragerc tests/
+script: nosetests --nologcapture --with-coverage --cover-package=probabilistic2020 tests/
 after_success: 
-  - coveralls --config_file .coveragerc
+  - coveralls 
