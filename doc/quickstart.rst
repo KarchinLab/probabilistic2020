@@ -1,27 +1,45 @@
 Quick Start
 ===========
 
-This provides a quick start to running probabilistic2020 with
+The quick start is meant to test that everything is working with the installation
+of the probabilistic2020 package.
+This provides running probabilistic2020 with
 the minimum number of steps to execute the statistical test.
+For more expansive user instructions see :ref:`tutorial-ref`.
 
 Installation
 ------------
 
-Please see the `installation page <>`_.
+Please see the :ref:`install-ref`.
+
+Downloading Example
+-------------------
+
+Download the quick start example data, and extract the resulting tarball.
+
+.. code-block:: bash
+
+    $ wget http://karchinlab.org/data/2020+/pancreatic_example.tar.gz
+    $ tar xvzf pancreatic_example.tar.gz
+    $ cd pancreatic_example
+
+Input files
+-----------
 
 Gene BED annotation
--------------------
+~~~~~~~~~~~~~~~~~~~
 
 BED gene annotation files should contain a single reference transcript per gene. 
 The name field in the BED file should contain the gene name (not the transcript).
 An example BED file containg the annotations for the largest transcripts in SNVBox 
-can be obtained `here <>`_. 
+is named snvboxGenes.bed. 
 
 Creating Gene FASTA
--------------------
+~~~~~~~~~~~~~~~~~~~
 
-Gene sequences are extracted from a genome FASTA file. To do this, you need
-a BED file with names corresponding to genes, and a genome FASTA (e.g. hg19).
+Gene sequences are extracted from a genome FASTA file, and is a step that only needs to be done once.  
+To do this, you need a BED file with names corresponding to genes, and a genome FASTA (e.g. hg19).
+You can download hg19 from `here <http://karchinlab.org/data/2020+/hg19.fa.gz>`_.
 Creating the gene sequence FASTA is then done by the `extract_gene_seq` script:
 
 .. code-block:: bash
@@ -32,14 +50,14 @@ In this case the BED file is created using SNVBox, a genome FASTA file for hg19 
 resulting coding sequences for the gene are stored in snvboxGenes.fa.
 
 Mutation Annotation Format (MAF) file
--------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Mutations are saved in a MAF-like format. Not All fields in MAF spec are required,
-and columns may be in any order. You can download a small example of mutations
-for colorectal adenocarcinoma `here <>`_. 
+and columns may be in any order. Mutations for pancreatic adenocarcinoma are in the
+file pancreatic_adenocarcinoma.txt.
 
-Running an Example
-------------------
+Running the Example
+-------------------
 
 To execute the statistical test for TSG-like genes by examining elevated proportion 
 of inactivating mutations, the **tsg** sub-command  for **probabilistic2020** is used.
@@ -52,6 +70,5 @@ To limit the run time for this example, you can limit the number of iterations t
         -n 10000 \
         -i snvboxgenes.fa \
         -b snvboxGenes.bed \
-        -m colorectal.txt \
-        -o colorectal_output.txt
-
+        -m pancreatic_adenocarcinoma.txt \
+        -o pancreatic_output.txt

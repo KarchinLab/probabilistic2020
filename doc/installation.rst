@@ -1,9 +1,10 @@
+.. _install-ref:
+
 Installation
 ------------
 
-.. image:: https://travis-ci.com/ctokheim/probabilistic2020.svg?token=KhnctpTdxNuuZ9Z1kcsg&branch=master
-    :target: https://travis-ci.com/ctokheim/probabilistic2020
-
+.. image:: https://travis-ci.org/KarchinLab/probabilistic2020.svg?branch=master
+    :target: https://travis-ci.org/KarchinLab/probabilistic2020
 
 Python Package Installation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
