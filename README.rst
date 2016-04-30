@@ -21,6 +21,14 @@ for several factors that could effect the significance of driver genes.
 * mutation context
 * gene sequence (e.g. codon bias)
 
+Documentation
+-------------
+
+Please see the website on READTHEDOCS for more details:
+
+* `probabilistic2020 website <http://probabilistic2020.readthedocs.io/en/latest/index.html>`_
+
+
 Installation
 ------------
 
