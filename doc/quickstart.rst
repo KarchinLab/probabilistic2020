@@ -52,7 +52,7 @@ Running the Example
 To execute the statistical test for TSG-like genes by examining elevated proportion 
 of inactivating mutations, the **tsg** sub-command  for **probabilistic2020** is used.
 To limit the run time for this example, you can limit the number of iterations to
-10,000 with the **-n** parameter.
+10,000 with the **-n** parameter. You can further speed up the example by using multiple computer cores with the **-p** parameter.
 
 .. code-block:: bash
 
@@ -61,4 +61,6 @@ To limit the run time for this example, you can limit the number of iterations t
         -i snvboxGenes.fa \
         -b snvboxGenes.bed \
         -m pancreatic_adenocarcinoma.txt \
-        -o pancreatic_output.txt
+        -o pancreatic_output_comparison.txt
+
+Your results should match those found in the file pancreatic_output.txt. Particularly, TP53, SMAD4, ARID1A, and SMARCA4 should have a significant inactivating Benjamini-Hochberg (BH) q-value of less than .1.
