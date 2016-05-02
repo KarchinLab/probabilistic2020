@@ -30,13 +30,30 @@ example.
    $ wget /path/to/score_dir
    $ tar xvzf path_to_score_tarball
 
+.. _make-fasta:
+
+Creating Gene FASTA
+~~~~~~~~~~~~~~~~~~~
+
+Gene sequences are extracted from a genome FASTA file, and is a step that only needs to be done once.  
+To do this, you need a BED file with names corresponding to genes, and a genome FASTA (e.g. hg19).
+You can download hg19 from `here <http://karchinlab.org/data/2020+/hg19.fa.gz>`_.
+Creating the gene sequence FASTA is then done by the `extract_gene_seq` script:
+
+.. code-block:: bash
+
+    $ extract_gene_seq -i hg19.fa -b snvboxGenes.bed -o snvboxGenes.fa
+
+In this case the BED file is created using SNVBox, a genome FASTA file for hg19 (hg19.fa), and the
+resulting coding sequences for the gene are stored in snvboxGenes.fa.
+
 Running the statistical test
 ----------------------------
 
 The statistical tests account for gene sequence and mutational context.
 Each gene is represented by a single reference transcript (above is longest CDS SNVBox transcript).
 By default the relevant sequence context for mutations are utilized from
-chasm paper (denoted by **-c 1.5** parameter). This includes some common dinucletoide contexts
+`CHASM paper <http://www.ncbi.nlm.nih.gov/pmc/articles/PMC2763410/>`_ (denoted by **-c 1.5** parameter). This includes some common dinucletoide contexts
 like CpG, and otherwise just a single base. Ultimately a multiple testing corrected q-value
 is reported using the Benjamini-Hochberg (BH) method.
 

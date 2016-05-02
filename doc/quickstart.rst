@@ -34,20 +34,10 @@ The name field in the BED file should contain the gene name (not the transcript)
 An example BED file containg the annotations for the largest transcripts in SNVBox 
 is named snvboxGenes.bed. 
 
-Creating Gene FASTA
-~~~~~~~~~~~~~~~~~~~
+Gene FASTA
+~~~~~~~~~~
 
-Gene sequences are extracted from a genome FASTA file, and is a step that only needs to be done once.  
-To do this, you need a BED file with names corresponding to genes, and a genome FASTA (e.g. hg19).
-You can download hg19 from `here <http://karchinlab.org/data/2020+/hg19.fa.gz>`_.
-Creating the gene sequence FASTA is then done by the `extract_gene_seq` script:
-
-.. code-block:: bash
-
-    $ extract_gene_seq -i hg19.fa -b snvboxGenes.bed -o snvboxGenes.fa
-
-In this case the BED file is created using SNVBox, a genome FASTA file for hg19 (hg19.fa), and the
-resulting coding sequences for the gene are stored in snvboxGenes.fa.
+Gene sequences are extracted from a genome FASTA file, and is a step that only needs to be done once. This has already been done for the example BED file provided, but if you were to use a different transcript annotation then you would need to follow the :ref:`make-fasta`.
 
 Mutation Annotation Format (MAF) file
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -68,7 +58,7 @@ To limit the run time for this example, you can limit the number of iterations t
 
     $ probabilistic2020 tsg \
         -n 10000 \
-        -i snvboxgenes.fa \
+        -i snvboxGenes.fa \
         -b snvboxGenes.bed \
         -m pancreatic_adenocarcinoma.txt \
         -o pancreatic_output.txt
