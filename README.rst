@@ -24,9 +24,11 @@ for several factors that could effect the significance of driver genes.
 Documentation
 -------------
 
-Please see the website on READTHEDOCS for more details:
+.. image:: http://readthedocs.org/projects/probabilistic2020/badge/?version=latest
+    :target: http://probabilistic2020.readthedocs.io/en/latest/?badge=latest
+    :alt: Documentation Status
 
-* `probabilistic2020 website <http://probabilistic2020.readthedocs.io/en/latest/index.html>`_
+Please see the `documentation <http://probabilistic2020.readthedocs.org/>`_ on readthedocs for more details.
 
 
 Installation
