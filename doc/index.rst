@@ -3,8 +3,8 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Probabilistic 20/20
-===================
+Probabilistic 20/20: Simulator of somatic mutations
+===================================================
 
 :Author: Collin Tokheim
 :Contact: ctokheim@jhu.edu
