@@ -7,9 +7,8 @@ Probabilistic 20/20: Simulator of somatic mutations
 ===================================================
 
 :Author: Collin Tokheim
-:Contact: ctokheim@jhu.edu
-:License: To be Decided
-:Source code: `GitHub <https://github.com/ctokheim/probabilistic2020>`_
+:Contact: ctokheim AT jhu.edu
+:Source code: `GitHub <https://github.com/KarchinLab/probabilistic2020>`_
 :Q&A: `Biostars (tag: prob2020) <https://www.biostars.org/t/prob2020/>`_ 
 
 The Probabibilistic 20/20 test identifies genes with signficant oncogene-like and tumor suppressor gene-like mutational patterns for small coding region variants. 
