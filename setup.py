@@ -50,7 +50,7 @@ else:
     version = prob2020.__version__
     AUTHOR = 'Collin Tokheim'
     EMAIL = 'fake@gmail.com'
-    URL = 'https://github.com/ctokheim/probabilistic2020'
+    URL = 'https://github.com/KarchinLab/probabilistic2020'
     DESCRIPTION = 'Probabilistic 20/20'
     PACKAGES = [SRC_DIR, SRC_DIR + '.python',
                 SRC_DIR + '.cython', SRC_DIR + '.cpp',
@@ -66,11 +66,6 @@ else:
           package_data={
               SRC_DIR+'.console': ['*.R']
           },
-          #scripts=['bin/randomization_test.py', 'bin/extract_gene_seq.py',
-                   #'bin/check_mutations.py', 'bin/probabilistic2020.py',
-                   #'bin/simulate_non_silent_ratio.py', 'bin/frameshift_lrt.R',
-                   #'bin/count_frameshifts.py',
-                   #'bin/annotate.py',],
           entry_points={
               'console_scripts':[
                   'probabilistic2020 = prob2020.console.probabilistic2020:cli_main',
