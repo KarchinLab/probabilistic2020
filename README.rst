@@ -69,7 +69,7 @@ Local installation is a good option if you do not have privilege to install a py
 * pandas>=0.17.0
 * pysam
 
-If you don't have the above required packages, you will need to install them. For the following commands to work you will need `pip <http://pip.readthedocs.org/en/latest/installing.html>`_. If you are using a system wide python, you will need to use `sudo` before the pip command.
+If you don't have the above required packages, you will need to install them. For the following commands to work you will need `pip <http://pip.readthedocs.org/en/latest/installing.html>`_. If you are using a system wide python, you will need to use `sudo` before the pip command. Also if you are using python 3.X then you likely will have to install pysam version >=0.9.0.
 
 .. code-block:: bash
 
