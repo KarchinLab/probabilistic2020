@@ -37,7 +37,7 @@ Creating Gene FASTA
 
 Gene sequences are extracted from a genome FASTA file, and is a step that only needs to be done once.  
 To do this, you need a BED file with names corresponding to genes, and a genome FASTA (e.g. hg19).
-You can download hg19 from `here <http://karchinlab.org/data/2020+/hg19.fa.gz>`_.
+You can download hg19 from `here <http://hgdownload.soe.ucsc.edu/goldenPath/hg19/bigZips/hg19.2bit>`_.
 Creating the gene sequence FASTA is then done by the `extract_gene_seq` script:
 
 .. code-block:: bash
@@ -50,7 +50,7 @@ resulting coding sequences for the gene are stored in snvboxGenes.fa.
 Running the statistical test
 ----------------------------
 
-The statistical tests account for gene sequence and mutational context.
+The statistical tests account for gene sequence and mutational base context.
 Each gene is represented by a single reference transcript (above is longest CDS SNVBox transcript).
 By default the relevant sequence context for mutations are utilized from
 `CHASM paper <http://www.ncbi.nlm.nih.gov/pmc/articles/PMC2763410/>`_ (denoted by **-c 1.5** parameter). This includes some common dinucletoide contexts
