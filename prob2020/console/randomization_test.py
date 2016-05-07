@@ -344,7 +344,7 @@ def main(opts, mut_df=None, frameshift_df=None):
     rename_dict = {
         'Hugo_Symbol': 'Gene',
         'Tumor_Sample_Barcode': 'Tumor_Sample',
-        'Tumor_Seq_Allele1' : 'Tumor_Allele'
+        'Tumor_Seq_Allele2' : 'Tumor_Allele'
     }
     mut_df.rename(columns=rename_dict, inplace=True)
 
