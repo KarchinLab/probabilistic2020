@@ -36,10 +36,30 @@ Input formats
 Mutations
 +++++++++
 
+Mutations are provided in a Mutation Annotation Format (MAF) file. 
+Columns can be in any order, and only a few columns in the MAF file
+are needed. The following is a list of the required columns.
 
+* Hugo_Symbol (or named "Gene")
+* Chromosome
+* Start_Position
+* End_Position
+* Reference_Allele
+* Tumor_Seq_Allele2 (or named "Tumor_Allele")
+* Tumor_Sample_Barcode (or named "Tumor_Sample")
+
+The remaining columns in the MAF specification can be 
+left empty or not included. Since a MAF file has many additional 
+annotation columns, removing additional columns will reduce
+the memmory usage of probabilistic2020.
 
 Gene BED file
 +++++++++++++
+
+A single reference transcript for each gene is stored in BED12 format. Instead of
+using the transcript name for the name field in the BED file,
+the gene symbol which matches the MAF file should be used.
+In the example data, the longest CDS transcript from SNVBox was used.
 
 .. _make-fasta:
 
@@ -58,9 +78,17 @@ Creating the gene sequence FASTA is then done by the `extract_gene_seq` script:
 In this case the BED file is created using SNVBox, a genome FASTA file for hg19 (hg19.fa), and the
 resulting coding sequences for the gene are stored in snvboxGenes.fa.
 
-Pre-computed scores
-+++++++++++++++++++
+Pre-computed scores (optional)
+++++++++++++++++++++++++++++++
 
+Two pre-computed scores are used to evaluate missense pathogenicity 
+scores and evolutionary conservartion. Both are provided in the example
+data, matching the reference transcript annotation from SNVBox.
+Including the score information is useful, but optional. The 
+pre-computed missense pathogenicity scores are from the 
+`VEST algorithm <http://www.ncbi.nlm.nih.gov/pubmed/23819870>`_.
+The evolutionary conservation scores are calculated as the entropy of 
+a specific column in the protein-translated version of UCSC's 46-way vertebrate alignment.
 
 Running the statistical test
 ----------------------------
@@ -95,7 +123,6 @@ onto 10 processors with the **-p** parameter. Lower this if the compute is not a
         -c 1.5
         -p 10 \
         -o oncogene_output.txt
-
 
 Running tsg sub-command
 +++++++++++++++++++++++
