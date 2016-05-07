@@ -30,10 +30,21 @@ example.
    $ wget /path/to/score_dir
    $ tar xvzf path_to_score_tarball
 
+Input formats
+-------------
+
+Mutations
++++++++++
+
+
+
+Gene BED file
++++++++++++++
+
 .. _make-fasta:
 
-Creating Gene FASTA
-~~~~~~~~~~~~~~~~~~~
+Gene FASTA
+++++++++++
 
 Gene sequences are extracted from a genome FASTA file, and is a step that only needs to be done once.  
 To do this, you need a BED file with names corresponding to genes, and a genome FASTA (e.g. hg19).
@@ -46,6 +57,10 @@ Creating the gene sequence FASTA is then done by the `extract_gene_seq` script:
 
 In this case the BED file is created using SNVBox, a genome FASTA file for hg19 (hg19.fa), and the
 resulting coding sequences for the gene are stored in snvboxGenes.fa.
+
+Pre-computed scores
++++++++++++++++++++
+
 
 Running the statistical test
 ----------------------------
@@ -66,8 +81,10 @@ Running oncogene sub-command
 ++++++++++++++++++++++++++++
 
 The oncogene sub-command examines missense position clustering (by codon) and elevated
-*in silico* pathogenicity scores (VEST). The p-values will be combined using fischer's method
-to report a single p-value with a BH FDR.
+*in silico* pathogenicity scores (VEST). The score directory contains pre-computed values for VEST scores.
+The p-values will be combined using fisher's method
+to report a single p-value with a BH FDR. In the below example, the command is parallelized
+onto 10 processors with the **-p** parameter. Lower this if the compute is not available.
 
 .. code-block:: bash
 
@@ -78,6 +95,7 @@ to report a single p-value with a BH FDR.
         -c 1.5
         -p 10 \
         -o oncogene_output.txt
+
 
 Running tsg sub-command
 +++++++++++++++++++++++
@@ -93,3 +111,6 @@ can be done using the **tsg** sub-command.
         -p 10 \
         -c 1.5 \
         -o tsg_output.txt
+
+Simulating somatic mutations
+----------------------------
