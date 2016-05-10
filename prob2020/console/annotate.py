@@ -238,7 +238,7 @@ def parse_arguments():
     parser.add_argument('-l', '--log',
                         type=str,
                         action='store',
-                        default='',
+                        default='stdout',
                         help='Path to log file. (accepts "stdout")')
     parser.add_argument('-v', '--verbose',
                         action='store_true',
