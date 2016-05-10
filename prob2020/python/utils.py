@@ -314,6 +314,13 @@ def _fix_mutation_df(mutation_df, only_unique=False):
                    'duplicates'.format(num_dropped=valid_len-dedup_len))
         logger.info(log_msg)
 
+    # add dummy Protein_Change or Tumor_Type columns if not provided
+    # in file
+    if 'Tumor_Type' not in mutation_df.columns:
+        mutation_df['Tumor_Type'] = ''
+    if 'Protein_Change' not in mutation_df.columns:
+        mutation_df['Protein_Change'] = ''
+
     # correct for 1-based coordinates
     mutation_df['Start_Position'] = mutation_df['Start_Position'] - 1
     return mutation_df
