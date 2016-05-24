@@ -102,11 +102,12 @@ onto 10 processors with the **-p** parameter. Lower this if the compute is not a
         -i genes.fa \
         -b genes.bed \
         -s score_dir \
+        -m mutations.txt \
         -c 1.5
         -p 10 \
         -o oncogene_output.txt
 
-Where genes.fa is your gene FASTA file for your reference transcripts in genes.bed, score_dir is the directory containing the pre-computed VEST scores, and oncogene_output.txt is the file name to save the results.
+Where genes.fa is your gene FASTA file for your reference transcripts in genes.bed, mutations.txt is your MAF file containing mutations, score_dir is the directory containing the pre-computed VEST scores, and oncogene_output.txt is the file name to save the results.
 
 Output format
 #############
@@ -133,11 +134,12 @@ The **tsg** sub-command evaluates for elevated proportion of inactivating point 
    $ probabilistic2020 tsg \
         -i genes.fa \
         -b genes.bed \
+        -m mutations.txt \
         -p 10 \
         -c 1.5 \
         -o tsg_output.txt
 
-Where genes.fa is your gene FASTA file for your reference transcripts in genes.bed, and tsg_output.txt is the file name to save the results.
+Where genes.fa is your gene FASTA file for your reference transcripts in genes.bed, mutations.txt is your MAF file containing mutations, and tsg_output.txt is the file name to save the results.
 
 Output format
 #############
@@ -152,4 +154,56 @@ not be placed onto the reference transcript will be indicated in the
 Simulating somatic mutations
 ----------------------------
 
+The probabilistic2020 package also allows saving the results of underlying simulation
+of somatic mutations. The simulations need a set of observed mutations to create simulated 
+mutations. Briefly, for each gene, SNVs (single nucleotide variants) are moved with uniform probability to any matching position in the gene sequence, holding the total number of SNVs fixed.  A matching position was required to have the same base context (e.g. **-c 1.5** = C\*pG, CpG\*, TpC\*, G\*pA, A, C, G, T) as the observed position.  This method of generating a null distribution controls for the particular gene sequence, gene length and mutation base context.  
+To simulate small insertions/deletions (indels), indels are moved to different genes according to a multinomial model where the probability is proprotional to the gene length.
+This can be done for both creating a simulated MAF file or simulated
+features calculated from the mutations.
 
+Simulations are performed with the **mut_annotate** command. The **--seed** parameter
+will pass a seed to the pseudo random number generator. If you are performing several
+simulations for MAF files and features, then it is critical that every time the seed for each
+simulation match. 
+
+Simulated MAF
++++++++++++++
+
+MAF output is designated with the **--maf** flag, but is a substantially reduced version 
+then a typical MAF file because it only contains the relevant columns noted in the
+mutations input format section. To indicate mutations for each gene should be simulated
+once, the **-n 1** parameter is used. If zero is supplied for this parameter, then
+simulations are not performed and rather the observed mutations are just annotated
+as a MAF file on the corresponding reference transcripts in genes.bed. The pseudo random
+number generator seed can be passed with the **--seed** argument.
+
+.. code-block:: bash
+
+   $ mut_annotate \
+        --maf \
+        -n 1 \
+        -i genes.fa \
+        -b genes.bed \
+        -m mutations.txt \
+        -p 10 \
+        -c 1.5 \
+        -o maf_output.txt
+
+
+Simulated Features
+++++++++++++++++++
+
+Simulated features which serve as input to `20/20+ <http://2020plus.readthedocs.io/>`_
+can also be generated.
+
+.. code-block:: bash
+
+   $ mut_annotate \
+        --summary \
+        -n 1 \
+        -i genes.fa \
+        -b genes.bed \
+        -m mutations.txt \
+        -p 10 \
+        -c 1.5 \
+        -o summary_output.txt
