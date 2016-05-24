@@ -12,24 +12,6 @@ like passengers based on uniform null distribution. Moreover, a set of mutationa
 features for each gene representative of driver genes (used in 20/20+) can also be
 created.
 
-In this tutorial we go through a some what computationally intensive Pan-cancer
-analysis. Please see the quick start for a fast example.
-
-Data setup
-----------
-
-First, you need to obtain the data necessary to run the pan-cancer
-example.
-
-.. code-block:: bash
-
-   $ wget /path/to/fasta
-   $ wget /path/to/genes.bed
-   $ extract_gene_seq
-   $ wget /path/to/pancan.maf
-   $ wget /path/to/score_dir
-   $ tar xvzf path_to_score_tarball
-
 Input formats
 -------------
 
@@ -124,11 +106,27 @@ onto 10 processors with the **-p** parameter. Lower this if the compute is not a
         -p 10 \
         -o oncogene_output.txt
 
+Where genes.fa is your gene FASTA file for your reference transcripts in genes.bed, score_dir is the directory containing the pre-computed VEST scores, and oncogene_output.txt is the file name to save the results.
+
+Output format
+#############
+
+The oncogene statistical test will output a tab-delimited file having columns for the 
+p-values and Benjamini-Hochberg q-values:
+
+* "entropy"
+* "vest" (only included if score_dir provided)
+* "combined" (only included if score_dir provided)
+
+The entropy columns evaluate missense clustering at the same codon by using a normalized missense position entropy statistic. Low values for entropy correspond to increased clustering
+of missense mutations. The vest columns examine whether missense mutations tend to have
+higher *in silico* pathogenicity scores for missense mutations than expected. The "combined"
+columns, combine the p-values from VEST scores and missense clustering using Fisher's method.
+
 Running tsg sub-command
 +++++++++++++++++++++++
 
-Evaluating for elevated proportion of inactivating point mutations to find TSG-like genes,
-can be done using the **tsg** sub-command.
+The **tsg** sub-command evaluates for elevated proportion of inactivating point mutations to find TSG-like genes.
 
 .. code-block:: bash
 
@@ -139,5 +137,19 @@ can be done using the **tsg** sub-command.
         -c 1.5 \
         -o tsg_output.txt
 
+Where genes.fa is your gene FASTA file for your reference transcripts in genes.bed, and tsg_output.txt is the file name to save the results.
+
+Output format
+#############
+
+The tsg statistical test examines inactivating single nucleotide variants (nonsense, 
+splice site, lost start, and lost stop). Both the p-value ("inactivating p-value")
+and the Benjamini-hochberg q-value ("inactivating BH q-value") are reported for 
+a higher than expected fraction of inactivating mutations. Mutations which could
+not be placed onto the reference transcript will be indicated in the 
+"SNVs Unmapped to Ref Tx" column.
+
 Simulating somatic mutations
 ----------------------------
+
+
