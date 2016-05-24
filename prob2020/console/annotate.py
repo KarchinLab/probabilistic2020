@@ -246,7 +246,7 @@ def parse_arguments():
                         help='Flag for more verbose log output')
 
     # program arguments
-    help_str = 'gene FASTA file from extract_gene_seq.py script'
+    help_str = 'gene FASTA file from extract_gene_seq script'
     parser.add_argument('-i', '--input',
                         type=str, required=True,
                         help=help_str)
@@ -258,7 +258,8 @@ def parse_arguments():
     parser.add_argument('-b', '--bed',
                         type=str, required=True,
                         help=help_str)
-    help_str = 'Directory containing score information in pickle files (Default: None).'
+    help_str = ('Directory containing pre-compute score information in '
+                'for VEST and evolutionary conservation in pickle format (Default: None).')
     parser.add_argument('-s', '--score-dir',
                         type=str, default=None,
                         help=help_str)
@@ -269,10 +270,10 @@ def parse_arguments():
                         type=int, default=0,
                         help=help_str)
     help_str = ('Number of iterations for null model simulations. If zero is '
-                'specified then output represents actually observed summary, '
-                'otherwise a simmulation summary. (Default: 1).')
+                'specified then output represents a result from actually observed mutations (provided by -m parameter), '
+                'otherwise results will be from simulated mutations. (Default: 0).')
     parser.add_argument('-n', '--num-iterations',
-                        type=int, default=1,
+                        type=int, default=0,
                         help=help_str)
     help_str = ('Number of DNA bases to use as context. 0 indicates no context. '
                 '1 indicates only use the mutated base.  1.5 indicates using '
@@ -288,7 +289,7 @@ def parse_arguments():
     parser_grouper.add_argument('--summary',
                                 action='store_true',
                                 help='Flag for saving results as summarized '
-                                'features (Default: True).')
+                                'features used (Default: True).')
     parser_grouper.add_argument('--maf',
                                 action='store_true',
                                 help='Flag for saving results in MAF format '
