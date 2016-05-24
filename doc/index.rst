@@ -39,6 +39,7 @@ Contents:
    installation
    quickstart
    tutorial
+   download
    faq
 
 
