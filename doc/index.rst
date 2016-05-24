@@ -39,8 +39,6 @@ Contents:
    installation
    quickstart
    tutorial
-   advanced_doc
-      api
    faq
 
 
