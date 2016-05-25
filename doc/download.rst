@@ -4,7 +4,7 @@ Download
 Probabilistic 20/20 releases
 ----------------------------
 
-* `probabilistic2020-v1.0.0 <>`_ 5/1/2016 Initial release
+* `probabilistic2020-v1.0.0 <https://github.com/KarchinLab/probabilistic2020/archive/v1.0.0.tar.gz>`_ 5/1/2016 Initial release
 
 Example data
 ------------
