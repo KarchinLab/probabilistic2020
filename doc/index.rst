@@ -37,10 +37,10 @@ Contents:
 .. toctree::
    :maxdepth: 1
 
+   download
    installation
    quickstart
    tutorial
-   download
    faq
 
 
