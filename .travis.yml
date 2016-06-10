@@ -27,3 +27,11 @@ install:
   - pip install git+git://github.com/pysam-developers/pysam.git@v0.9.0
   - make cython-build
 script: "make tests"
+deploy:
+  provider: pypi
+  user: karchinlab
+  password:
+    secure: my_secure_password
+  on:
+    tags: true
+    branch: master

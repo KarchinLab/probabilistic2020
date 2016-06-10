@@ -47,7 +47,7 @@ To install the package into python you can use `pip`. If you are installing to a
 
 .. code-block:: bash
 
-    $ pip install https://github.com/KarchinLab/probabilistic2020/archive/v1.0.0.tar.gz 
+    $ pip install probabilistic2020
 
 The scripts for Probabilstic 20/20 can then be found in `Your_Python_Root_Dir/bin`. You can
 check the installation with the following:
