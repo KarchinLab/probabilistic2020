@@ -1,37 +1,31 @@
 language: python
 python:
-  - "2.7"
-  - "3.5"
+- '2.7'
+- '3.5'
 branches:
   only:
-    - master
-# Setup anaconda
-install: 
-  # - sudo apt-get update
-  # We do this conditionally because it saves us some downloading if the
-  # version is the same.
-  - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
-      wget https://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh;
-    else
-      wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
-    fi
-  - bash miniconda.sh -b -p $HOME/miniconda
-  - export PATH="$HOME/miniconda/bin:$PATH"
-  - hash -r
-  - conda config --set always_yes yes --set changeps1 no
-  - conda update -q conda
-  # Useful for debugging any issues with conda
-  - conda info -a
-  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION atlas numpy scipy nose cython pandas 
-  - source activate test-environment
-  - pip install git+git://github.com/pysam-developers/pysam.git@v0.9.0
-  - make cython-build
-script: "make tests"
+  - master
+install:
+- if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then wget https://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh
+  -O miniconda.sh; else wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
+  -O miniconda.sh; fi
+- bash miniconda.sh -b -p $HOME/miniconda
+- export PATH="$HOME/miniconda/bin:$PATH"
+- hash -r
+- conda config --set always_yes yes --set changeps1 no
+- conda update -q conda
+- conda info -a
+- conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION atlas numpy scipy
+  nose cython pandas
+- source activate test-environment
+- pip install git+git://github.com/pysam-developers/pysam.git@v0.9.0
+- make cython-build
+script: make tests
 deploy:
   provider: pypi
   user: karchinlab
   password:
-    secure: my_secure_password
+    secure: sGH3YuQPKKmcZoKWte8eLwiAbuHU4Y5mF4dJFJhsxmfsuKnWyOl69oXnQGBoifxRSwdnoxHiHAwypdFJSHi1ju/P1U1l05GO7DGmCW6192NaJD82WP/ssWOiX5fPWTUkAJI+Wg4EBNq284lKthdD23r5HOfboDjxn2oWMQhiR29xBmY7X1723chbjMRbcH68tQKxwQRkykFtYWOa6s9h0vZzsq2Pw0sYkpaRUc24UYPkRrGqqN95WMBqcDzDp5GyadHt1v/Wqf2q8vqOrTLSRClPMb4qnyGx0HZoGNV2hphbE4WiQkx5LA32aLUC16ov9A6U6BZx8fzOwRA1uIL9Sqm7I5fDZG+L6/mQf9PGg6z7LhsofkyiUDlOta3RBS1zDvbAdRrkMrKlU4s2tWdELo7uAhHV/kGESRHBDdS+7qwgmWLsjffuxesRUiEljSlcsVLkDsTlVed11SAD2VZfedQtrLGzYtrnoO5mSXRP7NlHZyvdQZek9zFGgksRr5tOye2iFu9pWL/r7UEP39JBw259DZj3hqPi4NBZfrJEUUSR674R9BQNOaxn7uDbHiTjEl9tcEYIvY6d61w7rFYBnMnp2qI0i7T9x7mubOPDPKWYPstvq4EWwjLcT7oPwWvL9dJlg3pKbYMFLqqXdNKDS8oAfgBj46DF33hYOY/IOUU=
   on:
     tags: true
     branch: master
