@@ -12,7 +12,8 @@ def deleterious_permutation(obs_del,
                             gene_seq,
                             num_permutations=10000,
                             stop_criteria=100,
-                            pseudo_count=0):
+                            pseudo_count=0,
+                            max_batch=1000):
     """Performs null-permutations for deleterious mutation statistics
     in a single gene.
 
@@ -46,34 +47,49 @@ def deleterious_permutation(obs_del,
                     for one_context in mycontexts
                     for base in context_to_mut[one_context]]
 
-    # get random positions determined by sequence context
-    tmp_contxt_pos = seq_context.random_pos(context_counts.iteritems(),
-                                            num_permutations)
-    tmp_mut_pos = np.hstack(pos_array for base, pos_array in tmp_contxt_pos)
+    # calculate the # of batches for simulations
+    max_batch = min(num_permutations, max_batch)
+    num_batches = num_permutations // max_batch
+    remainder = num_permutations % max_batch
+    batch_sizes = [max_batch] * num_batches
+    if remainder:
+        batch_sizes += [remainder]
 
-    # determine result of random positions
-    #del_count_list = []
     null_del_ct = 0
-    for i, row in enumerate(tmp_mut_pos):
-        # get info about mutations
-        tmp_mut_info = mc.get_aa_mut_info(row,
-                                          somatic_base,
-                                          gene_seq)
-
-        # calc deleterious mutation info
-        tmp_del_count = cutils.calc_deleterious_info(tmp_mut_info['Reference AA'],
-                                                     tmp_mut_info['Somatic AA'],
-                                                     tmp_mut_info['Codon Pos'])
-        #del_count_list.append(tmp_del_count + pseudo_count)
-
-        # update empricial null distribution
-        if tmp_del_count >= obs_del: null_del_ct += 1
-
-        # stop if reach sufficient precision on p-value
+    for j, batch_size in enumerate(batch_sizes):
+        # stop iterations if reached sufficient precision
         if null_del_ct >= stop_criteria:
+            i = 0
             break
 
-    del_pval = float(null_del_ct) / (i+1)
+        # get random positions determined by sequence context
+        tmp_contxt_pos = seq_context.random_pos(context_counts.iteritems(),
+                                                batch_size)
+        tmp_mut_pos = np.hstack(pos_array for base, pos_array in tmp_contxt_pos)
+
+        # determine result of random positions
+        #del_count_list = []
+        for i, row in enumerate(tmp_mut_pos):
+            # get info about mutations
+            tmp_mut_info = mc.get_aa_mut_info(row,
+                                              somatic_base,
+                                              gene_seq)
+
+            # calc deleterious mutation info
+            tmp_del_count = cutils.calc_deleterious_info(tmp_mut_info['Reference AA'],
+                                                         tmp_mut_info['Somatic AA'],
+                                                         tmp_mut_info['Codon Pos'])
+            #del_count_list.append(tmp_del_count + pseudo_count)
+
+            # update empricial null distribution
+            if tmp_del_count >= obs_del: null_del_ct += 1
+
+            # stop if reach sufficient precision on p-value
+            if null_del_ct >= stop_criteria:
+                break
+
+    num_sim = j*max_batch + i+1
+    del_pval = float(null_del_ct) / (num_sim)
 
     #return del_count_list
     return del_pval
@@ -87,7 +103,8 @@ def position_permutation(obs_stat,
                          gene_vest=None,
                          num_permutations=10000,
                          stop_criteria=100,
-                         pseudo_count=0):
+                         pseudo_count=0,
+                         max_batch=1000):
     """Performs null-permutations for position-based mutation statistics
     in a single gene.
 
@@ -129,48 +146,63 @@ def position_permutation(obs_stat,
                     for one_context in mycontexts
                     for base in context_to_mut[one_context]]
 
-    # get random positions determined by sequence context
-    tmp_contxt_pos = seq_context.random_pos(context_counts.iteritems(),
-                                            num_permutations)
-    tmp_mut_pos = np.hstack(pos_array for base, pos_array in tmp_contxt_pos)
+    # calculate the # of batches for simulations
+    max_batch = min(num_permutations, max_batch)
+    num_batches = num_permutations // max_batch
+    remainder = num_permutations % max_batch
+    batch_sizes = [max_batch] * num_batches
+    if remainder:
+        batch_sizes += [remainder]
 
-    # calculate position-based statistics as a result of random positions
-    #stop_count = int(stop_criteria*num_permutations)
-    obs_recur, obs_ent, obs_delta_ent, obs_vest = obs_stat
-    #num_recur_list, entropy_list, delta_entropy_list, vest_list = [], [], [], []
     null_num_recur_ct, null_entropy_ct, null_delta_entropy_ct, null_vest_ct = 0, 0, 0, 0
-    for i, row in enumerate(tmp_mut_pos):
-        # get info about mutations
-        tmp_mut_info = mc.get_aa_mut_info(row,
-                                          somatic_base,
-                                          gene_seq)
-
-        # calculate position info
-        tmp_recur_ct, tmp_entropy, tmp_delta_entropy, _ = cutils.calc_pos_info(tmp_mut_info['Codon Pos'],
-                                                                               tmp_mut_info['Reference AA'],
-                                                                               tmp_mut_info['Somatic AA'],
-                                                                               pseudo_count=pseudo_count,
-                                                                               is_obs=0)
-        # get vest scores
-        if gene_vest:
-            tmp_vest = scores.compute_vest_stat(gene_vest,
-                                                tmp_mut_info['Reference AA'],
-                                                tmp_mut_info['Somatic AA'],
-                                                tmp_mut_info['Codon Pos'])
-        else:
-            tmp_vest = 0.0
-
-        # update empirical null distribution counts
-        if tmp_entropy-utils.epsilon <= obs_ent: null_entropy_ct += 1
-        if tmp_vest+utils.epsilon >= obs_vest: null_vest_ct += 1
-
+    for j, batch_size in enumerate(batch_sizes):
         # stop iterations if reached sufficient precision
         if null_vest_ct >= stop_criteria and null_entropy_ct >= stop_criteria:
+            i = 0
             break
 
+        # get random positions determined by sequence context
+        tmp_contxt_pos = seq_context.random_pos(context_counts.iteritems(),
+                                                num_permutations)
+        tmp_mut_pos = np.hstack(pos_array for base, pos_array in tmp_contxt_pos)
+
+        # calculate position-based statistics as a result of random positions
+        #stop_count = int(stop_criteria*num_permutations)
+        obs_recur, obs_ent, obs_delta_ent, obs_vest = obs_stat
+        #num_recur_list, entropy_list, delta_entropy_list, vest_list = [], [], [], []
+        for i, row in enumerate(tmp_mut_pos):
+            # get info about mutations
+            tmp_mut_info = mc.get_aa_mut_info(row,
+                                            somatic_base,
+                                            gene_seq)
+
+            # calculate position info
+            tmp_recur_ct, tmp_entropy, tmp_delta_entropy, _ = cutils.calc_pos_info(tmp_mut_info['Codon Pos'],
+                                                                                tmp_mut_info['Reference AA'],
+                                                                                tmp_mut_info['Somatic AA'],
+                                                                                pseudo_count=pseudo_count,
+                                                                                is_obs=0)
+            # get vest scores
+            if gene_vest:
+                tmp_vest = scores.compute_vest_stat(gene_vest,
+                                                    tmp_mut_info['Reference AA'],
+                                                    tmp_mut_info['Somatic AA'],
+                                                    tmp_mut_info['Codon Pos'])
+            else:
+                tmp_vest = 0.0
+
+            # update empirical null distribution counts
+            if tmp_entropy-utils.epsilon <= obs_ent: null_entropy_ct += 1
+            if tmp_vest+utils.epsilon >= obs_vest: null_vest_ct += 1
+
+            # stop iterations if reached sufficient precision
+            if null_vest_ct >= stop_criteria and null_entropy_ct >= stop_criteria:
+                break
+
     # calculate p-value from empirical null-distribution
-    ent_pval = float(null_entropy_ct) / (i+1)
-    vest_pval = float(null_vest_ct) / (i+1)
+    num_sim = j*max_batch + i+1
+    ent_pval = float(null_entropy_ct) / (num_sim)
+    vest_pval = float(null_vest_ct) / (num_sim)
 
     return ent_pval, vest_pval
 
