@@ -13,7 +13,7 @@ def deleterious_permutation(obs_del,
                             num_permutations=10000,
                             stop_criteria=100,
                             pseudo_count=0,
-                            max_batch=1000):
+                            max_batch=25000):
     """Performs null-permutations for deleterious mutation statistics
     in a single gene.
 
@@ -104,7 +104,7 @@ def position_permutation(obs_stat,
                          num_permutations=10000,
                          stop_criteria=100,
                          pseudo_count=0,
-                         max_batch=1000):
+                         max_batch=25000):
     """Performs null-permutations for position-based mutation statistics
     in a single gene.
 

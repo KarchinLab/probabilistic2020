@@ -71,3 +71,7 @@ def test_100genes_main():
     result = pt.main(opts)
     num_del_sig = np.sum(result['inactivating BH q-value'] < .1)
     assert num_del_sig < 7, 'Few of the 100 test genes should not be significant ({0})'.format(num_del_sig)
+
+
+if __name__ == "__main__":
+    test_100genes_main()
