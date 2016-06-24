@@ -80,6 +80,5 @@ else:
                        'Environment :: Console',
                        'Intended Audience :: Developers',
                        'Intended Audience :: Science/Research'],
-          ext_modules=extensions,
-          use_2to3=True,
+          ext_modules=extensions
     )
