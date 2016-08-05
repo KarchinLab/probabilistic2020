@@ -59,7 +59,7 @@ def deleterious_permutation(obs_del,
     for j, batch_size in enumerate(batch_sizes):
         # stop iterations if reached sufficient precision
         if null_del_ct >= stop_criteria:
-            i = 0
+            j = j - 1
             break
 
         # get random positions determined by sequence context
@@ -158,7 +158,7 @@ def position_permutation(obs_stat,
     for j, batch_size in enumerate(batch_sizes):
         # stop iterations if reached sufficient precision
         if null_vest_ct >= stop_criteria and null_entropy_ct >= stop_criteria:
-            i = 0
+            j = j - 1
             break
 
         # get random positions determined by sequence context
