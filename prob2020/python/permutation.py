@@ -3,6 +3,7 @@ import prob2020.python.utils as utils
 from ..cython import cutils
 import prob2020.python.mutation_context as mc
 import prob2020.python.scores as scores
+import IPython
 
 
 def deleterious_permutation(obs_del,
@@ -55,11 +56,12 @@ def deleterious_permutation(obs_del,
     if remainder:
         batch_sizes += [remainder]
 
+    num_sim = 0
     null_del_ct = 0
     for j, batch_size in enumerate(batch_sizes):
         # stop iterations if reached sufficient precision
         if null_del_ct >= stop_criteria:
-            j = j - 1
+            #j = j - 1
             break
 
         # get random positions determined by sequence context
@@ -68,7 +70,6 @@ def deleterious_permutation(obs_del,
         tmp_mut_pos = np.hstack(pos_array for base, pos_array in tmp_contxt_pos)
 
         # determine result of random positions
-        #del_count_list = []
         for i, row in enumerate(tmp_mut_pos):
             # get info about mutations
             tmp_mut_info = mc.get_aa_mut_info(row,
@@ -79,7 +80,6 @@ def deleterious_permutation(obs_del,
             tmp_del_count = cutils.calc_deleterious_info(tmp_mut_info['Reference AA'],
                                                          tmp_mut_info['Somatic AA'],
                                                          tmp_mut_info['Codon Pos'])
-            #del_count_list.append(tmp_del_count + pseudo_count)
 
             # update empricial null distribution
             if tmp_del_count >= obs_del: null_del_ct += 1
@@ -87,11 +87,12 @@ def deleterious_permutation(obs_del,
             # stop if reach sufficient precision on p-value
             if null_del_ct >= stop_criteria:
                 break
+        # update number of simulations
+        num_sim += i + 1
 
-    num_sim = j*max_batch + i+1
+    #num_sim = j*max_batch + i+1
     del_pval = float(null_del_ct) / (num_sim)
 
-    #return del_count_list
     return del_pval
 
 
@@ -154,27 +155,25 @@ def position_permutation(obs_stat,
     if remainder:
         batch_sizes += [remainder]
 
+    obs_recur, obs_ent, obs_delta_ent, obs_vest = obs_stat
+    num_sim = 0 # number of simulations
     null_num_recur_ct, null_entropy_ct, null_delta_entropy_ct, null_vest_ct = 0, 0, 0, 0
     for j, batch_size in enumerate(batch_sizes):
         # stop iterations if reached sufficient precision
         if null_vest_ct >= stop_criteria and null_entropy_ct >= stop_criteria:
-            j = j - 1
             break
 
         # get random positions determined by sequence context
         tmp_contxt_pos = seq_context.random_pos(context_counts.iteritems(),
-                                                num_permutations)
+                                                batch_size)
         tmp_mut_pos = np.hstack(pos_array for base, pos_array in tmp_contxt_pos)
 
         # calculate position-based statistics as a result of random positions
-        #stop_count = int(stop_criteria*num_permutations)
-        obs_recur, obs_ent, obs_delta_ent, obs_vest = obs_stat
-        #num_recur_list, entropy_list, delta_entropy_list, vest_list = [], [], [], []
         for i, row in enumerate(tmp_mut_pos):
             # get info about mutations
             tmp_mut_info = mc.get_aa_mut_info(row,
-                                            somatic_base,
-                                            gene_seq)
+                                              somatic_base,
+                                              gene_seq)
 
             # calculate position info
             tmp_recur_ct, tmp_entropy, tmp_delta_entropy, _ = cutils.calc_pos_info(tmp_mut_info['Codon Pos'],
@@ -198,9 +197,10 @@ def position_permutation(obs_stat,
             # stop iterations if reached sufficient precision
             if null_vest_ct >= stop_criteria and null_entropy_ct >= stop_criteria:
                 break
+        # update the number of simulations
+        num_sim += i+1
 
     # calculate p-value from empirical null-distribution
-    num_sim = j*max_batch + i+1
     ent_pval = float(null_entropy_ct) / (num_sim)
     vest_pval = float(null_vest_ct) / (num_sim)
 
