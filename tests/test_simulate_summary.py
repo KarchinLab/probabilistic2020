@@ -15,6 +15,7 @@ def test_sim_summary():
             'context': 1.5,
             'summary': False,
             'maf': True,
+            'unique': True,
             'use_unmapped': False,
             'genome': '',
             'score_dir': None,  # just skip using scores

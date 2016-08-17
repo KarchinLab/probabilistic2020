@@ -317,6 +317,13 @@ def parse_arguments():
     parser.add_argument('-f', '--fraction',
                         type=float, default=.02,
                         help=help_str)
+    help_str = ('Only keep unique mutations for each tumor sample.'
+                'Mutations reproted from heterogeneous sources may contain'
+                ' duplicates, e.g. a tumor sample was sequenced twice.')
+    parser.add_argument('--unique',
+                        action='store_true',
+                        default=False,
+                        help=help_str)
     help_str = ('Specify the seed for the pseudo random number generator. '
                 'By default, the seed is randomly chosen based. The seed will '
                 'be used for the monte carlo simulations (Default: 101).')
@@ -380,7 +387,7 @@ def main(opts):
                 'information (Droped: {1})'.format(len(mut_df), orig_num_mut - len(mut_df)))
 
     # select valid single nucleotide variants only
-    mut_df = utils._fix_mutation_df(mut_df)
+    mut_df = utils._fix_mutation_df(mut_df, opts['unique'])
 
     # read in bed info
     bed_dict = utils.read_bed(opts['bed'], [])
