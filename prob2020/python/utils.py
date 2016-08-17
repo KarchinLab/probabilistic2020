@@ -306,7 +306,7 @@ def _fix_mutation_df(mutation_df, only_unique=False):
     if only_unique:
         dup_cols = ['Tumor_Sample', 'Chromosome', 'Start_Position',
                     'End_Position', 'Reference_Allele', 'Tumor_Allele']
-        mutation_df = mutation_df.drop_duplicates(cols=dup_cols)
+        mutation_df = mutation_df.drop_duplicates(subset=dup_cols)
 
         # log results of de-duplication
         dedup_len = len(mutation_df)
