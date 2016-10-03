@@ -2,12 +2,14 @@
 import numpy as np
 import os
 import prob2020.python.mymath as mymath
+import sys
 
 # import pickle module
 try:
     import cPickle as pickle
 except:
-    print('Falling back to regular pickle module')
+    if sys.version_info < (3,):
+        print('Falling back to regular pickle module')
     import pickle as pickle
 
 def retrieve_scores(gname, sdir,
@@ -25,8 +27,14 @@ def retrieve_scores(gname, sdir,
     # get information about MGA entropy
     mga_path = os.path.join(sdir, gname+".mgaentropy.pickle")
     if os.path.exists(mga_path):
-        with open(mga_path) as handle:
-            mga_ent = pickle.load(handle)
+        if sys.version_info < (3,):
+            # python 2.7 way
+            with open(mga_path) as handle:
+                mga_ent = pickle.load(handle)
+        else:
+            # python 3.X way
+            with open(mga_path, 'rb') as handle:
+                mga_ent = pickle.load(handle, encoding='latin-1')
     else:
         mga_ent = None
     missense_pos = [p for i, p in enumerate(codon_pos)
@@ -49,8 +57,14 @@ def retrieve_scores(gname, sdir,
     # get information about VEST scores
     vest_path = os.path.join(sdir, gname+".vest.pickle")
     if os.path.exists(vest_path):
-        with open(vest_path) as handle:
-            vest_score = pickle.load(handle)
+        if sys.version_info < (3,):
+            # python 2.7 way
+            with open(vest_path) as handle:
+                vest_score = pickle.load(handle)
+        else:
+            # python 3.X way
+            with open(vest_path, 'rb') as handle:
+                vest_score = pickle.load(handle, encoding='latin-1')
     else:
         vest_score = None
     total_vest = compute_vest_stat(vest_score,
@@ -82,8 +96,12 @@ def read_vest_pickle(gname, score_dir):
     """
     vest_path = os.path.join(score_dir, gname+".vest.pickle")
     if os.path.exists(vest_path):
-        with open(vest_path) as handle:
-            gene_vest = pickle.load(handle)
+        if sys.version_info < (3,):
+            with open(vest_path) as handle:
+                gene_vest = pickle.load(handle)
+        else:
+            with open(vest_path, 'rb') as handle:
+                gene_vest = pickle.load(handle, encoding='latin-1')
         return gene_vest
     else:
         return None
