@@ -613,7 +613,7 @@ def maf_permutation(context_counts,
             # append results
             maf_line = [gene_name, strand, chrom, genome_coord[k], genome_coord[k],
                         ref_nuc, mysomatic_base, base_context[k], dna_change,
-                        protein_change, var_class[k]]
+                        protein_change, var_class[k].decode()]
             maf_list.append(maf_line)
 
     return maf_list
