@@ -29,6 +29,7 @@ are needed. The following is a list of the required columns.
 * Reference_Allele
 * Tumor_Seq_Allele2 (or named "Tumor_Allele")
 * Tumor_Sample_Barcode (or named "Tumor_Sample")
+* Variant_Classification
 
 The remaining columns in the MAF specification can be 
 left empty or not included. Since a MAF file has many additional 
