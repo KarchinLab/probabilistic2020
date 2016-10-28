@@ -34,7 +34,9 @@ are needed. The following is a list of the required columns.
 The remaining columns in the MAF specification can be 
 left empty or not included. Since a MAF file has many additional 
 annotation columns, removing additional columns will reduce
-the memmory usage of probabilistic2020.
+the memory usage of probabilistic2020.
+
+Only coding variants found in the Variant_Classification column will be used, which includes the following: 'Missense_Mutation', 'Silent', 'Nonsense_Mutation', 'Splice_Site', 'Nonstop_Mutation', 'Translation_Start_Site', 'Frame_Shift_Ins', 'Frame_Shift_Del', 'In_Frame_Ins', 'In_Frame_Del', 'Frame_Shift_Indel', or 'In_Frame_Indel'. Note, although 'In_Frame_Indel' and 'Frame_Shift_Indel' are not official MAF specification values, for the purpose of this program represent either and insertion or deletion. Other values for the Variant_Classification column are assumed to be non-coding, and dropped from the analysis.
 
 Gene BED file
 +++++++++++++
@@ -65,7 +67,7 @@ Pre-computed scores (optional)
 ++++++++++++++++++++++++++++++
 
 Two pre-computed scores are used to evaluate missense pathogenicity 
-scores and evolutionary conservartion. Both are provided in the example
+scores and evolutionary conservation. Both are provided in the example
 data, matching the reference transcript annotation from SNVBox.
 Including the score information is useful, but optional. The 
 pre-computed missense pathogenicity scores are from the 
