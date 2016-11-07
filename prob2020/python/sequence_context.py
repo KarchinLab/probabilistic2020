@@ -11,7 +11,11 @@ class SequenceContext(object):
     def __init__(self, gene_seq, seed=None):
         self._init_context(gene_seq)
         self.seed = seed  # seed for random number generator
-        self.prng = np.random.RandomState(seed=self.seed)
+        context_names = prob2020.python.mutation_context.get_all_context_names(gene_seq.nuc_context)
+        self.prng_dict = {
+            c: np.random.RandomState(seed=self.seed)
+            for c in context_names
+        }
 
     def _init_context(self, gene_seq):
         """Initializes attributes defining mutation contexts and their position.
@@ -197,7 +201,7 @@ class SequenceContext(object):
 
         # randomly select from available positions that fit the specified context
         available_pos = self.context2pos[context]
-        random_pos = self.prng.choice(available_pos, (num_permutations, num))
+        random_pos = self.prng_dict[context].choice(available_pos, (num_permutations, num))
         return random_pos
 
     def random_pos(self, context_iterable, num_permutations):
