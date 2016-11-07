@@ -127,24 +127,14 @@ def calc_deleterious_p_value(mut_info,
         # least meet some user-specified threshold
         if num_del >= del_threshold:
             # perform permutations
-            #if len(mut_info) > 0:
             del_p_value = pm.deleterious_permutation(num_del,
-                                                        context_cts,
-                                                        context_to_mutations,
-                                                        sc,  # sequence context obj
-                                                        gs,  # gene sequence obj
-                                                        num_permutations,
-                                                        stop_thresh,
-                                                        pseudo_count)
-            #else:
-                # no SNV mutation case
-                #null_del_list = [0 for i in range(num_permutations)]
-                #del_p_value = 1.0
-
-            # calculate p-value
-            #del_num_nulls = sum([1 for d in null_del_list
-                                    #if d+utils.epsilon >= num_del])
-            #del_p_value = del_num_nulls / float(num_permutations)
+                                                     context_cts,
+                                                     context_to_mutations,
+                                                     sc,  # sequence context obj
+                                                     gs,  # gene sequence obj
+                                                     num_permutations,
+                                                     stop_thresh,
+                                                     pseudo_count)
         else:
             del_p_value = None
     else:
