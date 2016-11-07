@@ -6,6 +6,7 @@ Probabilistic 20/20 releases
 
 You can download the package below, or install directly from github (see :ref:`install-ref`).
 
+* `probabilistic2020-v1.0.6 <https://github.com/KarchinLab/probabilistic2020/archive/v1.0.6.tar.gz>`_ 11/7/2016 Major bug fix in simulations (users should upgrade version)
 * `probabilistic2020-v1.0.5 <https://github.com/KarchinLab/probabilistic2020/archive/v1.0.5.tar.gz>`_ 10/3/2016 Fixed python3 conversion error in pickle module
 * `probabilistic2020-v1.0.4 <https://github.com/KarchinLab/probabilistic2020/archive/v1.0.4.tar.gz>`_ 8/16/2016 Fixed mutation uniquing
 * `probabilistic2020-v1.0.3 <https://github.com/KarchinLab/probabilistic2020/archive/v1.0.3.tar.gz>`_ 8/5/2016 Fixed p-value calculation bug in 1.0.1
