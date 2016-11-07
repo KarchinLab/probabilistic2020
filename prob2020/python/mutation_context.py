@@ -16,6 +16,18 @@ if sys.version_info <= (3, 0):
 
 
 def get_all_context_names(context_num):
+    """Based on the nucleotide base context number, return
+    a list of strings representing each context.
+
+    Parameters
+    ----------
+    context_num : int
+        number representing the amount of nucleotide base context to use.
+
+    Returns
+    -------
+        a list of strings containing the names of the base contexts
+    """
     if context_num == 0:
         return ['None']
     elif context_num == 1:
@@ -24,12 +36,19 @@ def get_all_context_names(context_num):
         return ['C*pG', 'CpG*', 'TpC*', 'G*pA',
                 'A', 'C', 'T', 'G']
     elif context_num == 2:
-        dinucs = [''.join(dinuc)
-                  for dinuc in it.combinations_with_replacement('ACTG', 2)]
+        dinucs = list(set(
+            [d1+d2
+             for d1 in 'ACTG'
+             for d2 in 'ACTG']
+        ))
         return dinucs
     elif context_num == 3:
-        trinucs = [''.join(trinuc)
-                   for trinuc in it.combinations_with_replacement('ACTG', 3)]
+        trinucs = list(set(
+            [t1+t2+t3
+             for t1 in 'ACTG'
+             for t2 in 'ACTG'
+             for t3 in 'ACTG']
+        ))
         return trinucs
 
 
