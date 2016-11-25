@@ -86,4 +86,4 @@ Once finished building you can then use the scripts in the `probabilstic2020/pro
 
 .. code-block:: bash
 
-    $ python prob2020/cosole/probabibilistic2020.py --help
+    $ python prob2020/cosole/probabilistic2020.py --help
