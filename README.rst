@@ -55,7 +55,7 @@ check the installation with the following:
 .. code-block:: bash
 
     $ which probabilistic2020
-    $ probabibilistic2020 --help
+    $ probabilistic2020 --help
 
 Local installation
 ~~~~~~~~~~~~~~~~~~
