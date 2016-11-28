@@ -349,7 +349,7 @@ def main(opts, mut_df=None, frameshift_df=None):
     mut_df.rename(columns=rename_dict, inplace=True)
 
     # drop rows with missing info
-    na_cols = ['Tumor_Allele', 'Start_Position', 'Chromosome']
+    na_cols = ['Gene', 'Tumor_Allele', 'Start_Position', 'Chromosome']
     mut_df = mut_df.dropna(subset=na_cols)
     logger.info('Kept {0} mutations after droping mutations with missing '
                 'information (Droped: {1})'.format(len(mut_df), orig_num_mut - len(mut_df)))

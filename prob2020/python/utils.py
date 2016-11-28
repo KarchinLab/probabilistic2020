@@ -322,7 +322,7 @@ def _fix_mutation_df(mutation_df, only_unique=False):
         mutation_df['Protein_Change'] = ''
 
     # correct for 1-based coordinates
-    mutation_df['Start_Position'] = mutation_df['Start_Position'] - 1
+    mutation_df['Start_Position'] = mutation_df['Start_Position'].astype(int) - 1
     return mutation_df
 
 
