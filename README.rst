@@ -73,7 +73,7 @@ If you don't have the above required packages, you will need to install them. Fo
 
 .. code-block:: bash
 
-    $ cd probabilstic2020
+    $ cd probabilistic2020
     $ pip install -r requirements.txt
 
 If you want the exact package version used for development on python 2.7, then instead use the requirements_dev.txt. Next you will need to build the Probabilistic 20/20 source files. This is can be accomplished in one command.
