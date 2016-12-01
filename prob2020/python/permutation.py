@@ -206,6 +206,115 @@ def position_permutation(obs_stat,
     return ent_pval, vest_pval
 
 
+def hotmaps_permutation(obs_stat,
+                        context_counts,
+                        context_to_mut,
+                        seq_context,
+                        gene_seq,
+                        window,
+                        num_permutations=10000,
+                        stop_criteria=100,
+                        max_batch=25000):
+    """Performs null-permutations for position-based mutation statistics
+    in a single gene.
+
+    Parameters
+    ----------
+    obs_stat : dict
+        dictionary mapping codons to the sum of mutations in a window
+    context_counts : pd.Series
+        number of mutations for each context
+    context_to_mut : dict
+        dictionary mapping nucleotide context to a list of observed
+        somatic base changes.
+    seq_context : SequenceContext
+        Sequence context for the entire gene sequence (regardless
+        of where mutations occur). The nucleotide contexts are
+        identified at positions along the gene.
+    gene_seq : GeneSequence
+        Sequence of gene of interest
+    window : int
+        Number of codons to the left/right of a mutate position to consider
+        in the window
+    num_permutations : int, default: 10000
+        number of permutations to create for null
+    stop_criteria : int
+        stop after stop_criteria iterations are more significant
+        then the observed statistic.
+    max_batch : int
+        maximum number of whole gene simulations to do at once.
+        For large number of simulations holding a matrix of M x N,
+        where M is the number of mutations and N is the number of simulations,
+        can get quite large.
+
+    Returns
+    -------
+    pvals : dict
+        Maps mutated codon position to the calculated p-value
+    """
+    # get contexts and somatic base
+    mycontexts = context_counts.index.tolist()
+    somatic_base = [base
+                    for one_context in mycontexts
+                    for base in context_to_mut[one_context]]
+
+    # calculate the # of batches for simulations
+    max_batch = min(num_permutations, max_batch)
+    num_batches = num_permutations // max_batch
+    remainder = num_permutations % max_batch
+    batch_sizes = [max_batch] * num_batches
+    if remainder:
+        batch_sizes += [remainder]
+
+    # figure out which position has highest value
+    max_key = max(obs_stat.iterkeys(), key=(lambda key: obs_stat[key]))
+
+    # setup null dist counts
+    null_cts = {k: 0 for k in obs_stat}
+
+    num_sim = 0 # number of simulations
+    for j, batch_size in enumerate(batch_sizes):
+        # stop iterations if reached sufficient precision
+        if null_cts[max_key] >= stop_criteria:
+            break
+
+        # get random positions determined by sequence context
+        tmp_contxt_pos = seq_context.random_pos(context_counts.iteritems(),
+                                                batch_size)
+        tmp_mut_pos = np.hstack(pos_array for base, pos_array in tmp_contxt_pos)
+
+        # calculate position-based statistics as a result of random positions
+        for i, row in enumerate(tmp_mut_pos):
+            # get info about mutations
+            tmp_mut_info = mc.get_aa_mut_info(row,
+                                              somatic_base,
+                                              gene_seq)
+
+            # calculate position info
+            _, tmp_sim = utils.calc_windowed_sum(tmp_mut_info['Codon Pos'],
+                                                 tmp_mut_info['Reference AA'],
+                                                 tmp_mut_info['Somatic AA'],
+                                                 window)
+
+            # update the counts when the empirical null passes the observed
+            for val in tmp_sim.itervalues():
+                for key in null_cts.iterkeys():
+                    if val >= obs_stat[key]:
+                        null_cts[key] += 1
+
+            # update the number of simulations
+            num_sim += len(tmp_sim)
+
+            # stop iterations if reached sufficient precision
+            if null_cts[max_key] >= stop_criteria:
+                break
+
+    # calculate p-value from empirical null-distribution
+    pvals = {k: float(null_cts[k]) / (num_sim) for k in obs_stat}
+
+    return pvals
+
+
 def protein_permutation(graph_score,
                         num_codons_obs,
                         context_counts,

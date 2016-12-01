@@ -32,21 +32,23 @@ def singleprocess_permutation(info):
     bed_list, mut_df, opts, fs_cts_df, p_inactivating = info
     current_chrom = bed_list[0].chrom
     logger.info('Working on chromosome: {0} . . .'.format(current_chrom))
-    num_permutations = opts['num_iterations']
     gene_fa = pysam.Fastafile(opts['input'])
     gs = GeneSequence(gene_fa, nuc_context=opts['context'])
+
+    # list of columns that are needed
+    cols = ['Chromosome', 'Start_Position', 'Reference_Allele',
+            'Tumor_Allele', 'Variant_Classification',]
+    # conditionally add protein_change column if exists
+    if 'Protein_Change' in mut_df.columns:
+        cols += ['Protein_Change']
 
     # iterate through each gene
     result = []
     for bed in bed_list:
         # prepare info for running permutation test
-        gene_mut = mut_df[mut_df['Gene']==bed.gene_name]
-        cols = ['Chromosome', 'Start_Position', 'Reference_Allele',
-                'Tumor_Allele', 'Variant_Classification',]
-        # conditionally add protein_change column if exists
-        if 'Protein_Change' in gene_mut.columns:
-            cols += ['Protein_Change']
-        mut_info = gene_mut[cols]
+        #gene_mut = mut_df[mut_df['Gene']==bed.gene_name]
+        #mut_info = gene_mut[cols]
+        mut_info = mut_df.loc[mut_df['Gene']==bed.gene_name, cols]
         gs.set_gene(bed)
         sc = SequenceContext(gs, seed=opts['seed'])
 
@@ -85,7 +87,7 @@ def singleprocess_permutation(info):
             # calculate position based permutation results
             tmp_result = mypval.calc_position_p_value(mut_info, unmapped_mut_info, sc,
                                                       gs, bed, opts['score_dir'],
-                                                      num_permutations,
+                                                      opts['num_iterations'],
                                                       opts['stop_criteria'],
                                                       0,  # no recurrent mutation pseudo count
                                                       opts['recurrent'],
@@ -98,18 +100,27 @@ def singleprocess_permutation(info):
             # replaced fs_ct with zero to stop using the frameshifts in
             # simulation
             tmp_result = mypval.calc_deleterious_p_value(mut_info, unmapped_mut_info,
-                                                         sc, gs, bed, num_permutations,
+                                                         sc, gs, bed,
+                                                         opts['num_iterations'],
                                                          opts['stop_criteria'],
                                                          opts['deleterious'],
                                                          0,  # no deleterious mutation pseudo count
                                                          opts['seed'])
             result.append(tmp_result + [num_mapped_muts, unmapped_muts])
                                         #fs_ct, fs_unmapped])
+        elif opts['kind'] == 'hotmaps1d':
+            # calculate position based permutation results
+            tmp_result = mypval.calc_hotmaps_p_value(mut_info, unmapped_mut_info, sc,
+                                                     gs, bed,
+                                                     opts['window'],
+                                                     opts['num_iterations'],
+                                                     opts['stop_criteria'])
+            result.extend(tmp_result)
         elif opts['kind'] == 'protein':
             tmp_result = mypval.calc_protein_p_value(mut_info, unmapped_mut_info,
                                                      sc, gs, bed,
                                                      opts['neighbor_graph_dir'],
-                                                     num_permutations,
+                                                     opts['num_iterations'],
                                                      opts['stop_criteria'],
                                                      opts['recurrent'],
                                                      opts['fraction'])
@@ -117,7 +128,8 @@ def singleprocess_permutation(info):
         else:
             # calc results for entropy-on-effect permutation test
             tmp_result = mypval.calc_effect_p_value(mut_info, unmapped_mut_info,
-                                                    sc, gs, bed, num_permutations,
+                                                    sc, gs, bed,
+                                                    opts['num_iterations'],
                                                     0, #  no recurrent mutation pseudo count
                                                     opts['recurrent'],
                                                     opts['fraction'])
@@ -394,6 +406,10 @@ def main(opts, mut_df=None, frameshift_df=None):
         permutation_result = multiprocess_permutation(bed_dict, mut_df, opts,
                                                       frameshift_df, p_inactivating)
         permutation_df = pr.handle_tsg_results(permutation_result)
+    elif opts['kind'] == 'hotmaps1d':
+        permutation_result = multiprocess_permutation(bed_dict, mut_df, opts,
+                                                      frameshift_df, p_inactivating)
+        permutation_df = pr.handle_hotmaps_results(permutation_result)
     elif opts['kind'] == 'protein':
         permutation_result = multiprocess_permutation(bed_dict, mut_df, opts)
         permutation_df = pr.handle_protein_results(permutation_result)

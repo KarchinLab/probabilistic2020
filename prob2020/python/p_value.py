@@ -217,6 +217,61 @@ def calc_position_p_value(mut_info,
     return result
 
 
+def calc_hotmaps_p_value(mut_info,
+                         unmapped_mut_info,
+                         sc,
+                         gs,
+                         bed,
+                         window_size,
+                         num_permutations,
+                         stop_thresh):
+    if len(mut_info) > 0:
+        mut_info['Coding Position'] = mut_info['Coding Position'].astype(int)
+        mut_info['Context'] = mut_info['Coding Position'].apply(lambda x: sc.pos2context[x])
+
+        # group mutations by context
+        cols = ['Context', 'Tumor_Allele']
+        unmapped_mut_df = pd.DataFrame(unmapped_mut_info)
+        tmp_df = pd.concat([mut_info[cols], unmapped_mut_df[cols]])
+        context_cts = tmp_df['Context'].value_counts()
+        context_to_mutations = dict((name, group['Tumor_Allele'])
+                                    for name, group in tmp_df.groupby('Context'))
+
+        # get recurrent info for actual mutations
+        aa_mut_info = mc.get_aa_mut_info(mut_info['Coding Position'],
+                                         mut_info['Tumor_Allele'].tolist(),
+                                         gs)
+        codon_pos = aa_mut_info['Codon Pos'] + unmapped_mut_info['Codon Pos']
+        ref_aa = aa_mut_info['Reference AA'] + unmapped_mut_info['Reference AA']
+        somatic_aa = aa_mut_info['Somatic AA'] + unmapped_mut_info['Somatic AA']
+        pos_ct, window_sum_dict = utils.calc_windowed_sum(codon_pos,
+                                                          ref_aa,
+                                                          somatic_aa,
+                                                          window_size)
+        # no missense mutations
+        if not pos_ct:
+            return []
+
+        # perform simulations to get p-value
+        pval_dict = pm.hotmaps_permutation(window_sum_dict,
+                                           context_cts,
+                                           context_to_mutations,
+                                           sc,  # sequence context obj
+                                           gs,  # gene sequence obj
+                                           window_size,
+                                           num_permutations,
+                                           stop_thresh)
+
+        # prepare output
+        # NOTE: internally codon positions start at 0, so add 1 for the output
+        # to the user.
+        result = [[bed.gene_name, k+1, pos_ct[k], window_sum_dict[k], pval_dict[k]]
+                  for k in window_sum_dict]
+    else:
+        result = []
+    return result
+
+
 def calc_protein_p_value(mut_info,
                          unmapped_mut_info,
                          sc,

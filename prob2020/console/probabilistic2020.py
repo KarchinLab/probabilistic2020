@@ -54,11 +54,16 @@ def parse_arguments():
                                        help=help_info,
                                        description=help_info + ' Evaluates for a higher proportion '
                                        'of inactivating mutations than expected.')
+    help_info = 'Find codons with significant clustering of missense mutations.'
+    parser_hotmaps = subparsers.add_parser('hotmaps1d',
+                                           help=help_info,
+                                           description=help_info + ' Evaluates for a higher ammount of '
+                                           'clustering of missense mutations.')
     #parser_protein = subparsers.add_parser('protein', help='Find statistically significant '
                                            #'3D clustering in genes based on protein structure.')
 
     # program arguments
-    for i, parser in enumerate([parser_og, parser_tsg]):
+    for i, parser in enumerate([parser_og, parser_tsg, parser_hotmaps]):
         # group of parameters
         major_parser = parser.add_argument_group(title='Major options')
         advance_parser = parser.add_argument_group(title='Advanced options')
@@ -128,6 +133,12 @@ def parse_arguments():
                                         type=int, default=1,
                                         help=help_str)
         elif i == 2:
+            help_str = ('Sequence window size for HotMAPS 1D algorithm '
+                        'by number of codons (Default: 3)')
+            advance_parser.add_argument('-w', '--window',
+                                        type=int, default=3,
+                                        help=help_str)
+        elif i == 3:
             help_str = 'Directory containing codon neighbor graph information in pickle files (Default: None).'
             major_parser.add_argument('-ng', '--neighbor-graph-dir',
                                       type=str, required=True,
@@ -139,7 +150,7 @@ def parse_arguments():
                                 help=help_str)
             help_str = ('Fraction of total mutations in a gene. This define the '
                         'minimumm number of mutations for a position to be defined '
-                        'as recurrently mutated (Defaul: .02).')
+                        'as recurrently mutated (Default: .02).')
             advance_parser.add_argument('-f', '--fraction',
                                         type=float, default=.02,
                                         help=help_str)
@@ -222,6 +233,9 @@ def main(opts,
     elif opts['kind'] == 'protein':
         p_val_col = 'normalized graph-smoothed position entropy p-value'
         q_val_col = 'normalized graph-smoothed position entropy BH q-value'
+    elif opts['kind'] == 'hotmaps1d':
+        p_val_col = 'p-value'
+        q_val_col = 'q-value'
     result_df[p_val_col] = result_df[p_val_col].fillna(1)
     result_df[q_val_col] = result_df[q_val_col].fillna(1)
 
