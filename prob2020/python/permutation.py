@@ -267,7 +267,7 @@ def hotmaps_permutation(obs_stat,
         batch_sizes += [remainder]
 
     # figure out which position has highest value
-    max_key = max(obs_stat.iterkeys(), key=(lambda key: obs_stat[key]))
+    max_key = max(obs_stat, key=(lambda key: obs_stat[key]))
 
     # setup null dist counts
     null_cts = {k: 0 for k in obs_stat}
@@ -298,7 +298,7 @@ def hotmaps_permutation(obs_stat,
 
             # update the counts when the empirical null passes the observed
             for val in tmp_sim.itervalues():
-                for key in null_cts.iterkeys():
+                for key in null_cts:
                     if val >= obs_stat[key]:
                         null_cts[key] += 1
 
