@@ -297,7 +297,8 @@ def hotmaps_permutation(obs_stat,
                                                  window)
 
             # update the counts when the empirical null passes the observed
-            for val in tmp_sim.itervalues():
+            for tmp_key in tmp_sim:
+                val = tmp_sim[tmp_key]
                 for key in null_cts:
                     if val >= obs_stat[key]:
                         null_cts[key] += 1
