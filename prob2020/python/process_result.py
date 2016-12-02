@@ -90,6 +90,34 @@ def handle_oncogene_results(permutation_result, non_tested_genes, num_permutatio
     return permutation_df[col_order]
 
 
+def handle_hotmaps_results(permutation_result):
+    """Takes in output from multiprocess_permutation function and converts to
+    a better formatted dataframe.
+
+    Parameters
+    ----------
+    permutation_result : list
+        output from multiprocess_permutation
+
+    Returns
+    -------
+    permutation_df : pd.DataFrame
+        formatted output suitable to save
+    """
+    mycols = ['gene', 'codon position', 'mutation count',
+              'windowed sum', 'p-value']
+    permutation_df = pd.DataFrame(permutation_result, columns=mycols)
+
+    # get benjamani hochberg adjusted p-values
+    permutation_df['q-value'] = mypval.bh_fdr(permutation_df['p-value'])
+
+    # order output
+    #permutation_df = permutation_df.set_index('gene', drop=False)  # make sure genes are indices
+    col_order = mycols + ['q-value']
+    permutation_df = permutation_df.sort_values(by=['p-value'])
+    return permutation_df[col_order]
+
+
 def handle_protein_results(permutation_result):
     """Takes in output from multiprocess_permutation function and converts to
     a better formatted dataframe.

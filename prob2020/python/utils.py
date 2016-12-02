@@ -379,3 +379,32 @@ def lzip(*args):
     return result
 
 
+def calc_windowed_sum(aa_mut_pos,
+                      germ_aa,
+                      somatic_aa,
+                      window=3):
+    """Calculate the sum of mutations within a window around a particular mutated
+    codon."""
+    pos_ctr, pos_sum = {}, {}
+    num_pos = len(aa_mut_pos)
+    # figure out the missense mutations
+    for i in range(num_pos):
+        pos = aa_mut_pos[i]
+        # make sure mutation is missense
+        if germ_aa[i] and somatic_aa[i] and germ_aa[i] != '*' and \
+           somatic_aa[i] != '*' and germ_aa[i] != somatic_aa[i]:
+            # should have a position, but if not skip it
+            if pos is not None:
+                pos_ctr.setdefault(pos, 0)
+                pos_ctr[pos] += 1
+
+    # calculate windowed sum
+    pos_list = sorted(pos_ctr.keys())
+    for pos in pos_list:
+        tmp_sum = 0
+        for pos2 in pos_list:
+            if pos-window <= pos2 <= pos+window:
+                tmp_sum += pos_ctr[pos2]
+        pos_sum[pos] = tmp_sum
+
+    return pos_ctr, pos_sum
