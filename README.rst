@@ -30,6 +30,10 @@ Documentation
 
 Please see the `documentation <http://probabilistic2020.readthedocs.org/>`_ on readthedocs for more details.
 
+Citation
+--------
+
+Collin J. Tokheim, Nickolas Papadopoulos, Kenneth W. Kinzler, Bert Vogelstein, and Rachel Karchin. Evaluating the evaluation of cancer driver genes. PNAS 2016 ; published ahead of print November 22, 2016, doi:10.1073/pnas.1616440113
 
 Installation
 ------------
