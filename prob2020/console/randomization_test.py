@@ -42,12 +42,17 @@ def singleprocess_permutation(info):
     if 'Protein_Change' in mut_df.columns:
         cols += ['Protein_Change']
 
+    # figure out which genes actually have a mutation
+    genes_with_mut = set(mut_df['Gene'].unique())
+
     # iterate through each gene
     result = []
     for bed in bed_list:
+        if bed.gene_name not in genes_with_mut:
+            # skip genes with no mutations
+            continue
+
         # prepare info for running permutation test
-        #gene_mut = mut_df[mut_df['Gene']==bed.gene_name]
-        #mut_info = gene_mut[cols]
         mut_info = mut_df.loc[mut_df['Gene']==bed.gene_name, cols]
         gs.set_gene(bed)
         sc = SequenceContext(gs, seed=opts['seed'])
