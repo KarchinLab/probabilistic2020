@@ -54,7 +54,7 @@ def parse_arguments():
                                        help=help_info,
                                        description=help_info + ' Evaluates for a higher proportion '
                                        'of inactivating mutations than expected.')
-    help_info = 'Find codons with significant clustering of missense mutations.'
+    help_info = 'Find codons with significant clustering of missense mutations in sequence.'
     parser_hotmaps = subparsers.add_parser('hotmaps1d',
                                            help=help_info,
                                            description=help_info + ' Evaluates for a higher ammount of '
