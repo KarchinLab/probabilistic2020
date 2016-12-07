@@ -43,11 +43,11 @@ Contents:
    tutorial
    faq
 
+Citation
+--------
 
-Indices and tables
-==================
+Collin J. Tokheim, Nickolas Papadopoulos, Kenneth W. Kinzler, Bert Vogelstein, and Rachel Karchin. Evaluating the evaluation of cancer driver genes. PNAS 2016 ; published ahead of print November 22, 2016, doi:10.1073/pnas.1616440113
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+If you use the hotmaps1d command to find codons were missense mutations are significantly clustered, please cite the HotMAPS paper:
 
+Tokheim C, Bhattacharya R, Niknafs N, Gygax DM, Kim R, Ryan M, Masica DL, Karchin R (2016) Exome-scale discovery of hotspot mutation regions in human cancer using 3D protein structure Cancer Research. Apr. 28.pii: canres.3190.2015. 

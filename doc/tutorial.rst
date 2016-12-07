@@ -154,6 +154,31 @@ a higher than expected fraction of inactivating mutations. Mutations which could
 not be placed onto the reference transcript will be indicated in the 
 "SNVs Unmapped to Ref Tx" column.
 
+Running hotmaps1d sub-command
++++++++++++++++++++++++++++++
+
+The **hotmaps1d** sub-command evaluates particular amino acid residues for elevated cluster of missense mutations in the protein sequence.
+
+.. code-block:: bash
+
+   $ probabilistic2020 hotmaps1d \
+        -i genes.fa \
+        -b genes.bed \
+        -m mutations.txt \
+        -w 3 \
+        -p 10 \
+        -c 1.5 \
+        -o hotmaps1d_output.txt
+
+Where genes.fa is your gene FASTA file for your reference transcripts in genes.bed, mutations.txt is your MAF file containing mutations, and hotmaps1d_output.txt is the file name to save the results. HotMAPS 1D also takes a window size for examining missense mutation clustering. In the above example, the parameter **-w 3** considers 3 residues on either side of each mutated residue. A large number of mutations in this small window may indicate the mutations form a "hotspot", and likely contain driver mutations at the mutated residue. The window size can be changed depending on the preferred granularity of the analysis.
+
+Output format
+#############
+
+The hotmaps1d statistical test examines the position of missense mutations in sequence. 
+Both the p-value ("p-value") and the Benjamini-hochberg q-value ("q-value") are reported for 
+a higher than expected ammount of missense mutations within a given window around a mutation. The "mutation count" column reports how many missense mutations were observed at the particular codon, and the "windowed sum" column reports how many missense mutations were observed in a sequence window encompassing the particular codon.
+
 Simulating somatic mutations
 ----------------------------
 
