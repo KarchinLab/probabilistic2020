@@ -62,7 +62,7 @@ else:
           author_email=EMAIL,
           url=URL,
           packages=PACKAGES,
-          license='JHU Academic Software License Agreement (free for non-commercial use)',
+          license='Apache License Version 2.0',
           install_requires=['numpy', 'scipy', 'pandas', 'pysam'],
           package_data={
               SRC_DIR+'.console': ['*.R']
