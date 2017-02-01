@@ -20,6 +20,7 @@ def test_ctnnb1_hotmaps_main():
             'unique': 0,
             'seed': None,
             'window': 3,
+            'report_index': True,
             'kind': 'hotmaps1d'}
     # single nucleotide context
     result = rt.main(opts)
@@ -46,6 +47,7 @@ def test_100genes_main():
             'unique': False,
             'seed': None,
             'window': 3,
+            'report_index': False,
             'kind': 'hotmaps1d'}
     # single nucleotide context
     result = rt.main(opts)
