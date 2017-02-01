@@ -234,7 +234,7 @@ def hotmaps_permutation(obs_stat,
     gene_seq : GeneSequence
         Sequence of gene of interest
     window : int
-        Number of codons to the left/right of a mutate position to consider
+        Number of codons to the left/right of a mutated position to consider
         in the window
     num_permutations : int, default: 10000
         number of permutations to create for null
