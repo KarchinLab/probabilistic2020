@@ -104,8 +104,13 @@ def handle_hotmaps_results(permutation_result):
     permutation_df : pd.DataFrame
         formatted output suitable to save
     """
-    mycols = ['gene', 'codon position', 'mutation count',
-              'windowed sum', 'p-value']
+    if len(permutation_result[0])  == 5:
+        mycols = ['gene', 'codon position', 'mutation count',
+                  'windowed sum', 'p-value']
+    else:
+        mycols = ['gene', 'codon position', 'index', 'mutation count',
+                  'windowed sum', 'p-value']
+
     permutation_df = pd.DataFrame(permutation_result, columns=mycols)
 
     # get benjamani hochberg adjusted p-values

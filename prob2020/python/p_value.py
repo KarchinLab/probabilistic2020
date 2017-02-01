@@ -224,7 +224,8 @@ def calc_hotmaps_p_value(mut_info,
                          bed,
                          window_size,
                          num_permutations,
-                         stop_thresh):
+                         stop_thresh,
+                         report_index=False):
     if len(mut_info) > 0:
         mut_info['Coding Position'] = mut_info['Coding Position'].astype(int)
         mut_info['Context'] = mut_info['Coding Position'].apply(lambda x: sc.pos2context[x])
@@ -248,9 +249,15 @@ def calc_hotmaps_p_value(mut_info,
                                                           ref_aa,
                                                           somatic_aa,
                                                           window_size)
+
         # no missense mutations
         if not pos_ct:
             return []
+
+        # in case the index in the original mutation data frame is needed
+        if report_index:
+            mut_info['Codon Pos'] = aa_mut_info['Codon Pos']
+            pos2ix = mut_info.groupby('Codon Pos').groups
 
         # perform simulations to get p-value
         pval_dict = pm.hotmaps_permutation(window_sum_dict,
@@ -265,8 +272,13 @@ def calc_hotmaps_p_value(mut_info,
         # prepare output
         # NOTE: internally codon positions start at 0, so add 1 for the output
         # to the user.
-        result = [[bed.gene_name, k+1, pos_ct[k], window_sum_dict[k], pval_dict[k]]
-                  for k in window_sum_dict]
+        if not report_index:
+            result = [[bed.gene_name, k+1, pos_ct[k], window_sum_dict[k], pval_dict[k]]
+                      for k in window_sum_dict]
+        else:
+            result = [[bed.gene_name, k+1, pos2ix[k][0], pos_ct[k], window_sum_dict[k], pval_dict[k]]
+                      for k in window_sum_dict]
+
     else:
         result = []
     return result

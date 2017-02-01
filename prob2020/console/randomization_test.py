@@ -119,7 +119,8 @@ def singleprocess_permutation(info):
                                                      gs, bed,
                                                      opts['window'],
                                                      opts['num_iterations'],
-                                                     opts['stop_criteria'])
+                                                     opts['stop_criteria'],
+                                                     opts['report_index'])
             result.extend(tmp_result)
         elif opts['kind'] == 'protein':
             tmp_result = mypval.calc_protein_p_value(mut_info, unmapped_mut_info,
