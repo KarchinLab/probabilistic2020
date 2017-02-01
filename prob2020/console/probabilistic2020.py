@@ -138,7 +138,7 @@ def parse_arguments():
             advance_parser.add_argument('-w', '--window',
                                         type=int, default=3,
                                         help=help_str)
-            help_str = ('Flag for reporting index (row number) in associated mutation file')
+            help_str = ('Flag for reporting index (row number, starts at zero) in associated mutation file')
             advance_parser.add_argument('-r', '--report-index',
                                         action='store_true', default=False,
                                         help=help_str)
