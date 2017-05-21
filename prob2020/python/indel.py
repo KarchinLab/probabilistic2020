@@ -106,10 +106,8 @@ def counts2maf(num_indels, myindel_lens, myindel_types, gene_bed, seed=None):
             var_class = 'Frame_Shift_Ins' if is_frame_shift[i] else 'In_Frame_Ins'
             dna_change = 'c.{0}_{1}ins'.format(pos[i], pos[i])
             prot_change = 'p.?'
-            print(i)
-            print(myindel_lens)
             tmp = [gene_bed.gene_name, gene_bed.strand, gene_bed.chrom,
-                   gpos, gpos, '-', 'N'*myindel_lens[i], '-', dna_change,
+                   gpos, gpos, '-', 'N'*int(myindel_lens[i]), '-', dna_change,
                    prot_change, var_class]
             maf_list.append(tmp)
         else:
@@ -117,7 +115,7 @@ def counts2maf(num_indels, myindel_lens, myindel_types, gene_bed, seed=None):
             dna_change = 'c.{0}_{1}del'.format(pos[i], pos[i]+myindel_lens[i])
             prot_change = 'p.?'
             tmp = [gene_bed.gene_name, gene_bed.strand, gene_bed.chrom,
-                   gpos+1, gpos+myindel_lens[i], 'N'*myindel_lens[i], '-', '-', dna_change,
+                   gpos+1, gpos+myindel_lens[i], 'N'*int(myindel_lens[i]), '-', '-', dna_change,
                    prot_change, var_class]
             maf_list.append(tmp)
 
