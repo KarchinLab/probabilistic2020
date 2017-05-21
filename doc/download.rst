@@ -6,6 +6,7 @@ Probabilistic 20/20 releases
 
 You can download the package below, or install directly from github (see :ref:`install-ref`).
 
+* `probabilistic2020-v1.1.1 <https://github.com/KarchinLab/probabilistic2020/archive/v1.1.1.tar.gz>`_ 5/21/2017 Fixed bug for newer releases of numpy
 * `probabilistic2020-v1.1.0 <https://github.com/KarchinLab/probabilistic2020/archive/v1.1.0.tar.gz>`_ 12/7/2016 Added HotMAPS 1D algorithm to find codons with significant clustering of missense mutations
 * `probabilistic2020-v1.0.7 <https://github.com/KarchinLab/probabilistic2020/archive/v1.0.7.tar.gz>`_ 11/29/2016 Fixed simulated indel bug
 * `probabilistic2020-v1.0.6 <https://github.com/KarchinLab/probabilistic2020/archive/v1.0.6.tar.gz>`_ 11/7/2016 Major bug fix in simulations (users should upgrade version)
