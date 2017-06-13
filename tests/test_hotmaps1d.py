@@ -55,3 +55,7 @@ def test_100genes_main():
     result = rt.main(opts)
     num_sig = np.sum(result['q-value'] < .01)
     assert num_sig < 9, 'Few of the 100 test genes should not be significant ({0})'.format(num_sig)
+
+
+if __name__ == '__main__':
+    test_100genes_main()

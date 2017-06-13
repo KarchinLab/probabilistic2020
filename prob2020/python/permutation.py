@@ -334,9 +334,9 @@ def hotmaps_permutation(obs_stat,
         sorted_cts = sorted(empirical_null.keys())
         tmp_sum = 0
         for i in range(len(sorted_cts)):
-            tmp_sum += empirical_null[sorted_cts[-i]]
+            tmp_sum += empirical_null[sorted_cts[-(i+1)]]
             tmp_pval = tmp_sum / float(num_sim)
-            output.append([sorted_cts[-i], tmp_pval])
+            output.append([sorted_cts[-(i+1)], tmp_pval])
         # save output
         with open(null_save_path, 'w') as handle:
             mywriter = csv.writer(handle, delimiter='\t', lineterminator='\n')
