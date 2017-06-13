@@ -143,7 +143,7 @@ def parse_arguments():
                                         action='store_true', default=False,
                                         help=help_str)
             help_str = ('Path to directory to save empirical null distribution')
-            advance_parser.add_argument('-n', '--null-distr-dir',
+            advance_parser.add_argument('-nd', '--null-distr-dir',
                                         type=str,
                                         help=help_str)
         elif i == 3:
