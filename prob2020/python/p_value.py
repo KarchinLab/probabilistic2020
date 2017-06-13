@@ -225,7 +225,8 @@ def calc_hotmaps_p_value(mut_info,
                          window_size,
                          num_permutations,
                          stop_thresh,
-                         report_index=False):
+                         report_index=False,
+                         null_save_path=None):
     if len(mut_info) > 0:
         mut_info['Coding Position'] = mut_info['Coding Position'].astype(int)
         mut_info['Context'] = mut_info['Coding Position'].apply(lambda x: sc.pos2context[x])
@@ -267,7 +268,8 @@ def calc_hotmaps_p_value(mut_info,
                                            gs,  # gene sequence obj
                                            window_size,
                                            num_permutations,
-                                           stop_thresh)
+                                           stop_thresh,
+                                           null_save_path)
 
         # prepare output
         # NOTE: internally codon positions start at 0, so add 1 for the output

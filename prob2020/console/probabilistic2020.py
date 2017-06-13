@@ -142,6 +142,10 @@ def parse_arguments():
             advance_parser.add_argument('-r', '--report-index',
                                         action='store_true', default=False,
                                         help=help_str)
+            help_str = ('Path to directory to save empirical null distribution')
+            advance_parser.add_argument('-n', '--null-distr-dir',
+                                        type=str,
+                                        help=help_str)
         elif i == 3:
             help_str = 'Directory containing codon neighbor graph information in pickle files (Default: None).'
             major_parser.add_argument('-ng', '--neighbor-graph-dir',

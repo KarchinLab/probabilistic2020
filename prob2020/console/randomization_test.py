@@ -114,13 +114,20 @@ def singleprocess_permutation(info):
             result.append(tmp_result + [num_mapped_muts, unmapped_muts])
                                         #fs_ct, fs_unmapped])
         elif opts['kind'] == 'hotmaps1d':
+            # save null distribution if user option specified
+            if opts['null_distr_dir']:
+                if not os.path.exists(opts['null_distr_dir']): os.mkdir(opts['null_distr_dir'])
+                save_path = os.path.join(opts['null_distr_dir'], bed.gene_name + '.txt')
+            else:
+                save_path = None
             # calculate position based permutation results
             tmp_result = mypval.calc_hotmaps_p_value(mut_info, unmapped_mut_info, sc,
                                                      gs, bed,
                                                      opts['window'],
                                                      opts['num_iterations'],
                                                      opts['stop_criteria'],
-                                                     opts['report_index'])
+                                                     opts['report_index'],
+                                                     save_path)
             result.extend(tmp_result)
         elif opts['kind'] == 'protein':
             tmp_result = mypval.calc_protein_p_value(mut_info, unmapped_mut_info,

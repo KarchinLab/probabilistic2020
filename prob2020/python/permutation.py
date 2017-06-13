@@ -1,4 +1,5 @@
 import numpy as np
+import csv
 import prob2020.python.utils as utils
 from ..cython import cutils
 import prob2020.python.mutation_context as mc
@@ -214,7 +215,8 @@ def hotmaps_permutation(obs_stat,
                         window,
                         num_permutations=10000,
                         stop_criteria=100,
-                        max_batch=25000):
+                        max_batch=25000,
+                        null_save_path=None):
     """Performs null-permutations for position-based mutation statistics
     in a single gene.
 
@@ -246,6 +248,8 @@ def hotmaps_permutation(obs_stat,
         For large number of simulations holding a matrix of M x N,
         where M is the number of mutations and N is the number of simulations,
         can get quite large.
+    null_save_path : str or None
+        File path to save null distribution. If None, don't save it.
 
     Returns
     -------
@@ -271,6 +275,9 @@ def hotmaps_permutation(obs_stat,
 
     # setup null dist counts
     null_cts = {k: 0 for k in obs_stat}
+
+    # empirical null distribution (saved if file path provided)
+    empirical_null = {}
 
     num_sim = 0 # number of simulations
     for j, batch_size in enumerate(batch_sizes):
@@ -298,7 +305,14 @@ def hotmaps_permutation(obs_stat,
 
             # update the counts when the empirical null passes the observed
             for tmp_key in tmp_sim:
+                # get mutation count for simulation
                 val = tmp_sim[tmp_key]
+
+                # add to empirical null distribution
+                empirical_null.setdefault(val, 0)
+                empirical_null[val] += 1
+
+                # update counts used for p-value
                 for key in null_cts:
                     if val >= obs_stat[key]:
                         null_cts[key] += 1
@@ -312,6 +326,21 @@ def hotmaps_permutation(obs_stat,
 
     # calculate p-value from empirical null-distribution
     pvals = {k: float(null_cts[k]) / (num_sim) for k in obs_stat}
+
+    # save empirical distribution
+    if null_save_path:
+        # create null distribution
+        output = [['mutation_count', 'p-value']]
+        sorted_cts = sorted(empirical_null.keys())
+        tmp_sum = 0
+        for i in range(len(sorted_cts)):
+            tmp_sum += empirical_null[sorted_cts[-i]]
+            tmp_pval = tmp_sum / float(num_sim)
+            output.append([sorted_cts[-i], tmp_pval])
+        # save output
+        with open(null_save_path, 'w') as handle:
+            mywriter = csv.writer(handle, delimiter='\t', lineterminator='\n')
+            mywriter.writerows(output)
 
     return pvals
 
