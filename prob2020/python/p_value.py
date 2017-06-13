@@ -269,7 +269,7 @@ def calc_hotmaps_p_value(mut_info,
                                            window_size,
                                            num_permutations,
                                            stop_thresh,
-                                           null_save_path)
+                                           null_save_path=null_save_path)
 
         # prepare output
         # NOTE: internally codon positions start at 0, so add 1 for the output
