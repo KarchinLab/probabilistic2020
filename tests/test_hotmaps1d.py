@@ -21,6 +21,7 @@ def test_ctnnb1_hotmaps_main():
             'seed': None,
             'window': 3,
             'report_index': True,
+            'null_distr_dir': os.path.join(file_dir, 'output/hotmaps1d_null'),
             'kind': 'hotmaps1d'}
     # single nucleotide context
     result = rt.main(opts)
@@ -48,6 +49,7 @@ def test_100genes_main():
             'seed': None,
             'window': 3,
             'report_index': False,
+            'null_distr_dir': os.path.join(file_dir, 'output/hotmaps1d_null'),
             'kind': 'hotmaps1d'}
     # single nucleotide context
     result = rt.main(opts)
