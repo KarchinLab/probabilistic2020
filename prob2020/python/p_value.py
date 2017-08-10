@@ -275,11 +275,13 @@ def calc_hotmaps_p_value(mut_info,
         # NOTE: internally codon positions start at 0, so add 1 for the output
         # to the user.
         if not report_index:
-            result = [[bed.gene_name, k+1, pos_ct[k], window_sum_dict[k], pval_dict[k]]
-                      for k in window_sum_dict]
+            result = [[bed.gene_name, mywin, k+1, pos_ct[k], window_sum_dict[mywin][k], pval_dict[mywin][k]]
+                      for mywin in window_sum_dict
+                      for k in window_sum_dict[mywin]]
         else:
-            result = [[bed.gene_name, k+1, pos2ix[k][0], pos_ct[k], window_sum_dict[k], pval_dict[k]]
-                      for k in window_sum_dict]
+            result = [[bed.gene_name, mywin, k+1, pos2ix[k][0], pos_ct[k], window_sum_dict[mywin][k], pval_dict[mywin][k]]
+                      for mywin in window_sum_dict
+                      for k in window_sum_dict[mywin]]
 
     else:
         result = []

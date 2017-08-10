@@ -382,10 +382,30 @@ def lzip(*args):
 def calc_windowed_sum(aa_mut_pos,
                       germ_aa,
                       somatic_aa,
-                      window=3):
+                      window=[3]):
     """Calculate the sum of mutations within a window around a particular mutated
-    codon."""
-    pos_ctr, pos_sum = {}, {}
+    codon.
+
+    Parameters
+    ----------
+    aa_mut_pos : list
+        list of mutated amino acid positions
+    germ_aa : list
+        Reference amino acid
+    somatic_aa : list
+        Somatic amino acid (if missense)
+    window : list
+        List of windows to calculate for
+
+    Returns
+    -------
+    pos_ctr : dict
+        dictionary of mutated positions (key) with associated counts (value)
+    pos_sum : dict of dict
+        Window size as first key points to dictionary of mutated positions (key)
+        with associated mutation count within the window size (value)
+    """
+    pos_ctr, pos_sum = {}, {w: {} for w in window}
     num_pos = len(aa_mut_pos)
     # figure out the missense mutations
     for i in range(num_pos):
@@ -400,11 +420,30 @@ def calc_windowed_sum(aa_mut_pos,
 
     # calculate windowed sum
     pos_list = sorted(pos_ctr.keys())
-    for pos in pos_list:
-        tmp_sum = 0
-        for pos2 in pos_list:
-            if pos-window <= pos2 <= pos+window:
-                tmp_sum += pos_ctr[pos2]
-        pos_sum[pos] = tmp_sum
+    max_window = max(window)
+    for ix, pos in enumerate(pos_list):
+        tmp_sum = {w: 0 for w in window}
+        # go through the same and lower positions
+        for k in reversed(range(ix+1)):
+            pos2 = pos_list[k]
+            if pos2 < pos-max_window: break
+            for w in window:
+                if pos-w <= pos2:
+                    tmp_sum[w] += pos_ctr[pos2]
+        # go though the higher positions
+        for l in range(ix+1, len(pos_list)):
+            pos2 = pos_list[l]
+            if pos2 > pos+max_window: break
+            for w in window:
+                if pos2 <= pos+w:
+                    tmp_sum[w] += pos_ctr[pos2]
+        # iterate through all other positions
+        #for pos2 in pos_list:
+            #for w in window:
+                #if pos-w <= pos2 <= pos+w:
+                    #tmp_sum[w] += pos_ctr[pos2]
+        # update windowed counts
+        for w in window:
+            pos_sum[w][pos] = tmp_sum[w]
 
     return pos_ctr, pos_sum

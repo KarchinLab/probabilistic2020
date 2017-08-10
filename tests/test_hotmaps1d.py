@@ -19,7 +19,7 @@ def test_ctnnb1_hotmaps_main():
             'stop_criteria': 100,
             'unique': 0,
             'seed': None,
-            'window': 3,
+            'window': '3',
             'report_index': True,
             'null_distr_dir': os.path.join(file_dir, 'output/hotmaps1d_null'),
             'kind': 'hotmaps1d'}
@@ -27,11 +27,11 @@ def test_ctnnb1_hotmaps_main():
     result = rt.main(opts)
 
     # di-nucleotide case
-    opts['window'] = 6
+    opts['window'] = '6'
     result = rt.main(opts)
 
     # no context case
-    opts['window'] = 9
+    opts['window'] = '9'
     result = rt.main(opts)
 
 
@@ -47,7 +47,7 @@ def test_100genes_main():
             'stop_criteria': 100,
             'unique': False,
             'seed': None,
-            'window': 3,
+            'window': '3',
             'report_index': False,
             'null_distr_dir': os.path.join(file_dir, 'output/hotmaps1d_null'),
             'kind': 'hotmaps1d'}

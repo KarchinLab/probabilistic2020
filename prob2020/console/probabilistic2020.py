@@ -136,7 +136,7 @@ def parse_arguments():
             help_str = ('Sequence window size for HotMAPS 1D algorithm '
                         'by number of codons (Default: 3)')
             advance_parser.add_argument('-w', '--window',
-                                        type=int, default=3,
+                                        type=str, default='3',
                                         help=help_str)
             help_str = ('Flag for reporting index (row number, starts at zero) in associated mutation file')
             advance_parser.add_argument('-r', '--report-index',

@@ -271,19 +271,26 @@ def hotmaps_permutation(obs_stat,
         batch_sizes += [remainder]
 
     # figure out which position has highest value
-    max_key = max(obs_stat, key=(lambda key: obs_stat[key]))
+    max_key = {w: max(obs_stat[w], key=(lambda key: obs_stat[w][key]))
+               for w in window}
 
     # setup null dist counts
-    null_cts = {k: 0 for k in obs_stat}
+    null_cts = {w: {k: 0 for k in obs_stat[w]}
+                for w in window }
 
     # empirical null distribution (saved if file path provided)
-    empirical_null = {}
+    empirical_null = {w: {} for w in window}
 
     num_sim = 0 # number of simulations
     for j, batch_size in enumerate(batch_sizes):
         # stop iterations if reached sufficient precision
-        if null_cts[max_key] >= stop_criteria:
+        # stop iterations if reached sufficient precision
+        stop_flag = [(null_cts[w][max_key[w]]>=stop_criteria)
+                      for w in window]
+        if all(stop_flag):
             break
+        #if null_cts[max_key] >= stop_criteria:
+            #break
 
         # get random positions determined by sequence context
         tmp_contxt_pos = seq_context.random_pos(context_counts.iteritems(),
@@ -304,43 +311,48 @@ def hotmaps_permutation(obs_stat,
                                                  window)
 
             # update the counts when the empirical null passes the observed
-            for tmp_key in tmp_sim:
-                # get mutation count for simulation
-                val = tmp_sim[tmp_key]
+            for tmp_w in tmp_sim:
+                for tmp_key in tmp_sim[tmp_w]:
+                    # get mutation count for simulation
+                    val = tmp_sim[tmp_w][tmp_key]
 
-                # add to empirical null distribution
-                empirical_null.setdefault(val, 0)
-                empirical_null[val] += 1
+                    # add to empirical null distribution
+                    empirical_null[tmp_w].setdefault(val, 0)
+                    empirical_null[tmp_w][val] += 1
 
-                # update counts used for p-value
-                for key in null_cts:
-                    if val >= obs_stat[key]:
-                        null_cts[key] += 1
+                    # update counts used for p-value
+                    for key in null_cts[tmp_w]:
+                        if val >= obs_stat[tmp_w][key]:
+                            null_cts[tmp_w][key] += 1
 
             # update the number of simulations
             num_sim += len(tmp_sim)
 
             # stop iterations if reached sufficient precision
-            if null_cts[max_key] >= stop_criteria:
+            stop_flag = [(null_cts[w][max_key[w]]>=stop_criteria)
+                         for w in window]
+            if all(stop_flag):
                 break
 
     # calculate p-value from empirical null-distribution
-    pvals = {k: float(null_cts[k]) / (num_sim) for k in obs_stat}
+    pvals = {w: {k: float(null_cts[w][k]) / (num_sim) for k in obs_stat[w]}
+             for w in window}
 
     # save empirical distribution
     if null_save_path:
-        # create null distribution
-        output = [['mutation_count', 'p-value']]
-        sorted_cts = sorted(empirical_null.keys())
-        tmp_sum = 0
-        for i in range(len(sorted_cts)):
-            tmp_sum += empirical_null[sorted_cts[-(i+1)]]
-            tmp_pval = tmp_sum / float(num_sim)
-            output.append([sorted_cts[-(i+1)], tmp_pval])
-        # save output
-        with open(null_save_path, 'w') as handle:
-            mywriter = csv.writer(handle, delimiter='\t', lineterminator='\n')
-            mywriter.writerows(output)
+        for w in window:
+            # create null distribution
+            output = [['mutation_count', 'p-value']]
+            sorted_cts = sorted(empirical_null[w].keys())
+            tmp_sum = 0
+            for i in range(len(sorted_cts)):
+                tmp_sum += empirical_null[w][sorted_cts[-(i+1)]]
+                tmp_pval = tmp_sum / float(num_sim)
+                output.append([sorted_cts[-(i+1)], tmp_pval])
+            # save output
+            with open(null_save_path.format(w), 'w') as handle:
+                mywriter = csv.writer(handle, delimiter='\t', lineterminator='\n')
+                mywriter.writerows(output)
 
     return pvals
 
