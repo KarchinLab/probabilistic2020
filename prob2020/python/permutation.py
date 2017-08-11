@@ -305,7 +305,7 @@ def hotmaps_permutation(obs_stat,
                                               gene_seq)
 
             # calculate position info
-            _, tmp_sim = utils.calc_windowed_sum(tmp_mut_info['Codon Pos'],
+            tmp_pos, tmp_sim = utils.calc_windowed_sum(tmp_mut_info['Codon Pos'],
                                                  tmp_mut_info['Reference AA'],
                                                  tmp_mut_info['Somatic AA'],
                                                  window)
@@ -326,7 +326,7 @@ def hotmaps_permutation(obs_stat,
                             null_cts[tmp_w][key] += 1
 
             # update the number of simulations
-            num_sim += len(tmp_sim)
+            num_sim += len(tmp_pos)
 
             # stop iterations if reached sufficient precision
             stop_flag = [(null_cts[w][max_key[w]]>=stop_criteria)
