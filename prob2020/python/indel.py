@@ -139,7 +139,7 @@ def compute_indel_length(fs_df):
     indel_len = pd.Series(index=fs_df.index)
     indel_len[fs_df['Reference_Allele']=='-'] = fs_df['Tumor_Allele'][fs_df['Reference_Allele']=='-'].str.len()
     indel_len[fs_df['Tumor_Allele']=='-'] = fs_df['Reference_Allele'][fs_df['Tumor_Allele']=='-'].str.len()
-    indel_len = indel_len.fillna(0)
+    indel_len = indel_len.fillna(0).astype(int)
     return indel_len
 
 

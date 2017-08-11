@@ -39,7 +39,8 @@ def multiprocess_permutation(bed_dict, mut_df, opts, indel_df=None):
         num_processes = opts['processes']
     else:
         num_processes = 1
-    file_handle = open(opts['output'], 'w')
+    #file_handle = open(opts['output'], 'w')
+    file_handle = opts['handle']
     mywriter = csv.writer(file_handle, delimiter='\t', lineterminator='\n')
     if opts['maf'] and opts['num_iterations']:
         header = ['Gene', 'strand', 'Chromosome', 'Start_Position',
@@ -152,7 +153,7 @@ def multiprocess_permutation(bed_dict, mut_df, opts, indel_df=None):
 
             # write to file
             mywriter.writerows(chrom_results)
-    file_handle.close()
+    #file_handle.close()
 
 
 @utils.log_error_decorator
@@ -393,16 +394,18 @@ def main(opts):
     bed_dict = utils.read_bed(opts['bed'], [])
 
     # perform permutation
+    opts['handle'] = open(opts['output'], 'w')
     multiprocess_permutation(bed_dict, mut_df, opts, indel_df)
 
     # save indels
     if opts['maf']:
-        with open(opts['output'], 'a') as handle:
-            mywriter = csv.writer(handle, delimiter='\t', lineterminator='\n')
-            for maf_lines in indel.simulate_indel_maf(indel_df, bed_dict,
-                                                      opts['num_iterations'],
-                                                      opts['seed']):
-                mywriter.writerows(maf_lines)
+        #with open(opts['output'], 'a') as handle:
+        mywriter = csv.writer(handle, delimiter='\t', lineterminator='\n')
+        for maf_lines in indel.simulate_indel_maf(indel_df, bed_dict,
+                                                    opts['num_iterations'],
+                                                    opts['seed']):
+            mywriter.writerows(maf_lines)
+    opts['handle'].close()
 
 
 def cli_main():
