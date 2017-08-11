@@ -381,7 +381,7 @@ def main(opts, mut_df=None, frameshift_df=None):
                 'information (Droped: {1})'.format(len(mut_df), orig_num_mut - len(mut_df)))
 
     # count frameshifts
-    if opts['kind'] != 'oncogene':
+    if opts['kind'] == 'tsg':
         if frameshift_df is None:
             # read in mutations
             if mut_df is None:
@@ -421,8 +421,8 @@ def main(opts, mut_df=None, frameshift_df=None):
                                                       frameshift_df, p_inactivating)
         permutation_df = pr.handle_tsg_results(permutation_result)
     elif opts['kind'] == 'hotmaps1d':
-        permutation_result = multiprocess_permutation(bed_dict, mut_df, opts,
-                                                      frameshift_df, p_inactivating)
+        permutation_result = multiprocess_permutation(bed_dict, mut_df, opts)
+                                                      #frameshift_df, p_inactivating)
         permutation_df = pr.handle_hotmaps_results(permutation_result)
     elif opts['kind'] == 'protein':
         permutation_result = multiprocess_permutation(bed_dict, mut_df, opts)
