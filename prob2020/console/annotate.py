@@ -400,7 +400,7 @@ def main(opts):
     # save indels
     if opts['maf']:
         #with open(opts['output'], 'a') as handle:
-        mywriter = csv.writer(handle, delimiter='\t', lineterminator='\n')
+        mywriter = csv.writer(opts['handle'], delimiter='\t', lineterminator='\n')
         for maf_lines in indel.simulate_indel_maf(indel_df, bed_dict,
                                                     opts['num_iterations'],
                                                     opts['seed']):
