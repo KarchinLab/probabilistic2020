@@ -117,7 +117,7 @@ def handle_hotmaps_results(permutation_result):
     permutation_df['q-value'] = 1
     for w in permutation_df['window length'].unique():
         is_window = permutation_df['window length'] == w
-        permutation_df.loc[is_window, 'q-value'] = mypval.bh_fdr(permutation_df.loc[is_window, 'q-value'])
+        permutation_df.loc[is_window, 'q-value'] = mypval.bh_fdr(permutation_df.loc[is_window, 'p-value'])
     #permutation_df['q-value'] = mypval.bh_fdr(permutation_df['p-value'])
 
     # order output
