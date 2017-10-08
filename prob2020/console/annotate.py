@@ -333,6 +333,12 @@ def parse_arguments():
                         action='store_true',
                         default=False,
                         help=help_str)
+    help_str = ('Important option for gene panels. Restrict simulated indels to only occur within the same set of '
+                "genes as provied in the mutation file. ")
+    parser.add_argument('--restrict-genes',
+                        action='store_true',
+                        default=False,
+                        help=help_str)
     help_str = ('Specify the seed for the pseudo random number generator. '
                 'By default, the seed is randomly chosen based. The seed will '
                 'be used for the monte carlo simulations (Default: 101).')
@@ -386,6 +392,11 @@ def main(opts):
     }
     mut_df.rename(columns=rename_dict, inplace=True)
 
+    # restrict to only observed genes if flag present
+    restricted_genes = None
+    if opts['restrict_genes']:
+        restricted_genes = set(mut_df['Gene'].unique())
+
     # process indels
     indel_df = indel.keep_indels(mut_df)  # return indels only
     indel_df.loc[:, 'Start_Position'] = indel_df['Start_Position'] - 1  # convert to 0-based
@@ -399,7 +410,7 @@ def main(opts):
     mut_df = utils._fix_mutation_df(mut_df, opts['unique'])
 
     # read in bed info
-    bed_dict = utils.read_bed(opts['bed'], [])
+    bed_dict = utils.read_bed(opts['bed'], restricted_genes)
 
     # perform permutation
     opts['handle'] = open(opts['output'], 'w')
@@ -410,8 +421,8 @@ def main(opts):
         #with open(opts['output'], 'a') as handle:
         mywriter = csv.writer(opts['handle'], delimiter='\t', lineterminator='\n')
         for maf_lines in indel.simulate_indel_maf(indel_df, bed_dict,
-                                                    opts['num_iterations'],
-                                                    opts['seed']):
+                                                  opts['num_iterations'],
+                                                  opts['seed']):
             mywriter.writerows(maf_lines)
     opts['handle'].close()
 

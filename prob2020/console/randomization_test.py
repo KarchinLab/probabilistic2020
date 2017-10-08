@@ -406,9 +406,8 @@ def main(opts, mut_df=None, frameshift_df=None):
     if opts['seed'] is not None:
         logger.info('Pseudo Random Number Generator Seed: {0}'.format(opts['seed']))
 
-    # don't filter out genes for tsg randomization-based test
-    non_tested_genes = []
-    bed_dict = utils.read_bed(opts['bed'], non_tested_genes)
+    # read BED file
+    bed_dict = utils.read_bed(opts['bed'])
 
     # Perform BH p-value adjustment and tidy up data for output
     if opts['kind'] == 'oncogene':

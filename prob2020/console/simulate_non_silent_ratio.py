@@ -373,7 +373,7 @@ def main(opts):
     mut_df = utils._fix_mutation_df(mut_df)
 
     # read in bed info
-    bed_dict = utils.read_bed(opts['bed'], [])
+    bed_dict = utils.read_bed(opts['bed'])
 
     # perform permutation test
     #permutation_result = multiprocess_permutation(bed_dict, mut_df, opts)

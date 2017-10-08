@@ -229,7 +229,7 @@ def bed_generator(bed_path):
             yield BedLine(line)
 
 
-def read_bed(file_path, filtered_genes=[]):
+def read_bed(file_path, restricted_genes=None):
     """Reads BED file and populates a dictionary separating genes
     by chromosome.
 
@@ -248,7 +248,7 @@ def read_bed(file_path, filtered_genes=[]):
     # read in entire bed file into a dict with keys as chromsomes
     bed_dict = OrderedDict()
     for bed_row in bed_generator(file_path):
-        if bed_row.gene_name not in filtered_genes:
+        if restricted_genes is not None and bed_row.gene_name in restricted_genes:
             bed_dict.setdefault(bed_row.chrom, [])
             bed_dict[bed_row.chrom].append(bed_row)
     sort_chroms = sorted(bed_dict.keys(), key=lambda x: len(bed_dict[x]), reverse=True)
