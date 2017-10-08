@@ -326,30 +326,6 @@ def _fix_mutation_df(mutation_df, only_unique=False):
     return mutation_df
 
 
-def _get_high_tsg_score(mutation_df, tsg_score_thresh):
-    # find genes above a tsg score threshold
-    mutation_df['indicator'] = 1
-    table = pd.pivot_table(mutation_df,
-                           values='indicator',
-                           columns='Variant_Classification',
-                           index='Gene',
-                           aggfunc=np.sum)
-    mut_type_frac = table.div(table.sum(axis=1).astype(float), axis=0).fillna(0.0)
-    for c in ['Nonsense_Mutation', 'Frame_Shift_Indel', 'Splice_Site', 'Nonstop_Mutation']:
-        if c not in mut_type_frac.columns:
-            mut_type_frac[c] = 0.0  # make sure columns are defined
-    tsg_score = mut_type_frac['Nonsense_Mutation'] + mut_type_frac['Frame_Shift_Indel'] + \
-                mut_type_frac['Splice_Site'] + mut_type_frac['Nonstop_Mutation']
-    non_tested_genes = set(tsg_score[tsg_score>=tsg_score_thresh].index.tolist())
-
-    # log the number of non tested genes
-    log_msg = ('{0} genes will not be tested due to high TSG '
-               'score'.format(len(non_tested_genes)))
-    logger.info(log_msg)
-
-    return non_tested_genes
-
-
 def codon2aa(codon):
     """Gets corresponding AA for a codon.
 

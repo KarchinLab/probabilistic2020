@@ -413,7 +413,6 @@ def main(opts, mut_df=None, frameshift_df=None):
     if opts['kind'] == 'oncogene':
         permutation_result = multiprocess_permutation(bed_dict, mut_df, opts)
         permutation_df = pr.handle_oncogene_results(permutation_result,
-                                                    non_tested_genes,
                                                     opts['num_iterations'])
     elif opts['kind'] == 'tsg':
         permutation_result = multiprocess_permutation(bed_dict, mut_df, opts,

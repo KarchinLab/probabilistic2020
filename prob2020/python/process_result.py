@@ -45,7 +45,7 @@ def handle_tsg_results(permutation_result):
     return permutation_df[col_order]
 
 
-def handle_oncogene_results(permutation_result, non_tested_genes, num_permutations):
+def handle_oncogene_results(permutation_result, num_permutations):
     """Takes in output from multiprocess_permutation function and converts to
     a better formatted dataframe.
 
