@@ -613,7 +613,8 @@ def summary_permutation(context_counts,
                         score_dir,
                         num_permutations=10000,
                         min_frac=0.0,
-                        min_recur=2):
+                        min_recur=2,
+                        drop_silent=False):
     """Performs null-permutations and summarizes the results as features over
     the gene.
 
@@ -632,6 +633,9 @@ def summary_permutation(context_counts,
         Sequence of gene of interest
     num_permutations : int, default: 10000
         number of permutations to create for null
+    drop_silent : bool, default=False
+        Flage on whether to drop all silent mutations. Some data sources
+        do not report silent mutations, and the simulations should match this.
 
     Returns
     -------
@@ -669,6 +673,11 @@ def summary_permutation(context_counts,
                                                min_frac=min_frac,
                                                min_recur=min_recur)
 
+        # drop silent if needed
+        if drop_silent:
+            # silent mutation count is index 1
+            tmp_summary[1] = 0
+
         # limit the precision of floats
         #pos_ent = tmp_summary[-1]
         #tmp_summary[-1] = '{0:.5f}'.format(pos_ent)
@@ -681,7 +690,8 @@ def maf_permutation(context_counts,
                     context_to_mut,
                     seq_context,
                     gene_seq,
-                    num_permutations=10000):
+                    num_permutations=10000,
+                    drop_silent=False):
     """Performs null-permutations across all genes and records the results in
     a format like a MAF file. This could be useful for examining the null
     permutations because the alternative approaches always summarize the results.
@@ -703,6 +713,9 @@ def maf_permutation(context_counts,
         Sequence of gene of interest
     num_permutations : int, default: 10000
         number of permutations to create for null
+    drop_silent : bool, default=False
+        Flage on whether to drop all silent mutations. Some data sources
+        do not report silent mutations, and the simulations should match this.
 
     Returns
     -------
@@ -760,9 +773,8 @@ def maf_permutation(context_counts,
                 ref_nuc = utils.rev_comp(ref_nuc)
                 mysomatic_base = utils.rev_comp(mysomatic_base)
 
-
             # append results
-            #if var_class[k].decode() != 'Silent':
+            if drop_silent and var_class[k].decode() == 'Silent': continue
             maf_line = [gene_name, strand, chrom, genome_coord[k], genome_coord[k],
                         ref_nuc, mysomatic_base, base_context[k], dna_change,
                         protein_change, var_class[k].decode()]

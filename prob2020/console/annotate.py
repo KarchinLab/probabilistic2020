@@ -205,7 +205,8 @@ def singleprocess_permutation(info):
                                                 context_to_mutations,
                                                 sc,
                                                 gs,
-                                                num_iterations)
+                                                num_iterations,
+                                                drop_silent=opts['drop_silent'])
             else:
                 # Summarized results for feature for each simulation for each
                 # gene
@@ -216,7 +217,8 @@ def singleprocess_permutation(info):
                                                     opts['score_dir'],
                                                     num_iterations,
                                                     min_frac=opts['fraction'],
-                                                    min_recur=opts['recurrent'])
+                                                    min_recur=opts['recurrent'],
+                                                    drop_silent=opts['drop_silent'])
             result += tmp_result
 
     gene_fa.close()
@@ -322,6 +324,12 @@ def parse_arguments():
                 'Mutations reproted from heterogeneous sources may contain'
                 ' duplicates, e.g. a tumor sample was sequenced twice.')
     parser.add_argument('--unique',
+                        action='store_true',
+                        default=False,
+                        help=help_str)
+    help_str = ('Drop silent mutations in simulations. Useful if provided mutations '
+                "don't include silent mutations")
+    parser.add_argument('--drop-silent',
                         action='store_true',
                         default=False,
                         help=help_str)
