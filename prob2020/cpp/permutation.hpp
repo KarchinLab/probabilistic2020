@@ -2,12 +2,17 @@
 #include <cmath>
 #include <string>
 
-#define M_LOG2E 1.44269504088896340736L //log2(e)
+//#define M_LOG2E 1.44269504088896340736L //log2(e)
 
-/* Log base 2 */
-inline long double log2(const long double x){
-    return  log(x) * M_LOG2E;
-}
+#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1900)
+    #define mylog2 std::log2l
+#else
+    /* Log base 2 */
+    inline long double log2(const long double x){
+        return  log(x) * M_LOG2E;
+    }
+    #define mylog2 log2
+#endif
 
 /* Calculates all position-based statistics in one function.
  * Specifically it calculates:
@@ -66,13 +71,13 @@ std::map<std::string, double> calc_position_statistics(std::map<int, int> pos_ct
         if (val<min_recurrent && is_observed==1){
             p = 1 / mysum;
             for (int i=0; i<val; i++){
-                myent_2 -= p * log2(p);
+                myent_2 -= p * mylog2(p);
                 myent_e -= p * log(p);
                 num_pos += 1;
             }
         } else {
             p = val / mysum;
-            myent_2 -= p * log2(p);
+            myent_2 -= p * mylog2(p);
             myent_e -= p * log(p);
             num_pos += 1;
         }
@@ -83,7 +88,7 @@ std::map<std::string, double> calc_position_statistics(std::map<int, int> pos_ct
         delta_ent = log(num_pos) - myent_e;
     }
     if (mysum > 1) {
-        frac_of_uniform_ent = myent_2 / log2(mysum);
+        frac_of_uniform_ent = myent_2 / mylog2(mysum);
     }
 
     // put output in a map container
@@ -140,7 +145,7 @@ std::map<std::string, double> calc_effect_statistics(std::map<int, int> pos_ctr,
         if (pos==-1){
             num_inactivating = val;
             p = val / mysum;
-            myent_2 -= p * log2(p);
+            myent_2 -= p * mylog2(p);
             num_pos += 1;
             continue;
         }
@@ -157,19 +162,19 @@ std::map<std::string, double> calc_effect_statistics(std::map<int, int> pos_ctr,
         if (val<min_recurrent && is_observed==1){
             p = 1 / mysum;
             for (int i=0; i<val; i++){
-                myent_2 -= p * log2(p);
+                myent_2 -= p * mylog2(p);
                 num_pos += 1;
             }
         } else {
             p = val / mysum;
-            myent_2 -= p * log2(p);
+            myent_2 -= p * mylog2(p);
             num_pos += 1;
         }
     }
 
     // normalize the entropy metrics
     if (mysum > 1) {
-        frac_of_uniform_ent = myent_2 / log2(mysum);
+        frac_of_uniform_ent = myent_2 / mylog2(mysum);
     }
 
     // put output in a map container
