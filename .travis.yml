@@ -1,6 +1,5 @@
 language: python
 python:
-- '3.5'
 - '3.6'
 branches:
   only:
@@ -21,6 +20,7 @@ install:
 - source activate test-environment
 - conda install -c bioconda pysam
 - make cython-build
+- pip install probabilistic2020
 script: make tests
 deploy:
   provider: pypi
