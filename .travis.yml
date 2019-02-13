@@ -20,7 +20,6 @@ install:
 - source activate test-environment
 - conda install -c bioconda pysam
 - make cython-build
-- pip install probabilistic2020
 script: make tests
 deploy:
   provider: pypi
