@@ -10,3 +10,7 @@ by looking at posts with the tag `prob2020 <https://www.biostars.org/t/prob2020/
 Otherwise, create a new post with the prob2020 tag. We will be checking
 biostars for questions. You may also contact me directly at
 ctokheim AT jhu dot edu.
+
+**What python version should I use?**
+
+We recommend using python 3.6, as the package has been extensively tested on this version of python.
