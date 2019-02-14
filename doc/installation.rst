@@ -9,7 +9,7 @@ Installation
 Python Package Installation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Using the python package installation, all the required python packages for the probabibilistic 20/20 test will automatically be installed for you.
+Using the python package installation, all the required python packages for the probabibilistic 20/20 test will automatically be installed for you. We recommend use of python version 3.6, if possible. 
 
 To install the package into python you can use `pip`. If you are installing to a system wide python then you may need to use `sudo` before the pip command.
 
