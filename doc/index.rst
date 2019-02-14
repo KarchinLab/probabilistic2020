@@ -7,7 +7,7 @@ Probabilistic 20/20: somatic mutation simulator
 ===============================================
 
 :Author: Collin Tokheim
-:Contact: ctokheim AT jhu.edu
+:Contact: ctokhei1 AT alumni.jh.edu 
 :Source code: `GitHub <https://github.com/KarchinLab/probabilistic2020>`_
 :Q&A: `Biostars (tag: prob2020) <https://www.biostars.org/t/prob2020/>`_ 
 
