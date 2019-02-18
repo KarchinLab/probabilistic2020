@@ -19,16 +19,6 @@ else:
 import numpy as np
 ext = '.pyx' if USE_CYTHON else '.cpp'
 extensions = [
-    #Extension(SRC_DIR + ".cython.uniform_kde",
-              #[SRC_DIR +'/cython/uniform_kde'+ext],
-              #language='c++',
-              #include_dirs=[SRC_DIR + '/cython/',
-                            #np.get_include()]),
-    #Extension(SRC_DIR + ".cython.gaussian_kde",
-              #[SRC_DIR + '/cython/gaussian_kde'+ext],
-              #language='c++',
-              #include_dirs=[SRC_DIR + '/cython/',
-                            #np.get_include()]),
     Extension(SRC_DIR + ".cython.cutils",
               [SRC_DIR + "/cython/cutils"+ext],
               language='c++',
