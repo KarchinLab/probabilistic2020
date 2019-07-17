@@ -16,6 +16,7 @@ class SequenceContext(object):
             c: np.random.RandomState(seed=self.seed)
             for c in context_names
         }
+        self.prng_dict['N'] = np.random.RandomState(seed=self.seed)
 
     def _init_context(self, gene_seq):
         """Initializes attributes defining mutation contexts and their position.
