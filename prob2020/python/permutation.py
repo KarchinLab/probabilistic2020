@@ -67,7 +67,7 @@ def deleterious_permutation(obs_del,
         # get random positions determined by sequence context
         tmp_contxt_pos = seq_context.random_pos(context_counts.iteritems(),
                                                 batch_size)
-        tmp_mut_pos = np.hstack(pos_array for base, pos_array in tmp_contxt_pos)
+        tmp_mut_pos = np.hstack([pos_array for base, pos_array in tmp_contxt_pos])
 
         # determine result of random positions
         for i, row in enumerate(tmp_mut_pos):
@@ -166,7 +166,7 @@ def position_permutation(obs_stat,
         # get random positions determined by sequence context
         tmp_contxt_pos = seq_context.random_pos(context_counts.iteritems(),
                                                 batch_size)
-        tmp_mut_pos = np.hstack(pos_array for base, pos_array in tmp_contxt_pos)
+        tmp_mut_pos = np.hstack([pos_array for base, pos_array in tmp_contxt_pos])
 
         # calculate position-based statistics as a result of random positions
         for i, row in enumerate(tmp_mut_pos):
@@ -284,7 +284,6 @@ def hotmaps_permutation(obs_stat,
     num_sim = 0 # number of simulations
     for j, batch_size in enumerate(batch_sizes):
         # stop iterations if reached sufficient precision
-        # stop iterations if reached sufficient precision
         stop_flag = [(null_cts[w][max_key[w]]>=stop_criteria)
                       for w in window]
         if all(stop_flag):
@@ -295,7 +294,7 @@ def hotmaps_permutation(obs_stat,
         # get random positions determined by sequence context
         tmp_contxt_pos = seq_context.random_pos(context_counts.iteritems(),
                                                 batch_size)
-        tmp_mut_pos = np.hstack(pos_array for base, pos_array in tmp_contxt_pos)
+        tmp_mut_pos = np.hstack([pos_array for base, pos_array in tmp_contxt_pos])
 
         # calculate position-based statistics as a result of random positions
         for i, row in enumerate(tmp_mut_pos):
@@ -408,7 +407,7 @@ def protein_permutation(graph_score,
     # get random positions determined by sequence context
     tmp_contxt_pos = seq_context.random_pos(context_counts.iteritems(),
                                             num_permutations)
-    tmp_mut_pos = np.hstack(pos_array for base, pos_array in tmp_contxt_pos)
+    tmp_mut_pos = np.hstack([pos_array for base, pos_array in tmp_contxt_pos])
 
     # calculate position-based statistics as a result of random positions
     null_graph_entropy_ct = 0
@@ -529,7 +528,7 @@ def effect_permutation(context_counts,
     # get random positions determined by sequence context
     tmp_contxt_pos = seq_context.random_pos(context_counts.iteritems(),
                                             num_permutations)
-    tmp_mut_pos = np.hstack(pos_array for base, pos_array in tmp_contxt_pos)
+    tmp_mut_pos = np.hstack([pos_array for base, pos_array in tmp_contxt_pos])
 
     # calculate position-based statistics as a result of random positions
     effect_entropy_list, recur_list, inactivating_list = [], [], []
@@ -588,7 +587,7 @@ def non_silent_ratio_permutation(context_counts,
     # get random positions determined by sequence context
     tmp_contxt_pos = seq_context.random_pos(context_counts.iteritems(),
                                             num_permutations)
-    tmp_mut_pos = np.hstack(pos_array for base, pos_array in tmp_contxt_pos)
+    tmp_mut_pos = np.hstack([pos_array for base, pos_array in tmp_contxt_pos])
 
     # determine result of random positions
     non_silent_count_list = []
@@ -652,7 +651,7 @@ def summary_permutation(context_counts,
     # get random positions determined by sequence context
     tmp_contxt_pos = seq_context.random_pos(context_counts.iteritems(),
                                             num_permutations)
-    tmp_mut_pos = np.hstack(pos_array for base, pos_array in tmp_contxt_pos)
+    tmp_mut_pos = np.hstack([pos_array for base, pos_array in tmp_contxt_pos])
 
     # determine result of random positions
     gene_name = gene_seq.bed.gene_name
@@ -730,7 +729,7 @@ def maf_permutation(context_counts,
     # get random positions determined by sequence context
     tmp_contxt_pos = seq_context.random_pos(context_counts.iteritems(),
                                             num_permutations)
-    tmp_mut_pos = np.hstack(pos_array for base, pos_array in tmp_contxt_pos)
+    tmp_mut_pos = np.hstack([pos_array for base, pos_array in tmp_contxt_pos])
 
     # info about gene
     gene_name = gene_seq.bed.gene_name
