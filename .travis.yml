@@ -16,7 +16,7 @@ install:
 - conda config --set always_yes yes --set changeps1 no
 - conda update -q conda
 - conda info -a
-- if [[ "$TRAVIS_PYTHON_VERSION" == "3.6" ]]; then conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION numpy scipy nose cython pandas ; else conda create -q -n test-environment numpy scipy nose cython pandas ; fi
+- if [[ "$TRAVIS_PYTHON_VERSION" == "3.6" ]]; then conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION numpy scipy<1.0.0 nose cython pandas ; else conda create -q -n test-environment numpy scipy<1.0.0 nose cython pandas ; fi
 - source activate test-environment
 - conda install -c bioconda pysam
 - make build
